@@ -8,7 +8,42 @@
 # 
 
 
+
+# 
+# Check input arguments and pring usage
+# 
 import os, sys
+if len(sys.argv) <= 1:
+    print("Usage: ")
+    print("  caap_analyze_fits_image_pixel_histogram.py \"InputFitsImage.fits\"")
+    print("")
+    print("Aim:")
+    print("  This code will analyze the pixel histogram distrbution of the input image and make a Gaussian fit to compute the pixel statistics including pixel noise. ")
+    print("")
+    print("Output:")
+    print("  InputFitsImage.pixel.histogram.eps")
+    print("  InputFitsImage.pixel.histogram.ylog.eps")
+    print("  InputFitsImage.pixel.statistics.txt")
+    print("")
+    sys.exit()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import numpy as np
 import scipy
 import astropy
@@ -40,18 +75,6 @@ pl.rcParams['figure.figsize'] = (21/2.0*0.95), (21/2.0*0.95)/16*9 # width = half
 
 
 fig, axes = pl.subplots() # nrows=2, ncols=2 # ax0, ax1, ax2, ax3 = axes.flatten()
-
-
-
-
-# 
-# Check input arguments and pring usage
-# 
-if len(sys.argv) <= 1:
-    print("Usage: ")
-    print("  caap_analyze_fits_image_pixel_histogram.py \"aaa.fits\"")
-    print("")
-    sys.exit()
 
 
 # 

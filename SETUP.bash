@@ -19,7 +19,7 @@ if [[ $PATH != *"$CRABTOOLKITCAAP/bin"* ]]; then
 fi
 #
 # LIST
-CRABTOOLKITCMD=("alma-sky-coverage.py")
+CRABTOOLKITCMD=("alma-sky-coverage" "fits-image-to-coverage-polyogn" "caap-analyze-fits-image-pixel-histogram" "caap-generate-PSF-Gaussian-2D")
 # 
 # CHECK
 # -- 20160427 only for interactive shell
