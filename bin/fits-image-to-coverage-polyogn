@@ -1,0 +1,33 @@
+#!/bin/bash
+# 
+
+
+if [[ x"$IDL_DIR" == x ]]; then
+    echo "Error! IDL was not installed! The system variable \$IDL_DIR is empty!"
+    exit 1
+fi
+
+if [[ $# -lt 1 ]]; then
+    echo "Usage: fits-image-to-coverage-polyogn sci.fits rms.fits"
+    exit
+fi
+
+
+ScriptDir=$( cd $( dirname "${BASH_SOURCE[0]}" ) && pwd -P )
+ScriptName=$( basename "${BASH_SOURCE[0]}" )
+#echo "$ScriptDir"
+
+
+if [[ x"$IDL_PATH" == x ]]; then
+    export IDL_PATH="+$IDL_DIR/lib"
+else
+    export IDL_PATH="$IDL_PATH:+$ScriptDir"
+fi
+
+if [[ $# -eq 1 ]]; then
+    echo "fits_image_to_coverage_polygon, sci='$1'"
+    echo "fits_image_to_coverage_polygon, sci='$1'" | idl
+elif [[ $# -ge 2 ]]; then
+    echo "fits_image_to_coverage_polygon, sci='$1', rms='$2'"
+    echo "fits_image_to_coverage_polygon, sci='$1', rms='$2'" | idl
+fi

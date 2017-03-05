@@ -50,6 +50,7 @@ import wcsaxes
 if len(sys.argv) <= 1:
     print("Usage: ")
     print("  alma-sky-coverage.py \"fits_image.fits\"")
+    print("  alma-sky-coverage.py \"fits_image.fits\" \"more_coverage_polygon.txt\"")
     print("")
     sys.exit()
 
@@ -212,6 +213,17 @@ def calc_alma_beam_from_freq_str(freq_str):
     beam_size = 1.02 * (constants.c.to('m/s').value/(freq_mean*1e9)) / 12.0 / math.pi * 180.0 * 3600.0 # 12m telescope HPBW -- https://www.iram.fr/IRAMFR/ARC/documents/cycle3/alma-technical-handbook.pdf Equation(3.4)
     # 
     return beam_size, freq_mean, freq_list
+
+# 
+# Auxillary function
+# 
+def find_closest_data_point(points, posxy):
+    return sorted( points, key=lambda p: (p[0]-posxy[0])*(p[0]-posxy[0])+(p[1]-posxy[1])*(p[1]-posxy[1]) )[0]
+
+
+
+
+
 
 
 
@@ -463,7 +475,7 @@ pyplot.pause(0.05)
 
 # draw annotation text
 print("Plotting Annotation at %.3f %.3f (ALMA archive pointings)"%(PlotAnchor['posxy'][0], PlotAnchor['posxy'][1]))
-pyplot.text(PlotAnchor['posxy'][0], PlotAnchor['posxy'][1], 'ALMA archive pointings', color='seagreen', fontsize=15, horizontalalignment='left', verticalalignment='bottom', zorder=5)
+pyplot.text(PlotAnchor['posxy'][0], PlotAnchor['posxy'][1], 'ALMA archive pointings', color='seagreen', fontsize=16, horizontalalignment='left', verticalalignment='bottom', zorder=5)
 pyplot.draw()
 pyplot.pause(0.05)
 
@@ -481,11 +493,82 @@ pyplot.pause(0.05)
 
 
 
-############################
-#                          #
-# Plot ancillary coverages #
-#                          #
-############################
+###############################
+#                             #
+# Plot more coverage polygons #
+#                             #
+###############################
+
+for i in range(2,len(sys.argv)):
+    InputPolygonFile = sys.argv[i]
+    if os.path.isfile(InputPolygonFile):
+        with open(InputPolygonFile) as fp:
+            t_coverage_name = ''
+            t_coverage_color = 'red'
+            t_coverage_linecolor = ''
+            t_coverage_fontcolor = ''
+            t_coverage_linewidth = 2.05
+            t_coverage_linestyle = 'solid'
+            t_coverage_transparency = 1.0
+            t_coverage_fontsize = 16
+            t_polygon_points = []
+            t_anchor_point = [] # look for an anchor point where we show the annotation text
+            for tmpstr in fp:
+                if not tmpstr.startswith('#'):
+                    if len(t_polygon_points) >= 0:
+                        t_polygon_point = FitsImageWCS.wcs_world2pix(float(tmpstr.split()[0]), float(tmpstr.split()[1]), 1) # 3rd arg: origin is the coordinate in the upper left corner of the image. In FITS and Fortran standards, this is 1. In Numpy and C standards this is 0.
+                        t_polygon_points.append((t_polygon_point[0],t_polygon_point[1]))
+                elif tmpstr.replace(' ','').startswith('#color'):
+                    if tmpstr.replace(' ','').replace('#color','').strip() != '':
+                        t_coverage_color = tmpstr.replace(' ','').replace('#color','').strip()
+                elif tmpstr.replace(' ','').startswith('#linecolor'):
+                    if tmpstr.replace(' ','').replace('#linecolor','').strip() != '':
+                        t_coverage_linecolor = tmpstr.replace(' ','').replace('#linecolor','').strip()
+                elif tmpstr.replace(' ','').startswith('#linewidth'):
+                    if tmpstr.replace(' ','').replace('#linewidth','').strip() != '':
+                        t_coverage_linewidth = float(tmpstr.replace(' ','').replace('#linewidth','').strip())
+                elif tmpstr.replace(' ','').startswith('#linestyle'):
+                    if tmpstr.replace(' ','').replace('#linewidth','').strip() != '':
+                        t_coverage_linewidth = tmpstr.replace(' ','').replace('#linewidth','').strip()
+                elif tmpstr.replace(' ','').startswith('#fontsize'):
+                    if tmpstr.replace(' ','').replace('#fontsize','').strip() != '':
+                        t_coverage_fontsize = float(tmpstr.replace(' ','').replace('#fontsize','').strip())
+                elif tmpstr.replace(' ','').startswith('#fontcolor'):
+                    if tmpstr.replace(' ','').replace('#fontcolor','').strip() != '':
+                        t_coverage_fontcolor = tmpstr.replace(' ','').replace('#fontcolor','').strip()
+                elif tmpstr.replace(' ','').startswith('#transparency'):
+                    if tmpstr.replace(' ','').replace('#transparency','').strip() != '':
+                        t_coverage_transparency = 1.0 - float(tmpstr.replace(' ','').replace('#transparency','').strip())
+                else:
+                    if tmpstr.replace('#','').strip() != '':
+                        t_coverage_name = tmpstr.replace('#','').strip()
+            # determine color
+            if t_coverage_linecolor == '':
+                t_coverage_linecolor = t_coverage_color
+            if t_coverage_fontcolor == '':
+                if t_coverage_color == 'cyan':
+                    t_coverage_color = hex2color('#00e0e0')
+                t_coverage_fontcolor = t_coverage_color
+            # find anchor point
+            #t_anchor_radec = FitsImageWCS.wcs_pix2world(long(FitsImageHeader['NAXIS1'])-1, long(FitsImageHeader['NAXIS2'])-1, 1) # 3rd arg: origin is the coordinate in the upper left corner of the image. In FITS and Fortran standards, this is 1. In Numpy and C standards this is 0.
+            #t_anchor_point = find_closest_data_point(t_polygon_points, t_anchor_radec)
+            t_corner_point = (long(FitsImageHeader['NAXIS1'])-1, long(FitsImageHeader['NAXIS2'])-1)
+            t_anchor_point = find_closest_data_point(t_polygon_points, t_corner_point)
+            # plot a polygon
+            PlotShape = Polygon(t_polygon_points, closed=True, edgecolor=t_coverage_linecolor, facecolor="none", alpha=t_coverage_transparency, linewidth=t_coverage_linewidth, linestyle=t_coverage_linestyle, zorder=5)
+            PlotPanel.add_artist(PlotShape)
+            #pyplot.draw()
+            #pyplot.pause(0.05)
+            fp.close()
+            # 
+            # draw annotation text
+            #posxy = FitsImageWCS.wcs_world2pix(149.78583, 1.505, 1) # 3rd arg: origin is the coordinate in the upper left corner of the image. In FITS and Fortran standards, this is 1. In Numpy and C standards this is 0.
+            posxy = t_anchor_point
+            print("Plotting Annotation at %.3f %.3f (%s)"%(posxy[0], posxy[1], InputPolygonFile))
+            pyplot.text(posxy[0], posxy[1], t_coverage_name, color=t_coverage_fontcolor, fontsize=t_coverage_fontsize, horizontalalignment='center', verticalalignment='bottom')
+            pyplot.draw()
+            pyplot.pause(0.05)
+
 
 
 
