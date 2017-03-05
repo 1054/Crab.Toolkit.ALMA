@@ -1,0 +1,8 @@
+a_dzliu_code_highz_galaxy_crossmatcher_v1.py
+
+This code is used before 20170223. 
+
+In this code, we use find max peak to help remove bright pixels and estimate the rms of each cutout image, so as to deterine the S/N of the aperture photometry of the source. 
+
+In new version (v2), we use pixel histogram Gaussian fitting to do that, and is much faster. So this version (v1) is not used. 
+

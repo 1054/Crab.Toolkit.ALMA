@@ -4,15 +4,18 @@
 if [[ $(uname) == *"Darwin"* ]]; then
     function readlink() {
         if [[ $# -gt 1 ]]; then if [[ "$1" == "-f" ]]; then shift; fi; fi
-        DIR=$(echo "${1%/*}"); (cd "$DIR" && echo "$(pwd -P)/$(basename ${1})")
+        DIR="$1"; if [[ "$DIR" != *"/"* ]]; then DIR="./$DIR"; fi # 20170228: fixed bug: path without "/"
+        DIR=$(echo "${DIR%/*}") # 20160410: fixed bug: source SETUP just under the Softwares dir
+        if [[ -d "$DIR" ]]; then cd "$DIR" && echo "$(pwd -P)/$(basename ${1})"; 
+        else echo "$(pwd -P)/$(basename ${1})"; fi
     }
 fi
-CRABTOOLKITDIR=$(dirname $(readlink -f "${BASH_SOURCE[0]}"))
-export CRABTOOLKITDIR
+CRABTOOLKITCAAP=$(dirname $(readlink -f "${BASH_SOURCE[0]}"))
+export CRABTOOLKITCAAP
 #
 # PATH
-if [[ $PATH != *"$CRABTOOLKITDIR/bin"* ]]; then
-    export PATH="$CRABTOOLKITDIR/bin":$PATH
+if [[ $PATH != *"$CRABTOOLKITCAAP/bin"* ]]; then
+    export PATH="$CRABTOOLKITCAAP/bin":$PATH
 fi
 #
 # LIST

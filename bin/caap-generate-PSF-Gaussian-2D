@@ -1,0 +1,10 @@
+#!/bin/bash
+# 
+
+if [[ $(type caap_generate_PSF_Gaussian_2D.py 2>/dev/null | wc -l) -eq 0 ]]; then
+    #ls $(dirname "${BASH_SOURCE[0]}")/../SETUP.bash
+    source $(dirname "${BASH_SOURCE[0]}")/../SETUP.bash
+fi
+
+caap_generate_PSF_Gaussian_2D.py "$@"
+

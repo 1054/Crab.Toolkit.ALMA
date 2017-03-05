@@ -1,24 +1,24 @@
 #!/usr/bin/fish
 # 
 # 
-# CRABTOOLKITDIR
+# CRABTOOLKITCAAP
 if contains "Linux" (uname)
-    set -x CRABTOOLKITDIR (dirname (readlink -f (status --current-filename)))
+    set -x CRABTOOLKITCAAP (dirname (readlink -f (status --current-filename)))
 end
 if contains "Darwin" (uname)
-    set -x CRABTOOLKITDIR (dirname (perl -MCwd -e 'print Cwd::abs_path shift' (status --current-filename)))
+    set -x CRABTOOLKITCAAP (dirname (perl -MCwd -e 'print Cwd::abs_path shift' (status --current-filename)))
 end
-export CRABTOOLKITDIR
-#<DEBUG># echo "$CRABTOOLKITDIR"
+export CRABTOOLKITCAAP
+#<DEBUG># echo "$CRABTOOLKITCAAP"
 # 
 # Check
-if [ x"$CRABTOOLKITDIR" = x"" ]
+if [ x"$CRABTOOLKITCAAP" = x"" ]
     exit
 end
 #
 # PATH
-if not contains "$CRABTOOLKITDIR/bin" $PATH
-    set -x PATH "$CRABTOOLKITDIR/bin" $PATH
+if not contains "$CRABTOOLKITCAAP/bin" $PATH
+    set -x PATH "$CRABTOOLKITCAAP/bin" $PATH
 end
 #
 # LIST
