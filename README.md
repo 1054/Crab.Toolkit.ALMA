@@ -10,7 +10,9 @@ alma-sky-coverage.py
 ```
 
 ## Tools
-#### alma-sky-coverage.py
+#### alma-sky-coverage
+#### caap-analyze-fits-image-pixel-histogram
+#### caap-generate-PSF-Gaussian-2D
 
 
 

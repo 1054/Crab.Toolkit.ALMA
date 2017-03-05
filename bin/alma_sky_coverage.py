@@ -2,6 +2,22 @@
 # 
 
 
+# 
+# Check input arguments
+# 
+import os, sys
+if len(sys.argv) <= 1:
+    print("Usage: ")
+    print("  alma-sky-coverage.py \"fits_image.fits\"")
+    print("  alma-sky-coverage.py \"fits_image.fits\" \"more_coverage_polygon.txt\"")
+    print("")
+    sys.exit()
+
+
+
+# 
+# Check python package dependencies
+# 
 try:
     import pkg_resources
 except ImportError:
@@ -9,9 +25,6 @@ except ImportError:
 
 pkg_resources.require("numpy")
 pkg_resources.require("astropy>=1.3")
-
-import os
-import sys
 import time
 import glob
 import math
@@ -45,15 +58,8 @@ import wcsaxes
 
 
 # 
-# Check input arguments
+# Read input arguments
 # 
-if len(sys.argv) <= 1:
-    print("Usage: ")
-    print("  alma-sky-coverage.py \"fits_image.fits\"")
-    print("  alma-sky-coverage.py \"fits_image.fits\" \"more_coverage_polygon.txt\"")
-    print("")
-    sys.exit()
-
 InputFitsFile = sys.argv[1]
 
 if not os.path.isfile(InputFitsFile):

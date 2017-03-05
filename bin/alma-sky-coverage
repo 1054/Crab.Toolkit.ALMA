@@ -1,0 +1,10 @@
+#!/bin/bash
+# 
+
+if [[ $(type alma_sky_coverage.py 2>/dev/null | wc -l) -eq 0 ]]; then
+    #ls $(dirname "${BASH_SOURCE[0]}")/../SETUP.bash
+    source $(dirname "${BASH_SOURCE[0]}")/../SETUP.bash
+fi
+
+alma_sky_coverage.py "$@"
+
