@@ -6,7 +6,7 @@ Toolkit for a tiny project: CAAP (Cosmos Alma Archive Project).
 ```
 bash
 source /path/to/Crab.Toolkit.CAAP/SETUP
-alma-sky-coverage.py
+alma-sky-coverage
 ```
 
 ## Tools
