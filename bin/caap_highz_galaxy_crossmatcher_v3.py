@@ -669,7 +669,7 @@ class CrossMatch_Identifier(object):
                 # 
                 # 
                 #<20170304><dzliu><plang># downweight offset score
-                self.Match['Morphology']['Score'] = self.Match['Morphology']['Score'] / numpy.min([numpy.max([self.Match['Morphology']['Extended']/100.0, 1.0]), 3.0]) #<TODO># Extended parameter above 100 will be down-weighted in their Separation, by maximum a factor of 3. 
+                self.Match['Morphology']['Score'] = self.Match['Morphology']['Score'] * numpy.min([numpy.max([self.Match['Morphology']['Extended']/100.0, 1.0]), 3.0]) #<TODO># Extended parameter above 100 will be down-weighted in their Separation, by maximum a factor of 3. 
                 self.Match['Morphology']['Score'] = numpy.min([self.Match['Morphology']['Score'], 100])
                 # 
                 #<test># self.Match['Photometry']['Score'] = ( 1.0 - numpy.exp( -(self.Match['Photometry']['S/N']/12.0                 ) ) ) * 50.0 
