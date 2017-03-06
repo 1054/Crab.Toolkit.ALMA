@@ -627,11 +627,12 @@ class CrossMatch_Identifier(object):
                     print("Background-subtracted source-position flux within %.2fxFWHM is %-10.4g (S/N:%7.4g) (flux growth:%6.3g) (S.B.:%10.4g) (S.B. annulus:%10.4g) (S/N annulus:%7.4g)"%(PhotAper_Array[iAper]['Radius'], PhotAper_Array[iAper]['Flux'], PhotAper_Array[iAper]['Flux']/PhotAper_Array[iAper]['Error'], PhotAper_Array[iAper]['Flux Growth'], PhotAper_Array[iAper]['S.B.'], PhotAper_Array[iAper]['S.B. Annulus'], PhotAper_Array[iAper]['S/N Annulus']))
                 # 
                 # poly fit to the S.B. radial profile
+                temp_index_x1FWHM = 3 # [0.25, 0.50, 0.75, 1.00], 1.00 is the subscript 3
                 temp_x = [t['Radius'] for t in PhotAper_Array]
                 temp_y = [t['S/N Annulus'] for t in PhotAper_Array]
                 temp_x = temp_x
-                temp_y = temp_y / temp_y[3] - 1.0# temp_y[3] is x1.00 FHWM
-                self.Match['Morphology']['Polyfit'] = numpy.polyfit(temp_x[3:], temp_y[3:], 1) #<TODO># use 1-order polyfit, i.e. a line
+                temp_y = temp_y / temp_y[temp_index_x1FWHM] - 1.0# temp_y[temp_index_x1FWHM] is x1.00 FHWM
+                self.Match['Morphology']['Polyfit'] = numpy.polyfit(temp_x[temp_index_x1FWHM:], temp_y[temp_index_x1FWHM:], 1) #<TODO># use 1-order polyfit, i.e. a line
                 #
                 # estimate extended parameter
                 # -- try to use 'S.B. Annulus' profile polyfit
@@ -648,20 +649,27 @@ class CrossMatch_Identifier(object):
                 print('Radial annulus final/first ratio: %s'%(PhotAper_Array[-1]['S.B.'] / PhotAper_Array[0]['S.B.']))
                 # 
                 # choose the highest S/N as the result
-                temp_f = [t['Flux'] for t in PhotAper_Array]
-                temp_df = [t['Error'] for t in PhotAper_Array]
-                temp_snr = numpy.array(temp_f)/numpy.array(temp_df)
-                temp_index = numpy.where(temp_snr == numpy.max(temp_snr))
-                self.Match['Photometry']['Flux'] = PhotAper_Array[temp_index[0][0]]['Flux']
-                self.Match['Photometry']['FluxError'] = PhotAper_Array[temp_index[0][0]]['Error']
-                self.Match['Photometry']['Aperture'] = PhotAper_Array[temp_index[0][0]]['Radius']
+                #temp_f = [t['Flux'] for t in PhotAper_Array]
+                #temp_df = [t['Error'] for t in PhotAper_Array]
+                #temp_snr = numpy.array(temp_f)/numpy.array(temp_df)
+                #temp_index = numpy.where(temp_snr == numpy.max(temp_snr))
+                #self.Match['Photometry']['Flux'] = PhotAper_Array[temp_index[0][0]]['Flux']
+                #self.Match['Photometry']['FluxError'] = PhotAper_Array[temp_index[0][0]]['Error']
+                #self.Match['Photometry']['Aperture'] = PhotAper_Array[temp_index[0][0]]['Radius']
+                #self.Match['Photometry']['S/N'] = self.Match['Photometry']['Flux'] / self.Match['Photometry']['FluxError']
+                # 
+                # choose the x1.00 FHWM S/N as the result
+                temp_index_x1FWHM = 3 # [0.25, 0.50, 0.75, 1.00], 1.00 is the subscript 3
+                self.Match['Photometry']['Flux'] = PhotAper_Array[temp_index_x1FWHM]['Flux']
+                self.Match['Photometry']['FluxError'] = PhotAper_Array[temp_index_x1FWHM]['Error']
+                self.Match['Photometry']['Aperture'] = PhotAper_Array[temp_index_x1FWHM]['Radius']
                 self.Match['Photometry']['S/N'] = self.Match['Photometry']['Flux'] / self.Match['Photometry']['FluxError']
                 for iAper in range(len(PhotAper_Array)):
                     self.Match['Photometry']['GrowthCurve'].append((PhotAper_Array[iAper]['Radius']*major*numpy.mean(self.FitsImagePixScale), PhotAper_Array[iAper]['S.B. Annulus'])) # tuple, radisu in unit of arcsec, flux and flux error in original pixel value unit. 
                 # 
                 # 
                 #<20170304><dzliu><plang># downweight offset score
-                self.Match['Morphology']['Score'] = self.Match['Morphology']['Score'] / numpy.max([self.Match['Morphology']['Extended']/100.0, 1.0]) #<TODO># Extended above 60 will be downweighted
+                self.Match['Morphology']['Score'] = self.Match['Morphology']['Score'] / numpy.min([numpy.max([self.Match['Morphology']['Extended']/100.0, 1.0]), 3.0]) #<TODO># Extended parameter above 100 will be down-weighted in their Separation, by maximum a factor of 3. 
                 self.Match['Morphology']['Score'] = numpy.min([self.Match['Morphology']['Score'], 100])
                 # 
                 #<test># self.Match['Photometry']['Score'] = ( 1.0 - numpy.exp( -(self.Match['Photometry']['S/N']/12.0                 ) ) ) * 50.0 
