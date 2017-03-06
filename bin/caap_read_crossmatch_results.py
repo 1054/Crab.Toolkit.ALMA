@@ -6,7 +6,7 @@ import numpy
 import astropy
 import astropy.io.ascii as asciitable
 
-from a_dzliu_python_lib_highz import *
+from caap_python_lib_highz import *
 
 crossmatch_TableFile = 'Match_cycle2_new_detections_1.5arcsec.fits'
 

@@ -21,9 +21,9 @@ from astropy.io import fits
 from pprint import pprint
 
 
-from a_dzliu_python_lib_highz import *
-from a_dzliu_python_lib_image import *
-from a_dzliu_python_lib_telescopes import *
+from caap_python_lib_highz import *
+from caap_python_lib_image import *
+from caap_python_lib_telescopes import *
 
 
 try: 

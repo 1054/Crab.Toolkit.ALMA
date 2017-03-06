@@ -156,6 +156,7 @@ class CrossMatch_Identifier(object):
                 'SepAngle': 0.0, 
                 'Score': 0.0, 
                 'Extended': 0.0, 
+                'Polyfit': [], 
             }, 
             'Photometry': {
                 'Aperture': [], 
@@ -400,8 +401,8 @@ class CrossMatch_Identifier(object):
                 # add a double-size ellip
                 zoomellip_large = copy(zoomellip)
                 zoomellip_large.set_linewidth(1.25)
-                zoomellip_large.width = zoomellip_large.width * 1.75
-                zoomellip_large.height = zoomellip_large.height * 1.75
+                zoomellip_large.width = zoomellip_large.width * 2.00
+                zoomellip_large.height = zoomellip_large.height * 2.00
                 # 
                 # add a half-size ellip
                 zoomellip_small = copy(zoomellip)
@@ -418,8 +419,8 @@ class CrossMatch_Identifier(object):
                 # add a double-size ellip
                 blankellip_large = copy(blankellip)
                 blankellip_large.set_linewidth(1.25)
-                blankellip_large.width = blankellip_large.width * 1.75
-                blankellip_large.height = blankellip_large.height * 1.75
+                blankellip_large.width = blankellip_large.width * 2.00
+                blankellip_large.height = blankellip_large.height * 2.00
                 # 
                 # add a half-size ellip
                 blankellip_small = copy(blankellip)
@@ -520,89 +521,41 @@ class CrossMatch_Identifier(object):
                 pyplot.pause(0.15)
                 # 
                 # check the source to be extended or not -- by doing aperture photometry
+                print("")
                 print("Photometrying...")
-                PhotAper_Range = range(0.25, 2.25, 0.25)
+                print("")
+                PhotAper_Range = numpy.array(range(1,10)) * 0.25 # x0.25 to x2.25 FWHM
                 PhotAper_Array = []
                 for PhotAper_Value in PhotAper_Range:
                     tempellip = copy(zoomellip)
                     tempellip.width = tempellip.width*PhotAper_Value
                     tempellip.height = tempellip.height*PhotAper_Value
-                    PhotAper_Array.append(tempellip)
-                
-                PhotAper_x0p25 = copy(zoomellip)
-                PhotAper_x0p25.width = zoomellip.width*0.25
-                PhotAper_x0p25.height = zoomellip.height*0.25
-                PhotFlux_x0p25, PhotNPIX_x0p25 = elliptical_Photometry(zoomimage, PhotAper_x0p25)
-                PhotAper_x0p50 = copy(zoomellip)
-                PhotAper_x0p50.width = zoomellip.width*0.50
-                PhotAper_x0p50.height = zoomellip.height*0.50
-                PhotFlux_x0p50, PhotNPIX_x0p50 = elliptical_Photometry(zoomimage, PhotAper_x0p50)
-                PhotAper_x0p75 = copy(zoomellip)
-                PhotAper_x0p75.width = zoomellip.width*0.75
-                PhotAper_x0p75.height = zoomellip.height*0.75
-                PhotFlux_x0p75, PhotNPIX_x0p75 = elliptical_Photometry(zoomimage, PhotAper_x0p75)
-                PhotAper_x1p00 = copy(zoomellip)
-                PhotAper_x1p00.width = zoomellip.width*1.00
-                PhotAper_x1p00.height = zoomellip.height*1.00
-                PhotFlux_x1p00, PhotNPIX_x1p00 = elliptical_Photometry(zoomimage, PhotAper_x1p00)
-                PhotAper_x1p25 = copy(zoomellip)
-                PhotAper_x1p25.width = zoomellip.width*1.25
-                PhotAper_x1p25.height = zoomellip.height*1.25
-                PhotFlux_x1p25, PhotNPIX_x1p25 = elliptical_Photometry(zoomimage, PhotAper_x1p25)
-                PhotAper_x1p50 = copy(zoomellip)
-                PhotAper_x1p50.width = zoomellip.width*1.50
-                PhotAper_x1p50.height = zoomellip.height*1.50
-                PhotFlux_x1p50, PhotNPIX_x1p50 = elliptical_Photometry(zoomimage, PhotAper_x1p50)
-                PhotAper_x1p75 = copy(zoomellip)
-                PhotAper_x1p75.width = zoomellip.width*1.75
-                PhotAper_x1p75.height = zoomellip.height*1.75
-                PhotFlux_x1p75, PhotNPIX_x1p75 = elliptical_Photometry(zoomimage, PhotAper_x1p75)
-                print("Integrated source-position flux within 0.25xFWHM is %g"%(PhotFlux_x0p25))
-                print("Integrated source-position flux within 0.50xFWHM is %g"%(PhotFlux_x0p50))
-                print("Integrated source-position flux within 0.75xFWHM is %g"%(PhotFlux_x0p75))
-                print("Integrated source-position flux within 1.00xFWHM is %g"%(PhotFlux_x1p00))
-                print("Integrated source-position flux within 1.25xFWHM is %g"%(PhotFlux_x1p25))
-                print("Integrated source-position flux within 1.50xFWHM is %g"%(PhotFlux_x1p50))
-                print("Integrated source-position flux within 1.75xFWHM is %g"%(PhotFlux_x1p75))
+                    tempflux, tempnpix = elliptical_Photometry(zoomimage, tempellip)
+                    PhotAper_Array.append({'Radius':PhotAper_Value, 'Shape':tempellip, 
+                                            'Npix':tempnpix, 'Fint':tempflux, 'Fbkg':numpy.nan, 
+                                            'Flux':numpy.nan, 'Error':numpy.nan, 'S.B.':numpy.nan, 
+                                            'S.B. Annulus':numpy.nan, 'S.B. Growth':numpy.nan, 'Flux Growth':numpy.nan, 
+                                            'S/N':numpy.nan, 'S/N Annulus':numpy.nan})
+                    print("Integrated source-position flux within %0.2fxFWHM is %g"%(PhotAper_Value, tempflux))
                 # 
                 # do another photometry at a blank position for testing
-                BlankAper_x0p25 = copy(blankellip)
-                BlankAper_x0p25.width = blankellip.width*0.25
-                BlankAper_x0p25.height = blankellip.height*0.25
-                BlankFlux_x0p25, BlankNPIX_x0p25 = elliptical_Photometry(zoomimage, BlankAper_x0p25)
-                BlankAper_x0p50 = copy(blankellip)
-                BlankAper_x0p50.width = blankellip.width*0.50
-                BlankAper_x0p50.height = blankellip.height*0.50
-                BlankFlux_x0p50, BlankNPIX_x0p50 = elliptical_Photometry(zoomimage, BlankAper_x0p50)
-                BlankAper_x0p75 = copy(blankellip)
-                BlankAper_x0p75.width = blankellip.width*0.75
-                BlankAper_x0p75.height = blankellip.height*0.75
-                BlankFlux_x0p75, BlankNPIX_x0p75 = elliptical_Photometry(zoomimage, BlankAper_x0p75)
-                BlankAper_x1p00 = copy(blankellip)
-                BlankAper_x1p00.width = blankellip.width*1.00
-                BlankAper_x1p00.height = blankellip.height*1.00
-                BlankFlux_x1p00, BlankNPIX_x1p00 = elliptical_Photometry(zoomimage, BlankAper_x1p00)
-                BlankAper_x1p25 = copy(blankellip)
-                BlankAper_x1p25.width = blankellip.width*1.25
-                BlankAper_x1p25.height = blankellip.height*1.25
-                BlankFlux_x1p25, BlankNPIX_x1p25 = elliptical_Photometry(zoomimage, BlankAper_x1p25)
-                BlankAper_x1p50 = copy(blankellip)
-                BlankAper_x1p50.width = blankellip.width*1.50
-                BlankAper_x1p50.height = blankellip.height*1.50
-                BlankFlux_x1p50, BlankNPIX_x1p50 = elliptical_Photometry(zoomimage, BlankAper_x1p50)
-                BlankAper_x1p75 = copy(blankellip)
-                BlankAper_x1p75.width = blankellip.width*1.75
-                BlankAper_x1p75.height = blankellip.height*1.75
-                BlankFlux_x1p75, BlankNPIX_x1p75 = elliptical_Photometry(zoomimage, BlankAper_x1p75)
-                print("Integrated blank-position flux within 0.25xFWHM is %g"%(BlankFlux_x0p25))
-                print("Integrated blank-position flux within 0.50xFWHM is %g"%(BlankFlux_x0p50))
-                print("Integrated blank-position flux within 0.75xFWHM is %g"%(BlankFlux_x0p75))
-                print("Integrated blank-position flux within 1.00xFWHM is %g"%(BlankFlux_x1p00))
-                print("Integrated blank-position flux within 1.25xFWHM is %g"%(BlankFlux_x1p25))
-                print("Integrated blank-position flux within 1.50xFWHM is %g"%(BlankFlux_x1p50))
-                print("Integrated blank-position flux within 1.75xFWHM is %g"%(BlankFlux_x1p75))
+                print("")
+                BlankAper_Range = PhotAper_Range
+                BlankAper_Array = []
+                for BlankAper_Value in BlankAper_Range:
+                    tempellip = copy(blankellip)
+                    tempellip.width = tempellip.width*BlankAper_Value
+                    tempellip.height = tempellip.height*BlankAper_Value
+                    tempflux, tempnpix = elliptical_Photometry(zoomimage, tempellip)
+                    BlankAper_Array.append({'Radius':BlankAper_Value, 'Shape':tempellip, 
+                                            'Npix':tempnpix, 'Fint':tempflux, 'Fbkg':numpy.nan, 
+                                            'Flux':numpy.nan, 'Error':numpy.nan, 'S.B.':numpy.nan, 
+                                            'S.B. Annulus':numpy.nan, 'S.B. Growth':numpy.nan, 'Flux Growth':numpy.nan, 
+                                            'S/N':numpy.nan, 'S/N Annulus':numpy.nan})
+                    print("Integrated blank-position flux within %0.2fxFWHM is %g"%(BlankAper_Value, tempflux))
                 # 
                 # calc background by "caap_analyze_fits_image_pixel_histogram.py"
+                print("")
                 print("Calculating background...")
                 if not os.path.isfile(self.FitsImageFile+'.pixel.statistics.txt'):
                     os.system('%s "%s"'%('caap_analyze_fits_image_pixel_histogram.py', self.FitsImageFile))
@@ -616,7 +569,7 @@ class CrossMatch_Identifier(object):
                             background_sigma = float((lp.split('=')[1]).split('#')[0].replace(' ',''))
                 # 
                 # <20170224> added a check step to make sure we measure the FitGauss
-                if background_sigma is numpy.nan:
+                if background_sigma is numpy.nan or background_sigma < 0:
                     os.system('%s "%s"'%('caap_analyze_fits_image_pixel_histogram.py', self.FitsImageFile))
                     with open(self.FitsImageFile+'.pixel.statistics.txt', 'r') as fp:
                         for lp in fp:
@@ -630,117 +583,94 @@ class CrossMatch_Identifier(object):
                 print("StdDev of the background is %g"%(background_sigma))
                 # 
                 # calc background-subtracted net flux
+                print("")
                 print("Calculating background-subtracted flux...")
-                BlankFlux_x0p25 = BlankFlux_x0p25 - background_flux*BlankNPIX_x0p25
-                BlankFlux_x0p50 = BlankFlux_x0p50 - background_flux*BlankNPIX_x0p50
-                BlankFlux_x0p75 = BlankFlux_x0p75 - background_flux*BlankNPIX_x0p75
-                BlankFlux_x1p00 = BlankFlux_x1p00 - background_flux*BlankNPIX_x1p00
-                BlankFlux_x1p25 = BlankFlux_x1p25 - background_flux*BlankNPIX_x1p25
-                BlankFlux_x1p50 = BlankFlux_x1p50 - background_flux*BlankNPIX_x1p50
-                BlankFlux_x1p75 = BlankFlux_x1p75 - background_flux*BlankNPIX_x1p75
-                print("Background-subtracted blank-position flux within 0.25xFWHM is %g"%(BlankFlux_x0p25))
-                print("Background-subtracted blank-position flux within 0.50xFWHM is %g"%(BlankFlux_x0p50))
-                print("Background-subtracted blank-position flux within 0.75xFWHM is %g"%(BlankFlux_x0p75))
-                print("Background-subtracted blank-position flux within 1.00xFWHM is %g"%(BlankFlux_x1p00))
-                print("Background-subtracted blank-position flux within 1.25xFWHM is %g"%(BlankFlux_x1p25))
-                print("Background-subtracted blank-position flux within 1.50xFWHM is %g"%(BlankFlux_x1p50))
-                print("Background-subtracted blank-position flux within 1.75xFWHM is %g"%(BlankFlux_x1p75))
-                PhotFlux_x0p25 = PhotFlux_x0p25 - PhotNPIX_x0p25*background_flux
-                PhotFlux_x0p50 = PhotFlux_x0p50 - PhotNPIX_x0p50*background_flux
-                PhotFlux_x0p75 = PhotFlux_x0p75 - PhotNPIX_x0p75*background_flux
-                PhotFlux_x1p00 = PhotFlux_x1p00 - PhotNPIX_x1p00*background_flux
-                PhotFlux_x1p25 = PhotFlux_x1p25 - PhotNPIX_x1p25*background_flux
-                PhotFlux_x1p50 = PhotFlux_x1p50 - PhotNPIX_x1p50*background_flux
-                PhotFlux_x1p75 = PhotFlux_x1p75 - PhotNPIX_x1p75*background_flux
-                print("Background-subtracted source-position flux within 0.25xFWHM is %-10g (growth:x%.2f) (S/N:%.4g)"%(PhotFlux_x0p25,PhotFlux_x0p25/PhotFlux_x0p25,PhotFlux_x0p25/(numpy.sqrt(PhotNPIX_x0p25)*background_sigma)))
-                print("Background-subtracted source-position flux within 0.50xFWHM is %-10g (growth:x%.2f) (S/N:%.4g)"%(PhotFlux_x0p50,PhotFlux_x0p50/PhotFlux_x0p25,PhotFlux_x0p50/(numpy.sqrt(PhotNPIX_x0p50)*background_sigma)))
-                print("Background-subtracted source-position flux within 0.75xFWHM is %-10g (growth:x%.2f) (S/N:%.4g)"%(PhotFlux_x0p75,PhotFlux_x0p75/PhotFlux_x0p50,PhotFlux_x0p75/(numpy.sqrt(PhotNPIX_x0p75)*background_sigma)))
-                print("Background-subtracted source-position flux within 1.00xFWHM is %-10g (growth:x%.2f) (S/N:%.4g)"%(PhotFlux_x1p00,PhotFlux_x1p00/PhotFlux_x0p75,PhotFlux_x1p00/(numpy.sqrt(PhotNPIX_x1p00)*background_sigma)))
-                print("Background-subtracted source-position flux within 1.25xFWHM is %-10g (growth:x%.2f) (S/N:%.4g)"%(PhotFlux_x1p25,PhotFlux_x1p25/PhotFlux_x1p00,PhotFlux_x1p25/(numpy.sqrt(PhotNPIX_x1p25)*background_sigma)))
-                print("Background-subtracted source-position flux within 1.50xFWHM is %-10g (growth:x%.2f) (S/N:%.4g)"%(PhotFlux_x1p50,PhotFlux_x1p50/PhotFlux_x1p25,PhotFlux_x1p50/(numpy.sqrt(PhotNPIX_x1p50)*background_sigma)))
-                print("Background-subtracted source-position flux within 1.75xFWHM is %-10g (growth:x%.2f) (S/N:%.4g)"%(PhotFlux_x1p75,PhotFlux_x1p75/PhotFlux_x1p50,PhotFlux_x1p75/(numpy.sqrt(PhotNPIX_x1p75)*background_sigma)))
+                print("")
+                for iAper in range(len(BlankAper_Array)):
+                    BlankAper_Array[iAper]['Fbkg'] = background_flux * BlankAper_Array[iAper]['Npix']
+                    BlankAper_Array[iAper]['Flux'] = BlankAper_Array[iAper]['Fint'] - BlankAper_Array[iAper]['Fbkg']
+                    BlankAper_Array[iAper]['Error'] = background_sigma * numpy.sqrt(BlankAper_Array[iAper]['Npix'])
+                    BlankAper_Array[iAper]['S.B.'] = BlankAper_Array[iAper]['Flux'] / BlankAper_Array[iAper]['Npix'] # flux per pixel area surface brightness
+                    BlankAper_Array[iAper]['S/N'] = BlankAper_Array[iAper]['Flux'] / BlankAper_Array[iAper]['Error']
+                    # compare with previous aperture photometry to get growth
+                    if iAper == 0:
+                        BlankAper_Array[iAper]['S/N Annulus'] = BlankAper_Array[iAper]['S/N']
+                        BlankAper_Array[iAper]['S.B. Annulus'] = BlankAper_Array[iAper]['S.B.']
+                        BlankAper_Array[iAper]['S.B. Growth'] = 1.0 # surface brightness growth
+                        BlankAper_Array[iAper]['Flux Growth'] = 1.0 # absolute flux growth
+                    else:
+                        iPrev = iAper-1
+                        BlankAper_Array[iAper]['S/N Annulus'] = (BlankAper_Array[iAper]['Flux']-BlankAper_Array[iPrev]['Flux']) / (background_sigma * numpy.sqrt(BlankAper_Array[iAper]['Npix']-BlankAper_Array[iPrev]['Npix']))
+                        BlankAper_Array[iAper]['S.B. Annulus'] = (BlankAper_Array[iAper]['Flux']-BlankAper_Array[iPrev]['Flux']) / (BlankAper_Array[iAper]['Npix']-BlankAper_Array[iPrev]['Npix'])
+                        BlankAper_Array[iAper]['S.B. Growth'] = BlankAper_Array[iAper]['S.B.'] / BlankAper_Array[iPrev]['S.B.'] # surface brightness growth
+                        BlankAper_Array[iAper]['Flux Growth'] = BlankAper_Array[iAper]['Flux'] / BlankAper_Array[iPrev]['Flux'] # absolute flux growth
+                    print("Background-subtracted blank-position  flux within %.2fxFWHM is %-10.4g (S/N:%7.4g) (flux growth:%6.3g) (S.B. growth:%6.3g)"%(BlankAper_Array[iAper]['Radius'], BlankAper_Array[iAper]['Flux'], BlankAper_Array[iAper]['Flux']/BlankAper_Array[iAper]['Error'], BlankAper_Array[iAper]['Flux Growth'], BlankAper_Array[iAper]['S.B. Growth']))
+                print("")
+                for iAper in range(len(PhotAper_Array)):
+                    PhotAper_Array[iAper]['Fbkg'] = background_flux * PhotAper_Array[iAper]['Npix']
+                    PhotAper_Array[iAper]['Flux'] = PhotAper_Array[iAper]['Fint'] - PhotAper_Array[iAper]['Fbkg']
+                    PhotAper_Array[iAper]['Error'] = background_sigma * numpy.sqrt(PhotAper_Array[iAper]['Npix'])
+                    PhotAper_Array[iAper]['S.B.'] = PhotAper_Array[iAper]['Flux'] / PhotAper_Array[iAper]['Npix'] # flux per pixel area surface brightness
+                    PhotAper_Array[iAper]['S/N'] = PhotAper_Array[iAper]['Flux'] / PhotAper_Array[iAper]['Error']
+                    # compare with previous aperture photometry to get growth
+                    if iAper == 0:
+                        PhotAper_Array[iAper]['S/N Annulus'] = PhotAper_Array[iAper]['S/N']
+                        PhotAper_Array[iAper]['S.B. Annulus'] = PhotAper_Array[iAper]['S.B.']
+                        PhotAper_Array[iAper]['S.B. Growth'] = 1.0 # surface brightness growth
+                        PhotAper_Array[iAper]['Flux Growth'] = 1.0 # absolute flux growth
+                    else:
+                        iPrev = iAper-1
+                        PhotAper_Array[iAper]['S/N Annulus'] = (PhotAper_Array[iAper]['Flux']-PhotAper_Array[iPrev]['Flux']) / (background_sigma * numpy.sqrt(PhotAper_Array[iAper]['Npix']-PhotAper_Array[iPrev]['Npix']))
+                        PhotAper_Array[iAper]['S.B. Annulus'] = (PhotAper_Array[iAper]['Flux']-PhotAper_Array[iPrev]['Flux']) / (PhotAper_Array[iAper]['Npix']-PhotAper_Array[iPrev]['Npix'])
+                        PhotAper_Array[iAper]['S.B. Growth'] = PhotAper_Array[iAper]['S.B.'] / PhotAper_Array[iPrev]['S.B.'] # surface brightness growth
+                        PhotAper_Array[iAper]['Flux Growth'] = PhotAper_Array[iAper]['Flux'] / PhotAper_Array[iPrev]['Flux'] # absolute flux growth
+                    print("Background-subtracted source-position flux within %.2fxFWHM is %-10.4g (S/N:%7.4g) (flux growth:%6.3g) (S.B.:%10.4g) (S.B. annulus:%10.4g) (S/N annulus:%7.4g)"%(PhotAper_Array[iAper]['Radius'], PhotAper_Array[iAper]['Flux'], PhotAper_Array[iAper]['Flux']/PhotAper_Array[iAper]['Error'], PhotAper_Array[iAper]['Flux Growth'], PhotAper_Array[iAper]['S.B.'], PhotAper_Array[iAper]['S.B. Annulus'], PhotAper_Array[iAper]['S/N Annulus']))
                 # 
-                # check the source to be extended or not -- finally we can determine this by the light growth curve
-                MarkContinue = True
-                if(MarkContinue):
-                    if(MarkContinue):
-                        self.Match['Morphology']['Extended']  = 0.0
-                        self.Match['Photometry']['Flux']      = PhotFlux_x0p25
-                        self.Match['Photometry']['FluxBias']  = PhotNPIX_x0p25*background_flux
-                        self.Match['Photometry']['FluxError'] = numpy.sqrt(PhotNPIX_x0p25)*background_sigma
-                        self.Match['Photometry']['Aperture']  = PhotAper_x0p25
-                    else:
-                        MarkContinue = False
-                if(MarkContinue):
-                    if( (PhotFlux_x0p50/PhotFlux_x0p25>2.0) or (PhotFlux_x0p50/(numpy.sqrt(PhotNPIX_x0p50)*background_sigma) > PhotFlux_x0p25/(numpy.sqrt(PhotNPIX_x0p25)*background_sigma)) ):
-                        self.Match['Morphology']['Extended']  = PhotFlux_x0p50/PhotFlux_x0p25*0.25/3.00*100
-                        self.Match['Photometry']['Flux']      = PhotFlux_x0p50
-                        self.Match['Photometry']['FluxBias']  = PhotNPIX_x0p50*background_flux
-                        self.Match['Photometry']['FluxError'] = numpy.sqrt(PhotNPIX_x0p50)*background_sigma
-                        self.Match['Photometry']['Aperture']  = PhotAper_x0p50
-                    else:
-                        MarkContinue = False
-                if(MarkContinue):
-                    if( (PhotFlux_x0p75/PhotFlux_x0p50>2.0) or (PhotFlux_x0p75/(numpy.sqrt(PhotNPIX_x0p75)*background_sigma) > PhotFlux_x0p50/(numpy.sqrt(PhotNPIX_x0p50)*background_sigma)) ):
-                        self.Match['Morphology']['Extended']  = PhotFlux_x0p75/PhotFlux_x0p50*0.50/3.00*100
-                        self.Match['Photometry']['Flux']      = PhotFlux_x0p75
-                        self.Match['Photometry']['FluxBias']  = PhotNPIX_x0p75*background_flux
-                        self.Match['Photometry']['FluxError'] = numpy.sqrt(PhotNPIX_x0p75)*background_sigma
-                        self.Match['Photometry']['Aperture']  = PhotAper_x0p75
-                    else:
-                        MarkContinue = False
-                if(MarkContinue):
-                    if( (PhotFlux_x1p00/PhotFlux_x0p75>2.0) or (PhotFlux_x1p00/(numpy.sqrt(PhotNPIX_x1p00)*background_sigma) > PhotFlux_x0p75/(numpy.sqrt(PhotNPIX_x0p75)*background_sigma)) ):
-                        self.Match['Morphology']['Extended']  = PhotFlux_x1p00/PhotFlux_x0p75*0.75/3.00*100
-                        self.Match['Photometry']['Flux']      = PhotFlux_x1p00
-                        self.Match['Photometry']['FluxBias']  = PhotNPIX_x1p00*background_flux
-                        self.Match['Photometry']['FluxError'] = numpy.sqrt(PhotNPIX_x1p00)*background_sigma
-                        self.Match['Photometry']['Aperture']  = PhotAper_x1p00
-                    else:
-                        MarkContinue = False
-                if(MarkContinue):
-                    if( (PhotFlux_x1p25/PhotFlux_x1p00>2.0) or (PhotFlux_x1p25/(numpy.sqrt(PhotNPIX_x1p25)*background_sigma) > PhotFlux_x1p00/(numpy.sqrt(PhotNPIX_x1p00)*background_sigma)) ):
-                        self.Match['Morphology']['Extended']  = PhotFlux_x1p25/PhotFlux_x1p00*1.00/3.00*100
-                        self.Match['Photometry']['Flux']      = PhotFlux_x1p25
-                        self.Match['Photometry']['FluxBias']  = PhotNPIX_x1p25*background_flux
-                        self.Match['Photometry']['FluxError'] = numpy.sqrt(PhotNPIX_x1p25)*background_sigma
-                        self.Match['Photometry']['Aperture']  = PhotAper_x1p25
-                    else:
-                        MarkContinue = False
-                if(MarkContinue):
-                    if( (PhotFlux_x1p50/PhotFlux_x1p25>2.0) or (PhotFlux_x1p50/(numpy.sqrt(PhotNPIX_x1p50)*background_sigma) > PhotFlux_x1p25/(numpy.sqrt(PhotNPIX_x1p25)*background_sigma)) ):
-                        self.Match['Morphology']['Extended']  = PhotFlux_x1p50/PhotFlux_x1p25*1.25/3.00*100
-                        self.Match['Photometry']['Flux']      = PhotFlux_x1p50
-                        self.Match['Photometry']['FluxBias']  = PhotNPIX_x1p50*background_flux
-                        self.Match['Photometry']['FluxError'] = numpy.sqrt(PhotNPIX_x1p50)*background_sigma
-                        self.Match['Photometry']['Aperture']  = PhotAper_x1p50
-                    else:
-                        MarkContinue = False
-                if(MarkContinue):
-                    if( (PhotFlux_x1p75/PhotFlux_x1p50>2.0) or (PhotFlux_x1p75/(numpy.sqrt(PhotNPIX_x1p75)*background_sigma) > PhotFlux_x1p50/(numpy.sqrt(PhotNPIX_x1p50)*background_sigma)) ):
-                        self.Match['Morphology']['Extended']  = PhotFlux_x1p75/PhotFlux_x1p50*1.50/3.00*100
-                        self.Match['Photometry']['Flux']      = PhotFlux_x1p75
-                        self.Match['Photometry']['FluxBias']  = PhotNPIX_x1p75*background_flux
-                        self.Match['Photometry']['FluxError'] = numpy.sqrt(PhotNPIX_x1p75)*background_sigma
-                        self.Match['Photometry']['Aperture']  = PhotAper_x1p75
-                    else:
-                        MarkContinue = False
+                # poly fit to the S.B. radial profile
+                temp_x = [t['Radius'] for t in PhotAper_Array]
+                temp_y = [t['S/N Annulus'] for t in PhotAper_Array]
+                temp_x = temp_x
+                temp_y = temp_y / temp_y[3] - 1.0# temp_y[3] is x1.00 FHWM
+                self.Match['Morphology']['Polyfit'] = numpy.polyfit(temp_x[3:], temp_y[3:], 1) #<TODO># use 1-order polyfit, i.e. a line
+                #
+                # estimate extended parameter
+                # -- try to use 'S.B. Annulus' profile polyfit
+                #self.Match['Morphology']['Extended'] = 10.0**(self.Match['Morphology']['Polyfit'][0]) * 100
+                # -- try to use 'S/N Annulus' (outer S/N excess)
+                #self.Match['Morphology']['Extended'] = numpy.sum(temp_y[3:])
+                # -- try to use just final and first 'S.B'
+                self.Match['Morphology']['Extended'] = PhotAper_Array[-1]['S.B.'] / PhotAper_Array[0]['S.B.'] * 100.0
+                print("")
+                print('Radial annulus polyfit: %s'%(temp_x))
+                print('Radial annulus polyfit: %s'%(temp_y))
+                print('Radial annulus polyfit: %s'%(self.Match['Morphology']['Polyfit']))
+                print('Radial annulus excess: %s'%(numpy.sum(temp_y)))
+                print('Radial annulus final/first ratio: %s'%(PhotAper_Array[-1]['S.B.'] / PhotAper_Array[0]['S.B.']))
                 # 
-                # store the source Photometry information
+                # choose the highest S/N as the result
+                temp_f = [t['Flux'] for t in PhotAper_Array]
+                temp_df = [t['Error'] for t in PhotAper_Array]
+                temp_snr = numpy.array(temp_f)/numpy.array(temp_df)
+                temp_index = numpy.where(temp_snr == numpy.max(temp_snr))
+                self.Match['Photometry']['Flux'] = PhotAper_Array[temp_index[0][0]]['Flux']
+                self.Match['Photometry']['FluxError'] = PhotAper_Array[temp_index[0][0]]['Error']
+                self.Match['Photometry']['Aperture'] = PhotAper_Array[temp_index[0][0]]['Radius']
                 self.Match['Photometry']['S/N'] = self.Match['Photometry']['Flux'] / self.Match['Photometry']['FluxError']
-                self.Match['Photometry']['GrowthCurve'].append((0.25*major*numpy.mean(self.FitsImagePixScale), PhotFlux_x0p25, numpy.sqrt(PhotNPIX_x0p25)*background_sigma)) # tuple, radisu in unit of arcsec, flux and flux error in original pixel value unit. 
-                self.Match['Photometry']['GrowthCurve'].append((0.50*major*numpy.mean(self.FitsImagePixScale), PhotFlux_x0p50, numpy.sqrt(PhotNPIX_x0p50)*background_sigma))
-                self.Match['Photometry']['GrowthCurve'].append((0.75*major*numpy.mean(self.FitsImagePixScale), PhotFlux_x0p75, numpy.sqrt(PhotNPIX_x0p75)*background_sigma))
-                self.Match['Photometry']['GrowthCurve'].append((1.00*major*numpy.mean(self.FitsImagePixScale), PhotFlux_x1p00, numpy.sqrt(PhotNPIX_x1p00)*background_sigma))
-                self.Match['Photometry']['GrowthCurve'].append((1.25*major*numpy.mean(self.FitsImagePixScale), PhotFlux_x1p25, numpy.sqrt(PhotNPIX_x1p25)*background_sigma))
-                self.Match['Photometry']['GrowthCurve'].append((1.50*major*numpy.mean(self.FitsImagePixScale), PhotFlux_x1p50, numpy.sqrt(PhotNPIX_x1p50)*background_sigma))
-                self.Match['Photometry']['GrowthCurve'].append((1.75*major*numpy.mean(self.FitsImagePixScale), PhotFlux_x1p75, numpy.sqrt(PhotNPIX_x1p75)*background_sigma))
+                for iAper in range(len(PhotAper_Array)):
+                    self.Match['Photometry']['GrowthCurve'].append((PhotAper_Array[iAper]['Radius']*major*numpy.mean(self.FitsImagePixScale), PhotAper_Array[iAper]['S.B. Annulus'])) # tuple, radisu in unit of arcsec, flux and flux error in original pixel value unit. 
+                # 
+                # 
+                #<20170304><dzliu><plang># downweight offset score
+                self.Match['Morphology']['Score'] = self.Match['Morphology']['Score'] / numpy.max([self.Match['Morphology']['Extended']/100.0, 1.0]) #<TODO># Extended above 60 will be downweighted
+                self.Match['Morphology']['Score'] = numpy.min([self.Match['Morphology']['Score'], 100])
+                # 
                 #<test># self.Match['Photometry']['Score'] = ( 1.0 - numpy.exp( -(self.Match['Photometry']['S/N']/12.0                 ) ) ) * 50.0 
                 #<test>#                                   + ( 1.0 - numpy.exp( -(self.Source.Photometry['ALMA Band 6 240 GHz S/N']/6.0) ) ) * 50.0
                 self.Match['Photometry']['Score'] = ( numpy.min([self.Match['Photometry']['S/N']/12.0, 0.5]) + 
                                                       numpy.min([self.Source.Photometry['ALMA Band 6 240 GHz S/N']/12.0, 0.5])
                                                     ) * 100.0
-                self.Match['Score'] = (self.Match['Morphology']['Score']*0.5 + self.Match['Photometry']['Score']*0.5)
+                self.Match['Score'] = ( self.Match['Morphology']['Score']*0.5 + 
+                                        self.Match['Photometry']['Score']*0.5 )
                 # 
                 # plot annotation
                 PlotPanel.annotate("Extended = %.1f [%%]"%(self.Match['Morphology']['Extended']), 
@@ -780,7 +710,6 @@ class CrossMatch_Identifier(object):
                 # 
                 # show the image
                 pyplot.draw()
-                #pyplot.pause(3.50)
                 pyplot.pause(0.20)
                 #print("Click anywhere on the figure to continue")
                 #pyplot.waitforbuttonpress()
@@ -790,6 +719,7 @@ class CrossMatch_Identifier(object):
                 #PlotOutput = OutputDir+'/'+self.Source.Field+'--'+str(self.Source.Name)+'--'+str(self.Source.SubID)+'--'+StrTelescope+'--'+StrInstrument.replace(' ','-')+'.pdf'
                 PlotDevice.savefig(PlotOutput)
                 pyplot.close()
+                print("")
                 print("Saved as \"%s\"!"%(PlotOutput))
                 # 
                 # save to text file / output to text file
@@ -802,6 +732,7 @@ class CrossMatch_Identifier(object):
                 TextFilePtr.write("Match.Score = %.1f\n"%(self.Match['Score']))
                 TextFilePtr.write("Match.Morphology.Score = %.1f\n"%(self.Match['Morphology']['Score']))
                 TextFilePtr.write("Match.Morphology.Extended = %.1f\n"%(self.Match['Morphology']['Extended']))
+                TextFilePtr.write("Match.Morphology.Polyfit = %s\n"%(self.Match['Morphology']['Polyfit']))
                 TextFilePtr.write("Match.Photometry.Score = %s\n"%(str(self.Match['Photometry']['Score'])))
                 TextFilePtr.write("Match.Photometry.S/N = %.3f\n"%(self.Match['Photometry']['S/N']))
                 TextFilePtr.write("Match.Photometry.Flux = %.6g\n"%(self.Match['Photometry']['Flux']))
@@ -843,13 +774,43 @@ if len(sys.argv) <= 1:
     print("Usage: caap_highz_galaxy_crossmatcher_v2.py \"Match_cycle2_new_detections_1.5arcsec.fits\"")
     sys.exit()
 
-if not os.path.isfile(sys.argv[1]):
-    print("Error! The input fits catalog file \"%s\" was not found!"%(sys.argv[1]))
+# 
+# Read first argument -- topcat cross-matched catalog
+Input_Cat = sys.argv[1]
+if not os.path.isfile(Input_Cat):
+    print("Error! The input fits catalog file \"%s\" was not found!"%(Input_Cat))
     sys.exit()
 
-Cat = Highz_Catalogue(sys.argv[1])
+Cat = Highz_Catalogue(Input_Cat)
 #print(Cat.TableHeaders)
 
+# 
+# Read second argument -- cutout directory
+if len(sys.argv) > 2:
+    Input_Cut = sys.argv[2]
+    if not os.path.isdir(Input_Cut):
+        print("Warning! The input cutout directory \"%s\" was not found!"%(Input_Cut))
+else:
+    Input_Cut = '/home/dzliu/Temp/cutouts'
+
+# 
+# Read 3rd and hereafter arguments -- selected sources
+Input_Overwrite = False
+Input_DoSources = []
+Input_DoSubIDs = []
+for i in range(3,len(sys.argv)):
+    if sys.argv[i].lower() != 'overwrite':
+        if sys.argv[i].find('--') > 0:
+            Input_DoSources.append(sys.argv[i].split('--')[0])
+            Input_DoSubIDs.append(sys.argv[i].split('--')[1])
+        else:
+            Input_DoSources.append(sys.argv[i])
+            Input_DoSubIDs.append('*')
+    else:
+        Input_Overwrite = True
+
+# 
+# Loop each source in the topcat cross-matched catalog
 for i in range(len(Cat.TableData)):
     
     # Check ID
@@ -866,7 +827,50 @@ for i in range(len(Cat.TableData)):
     #if Cat.TableData[i].field('OBJECT') != '238643':
     #    continue
     
-    Overwrite=True
+    if len(Input_DoSources) > 0:
+        if Cat.TableData[i].field('OBJECT') not in Input_DoSources:
+            Input_DoSubID = '*'
+            continue
+        else:
+            Input_DoSubID = [DoSubID for DoSource, DoSubID in zip(Input_DoSources,Input_DoSubIDs) if DoSource == Cat.TableData[i].field('OBJECT')]
+            Input_DoSubID = Input_DoSubID[0]
+        
+        if Input_DoSubID != '*':
+            if Cat.TableData[i].field('SUBID_TILE') != long(Input_DoSubID):
+                continue
+    
+    Overwrite = Input_Overwrite
+    
+    # 
+    # Check Source Morphology
+    # 
+    source_maj = numpy.nan
+    source_min = numpy.nan
+    source_pa = numpy.nan
+    if 'FWHM_MAJ_FIT' in Cat.TableHeaders and \
+       'FWHM_MIN_FIT' in Cat.TableHeaders and \
+       'POSANG_FIT' in Cat.TableHeaders and \
+       'MINAX_BEAM' in Cat.TableHeaders and \
+       'AXRATIO_BEAM' in Cat.TableHeaders and \
+       'POSANG_BEAM' in Cat.TableHeaders:
+        source_maj = float(Cat.TableData[i].field('FWHM_MAJ_FIT'))
+        source_min = float(Cat.TableData[i].field('FWHM_MIN_FIT'))
+        source_pa = float(Cat.TableData[i].field('POSANG_FIT'))
+        beam_maj = float(Cat.TableData[i].field('MINAX_BEAM')) * float(Cat.TableData[i].field('AXRATIO_BEAM'))
+        beam_min = float(Cat.TableData[i].field('MINAX_BEAM'))
+        beam_pa = float(Cat.TableData[i].field('POSANG_BEAM'))
+        if beam_maj*beam_min > source_maj*source_min:
+            source_maj = beam_maj
+            source_min = beam_min
+            source_pa = beam_pa
+        # prevent source size too small
+    if source_maj == numpy.nan or source_min == numpy.nan or source_pa == numpy.nan:
+        print("")
+        print("Error! Could not find appropriate columns in the input topcat cross-matched catalog!")
+        print("We need 'FWHM_MAJ_FIT', 'FWHM_MIN_FIT', 'POSANG_FIT', 'MINAX_BEAM', 'AXRATIO_BEAM', 'POSANG_BEAM', etc.")
+        print("Abort!")
+        print("")
+        sys.exit()
     
     # 
     # Create ALMA Source
@@ -879,9 +883,9 @@ for i in range(len(Cat.TableData)):
         RA      = Cat.TableData[i].field('RA'), 
         Dec     = Cat.TableData[i].field('DEC'), 
         Morphology = {
-            'Major Axis': float(Cat.TableData[i].field('FWHM_MAJ_FIT')), 
-            'Minor Axis': float(Cat.TableData[i].field('FWHM_MIN_FIT')), 
-            'Pos Angle':  float(Cat.TableData[i].field('POSANG_FIT')), 
+            'Major Axis': source_maj, 
+            'Minor Axis': source_min, 
+            'Pos Angle':  source_pa, 
         }, 
         Photometry = {
             'ALMA Band 6 240 GHz S/N': float(Cat.TableData[i].field('SNR_FIT'))
@@ -917,7 +921,7 @@ for i in range(len(Cat.TableData)):
         os.mkdir("%s/%s"%(CutoutOutputDir, CutoutOutputName))
         # Copy from certain other directory <TODO>
         #CutoutFileFindingStr = "/home/dzliu/aida42198_ALMA_Data/ALMA_COSMOS/cutouts/45arcsec/*/%s[._]*.fits"%(Source.Name)
-        CutoutFileFindingStr = "/home/dzliu/Temp/cutouts/*/%ld[._]*.fits"%(Source.ID) # cutout fits file names always contain ID but not full names. 
+        CutoutFileFindingStr = "%s/*/%ld[._]*.fits"%(Input_Cut, Source.ID) # cutout fits file names always contain ID but not full names. 
         CutoutFilePaths = glob.glob(CutoutFileFindingStr)
     else:
         # Copy from certain other directory <TODO>

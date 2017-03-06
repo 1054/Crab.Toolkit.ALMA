@@ -1,0 +1,27 @@
+#!/bin/bash
+# 
+
+if [[ $(type caap_highz_galaxy_crossmatcher_v3.py 2>/dev/null | wc -l) -eq 0 ]]; then
+    #ls $(dirname "${BASH_SOURCE[0]}")/../SETUP.bash
+    source $(dirname "${BASH_SOURCE[0]}")/../SETUP.bash
+fi
+
+if [[ $# -eq 0 ]]; then
+    echo ""
+    echo "Usage: "
+    echo "  caap-highz-galaxy-crossmatcher catalog.fits"
+    echo "  "
+    echo "Aim: "
+    echo "  This code aims at estimating scores for high-z galaxy counterpart association. "
+    echo "  For example, we find a detection signal at certain position on an image, then cross-match with some catalog to find a counterpart using topcat, then we can use this code to estimate how reliable the counterpart looks like."
+    echo "  This code will read a topcat cross-matched fits table (containing \"OBJECT\", \"SUBID_TILE\", \"RA\", \"Dec\", \"SNR_FIT\", \"FWHM_MAJ_FIT\", \"FWHM_MIN_FIT\", \"POSANG_FIT\", \"Separation\", etc. columns), multi-wavelength cutout images, then output the estimated cross-matching scores."
+    echo "  "
+    echo "Output: "
+    echo "  results/COSMOS--<ID>--<SUBID>--<Instrument>--<Filter>.pdf # cutout image with scores printed"
+    echo "  results/COSMOS--<ID>--<SUBID>--<Instrument>--<Filter>.txt # text file with scores recorded"
+    echo ""
+    exit
+fi
+
+caap_highz_galaxy_crossmatcher_v3.py "$@"
+

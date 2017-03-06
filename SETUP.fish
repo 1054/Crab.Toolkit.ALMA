@@ -22,7 +22,7 @@ if not contains "$CRABTOOLKITCAAP/bin" $PATH
 end
 #
 # LIST
-set -x CRABTOOLKITCMD "alma-sky-coverage.py"
+set -x CRABTOOLKITCMD "alma-sky-coverage" "fits-image-to-coverage-polyogn" "caap-analyze-fits-image-pixel-histogram" "caap-generate-PSF-Gaussian-2D"
 # 
 # CHECK
 # -- 20160427 only for interactive shell
