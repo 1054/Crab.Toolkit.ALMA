@@ -2,13 +2,20 @@
 # 
 
 import os, sys
+
+if len(sys.argv) <= 1:
+    print("Usage: caap_read_crossmatch_results.py \"topcat_crossmatched_catalog.fits\"")
+    sys.exit()
+
+
+
 import numpy
 import astropy
 import astropy.io.ascii as asciitable
 
 from caap_python_lib_highz import *
 
-crossmatch_TableFile = 'Match_cycle2_new_detections_1.5arcsec.fits'
+crossmatch_TableFile = sys.argv[1] # 'Match_cycle2_new_detections_1.5arcsec.fits'
 
 crossmatch_TableData = CrabFitsTable(crossmatch_TableFile)
 
