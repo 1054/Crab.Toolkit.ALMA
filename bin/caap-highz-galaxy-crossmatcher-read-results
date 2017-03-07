@@ -1,0 +1,25 @@
+#!/bin/bash
+# 
+
+if [[ $(type caap_highz_galaxy_crossmatcher_read_results_v3.py 2>/dev/null | wc -l) -eq 0 ]]; then
+    #ls $(dirname "${BASH_SOURCE[0]}")/../SETUP.bash
+    source $(dirname "${BASH_SOURCE[0]}")/../SETUP.bash
+fi
+
+if [[ $# -eq 0 ]]; then
+    echo ""
+    echo "Usage: "
+    echo "  caap-highz-galaxy-crossmatcher-read-results catalog.fits"
+    echo "  "
+    echo "Aim: "
+    echo "  This code aims at reading the output scores of \"caap-highz-galaxy-crossmatcher\" for high-z galaxy counterpart association. "
+    echo "  This code will read \"results/COSMOS--<ID>--<SUBID>--<Instrument>--<Filter>.txt\" and print out all sources. "
+    echo "  "
+    echo "Output: "
+    echo "  catalog_crossmatched_scores*.txt"
+    echo ""
+    exit
+fi
+
+caap_highz_galaxy_crossmatcher_read_results_v3.py "$@"
+
