@@ -9,7 +9,10 @@ fi
 if [[ $# -eq 0 ]]; then
     echo ""
     echo "Usage: "
-    echo "  caap-highz-galaxy-crossmatcher catalog.fits"
+    echo "  caap-highz-galaxy-crossmatcher catalog.fits \"/parent/path/to/cutouts/\" "
+    echo "  caap-highz-galaxy-crossmatcher catalog.fits \"/parent/path/to/cutouts/\" \"<OBJECT>--<SUBID>\""
+    echo "  caap-highz-galaxy-crossmatcher catalog.fits \"/parent/path/to/cutouts/\" \"187663--1\""
+    echo "  caap-highz-galaxy-crossmatcher catalog.fits \"/parent/path/to/cutouts/\" \"187663--1\" overwrite"
     echo "  "
     echo "Aim: "
     echo "  This code aims at estimating scores for high-z galaxy counterpart association. "

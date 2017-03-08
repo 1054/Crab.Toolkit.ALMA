@@ -3,6 +3,9 @@
 # Aim:
 #     Simple image crop and photometry.
 # 
+# Last update:
+#     20170308 -- measure weighted peak pixel position within each ellipse -- "cpix"
+# 
 
 try:
     import pkg_resources
@@ -118,9 +121,14 @@ def elliptical_Photometry(image, ellipse=Ellipse([0,0],0,0,0)):
     mask[m] = 0.5-mask_rsub[m] # 0.0 -> 0.5, 0.5 -> 0.0
     f = numpy.sum(image*mask)
     npix = numpy.sum(mask)
+    # 
+    cpix_x = numpy.mean(numpy.sum(mask_x*image*mask)/numpy.sum(image*mask))
+    cpix_y = numpy.mean(numpy.sum(mask_y*image*mask)/numpy.sum(image*mask))
+    cpix = (cpix_x, cpix_y)
+    # 
     print("elliptical_Photometry: xc=%.2f yc=%.2f amaj/2=%.2f amin/2=%.2f aang=%.2f npix=%.2f"%(xc, yc, amaj/2.0, amin/2.0, aang/math.pi*180.0, numpy.sum(mask)))
     #print(image[0,0])
-    return f, npix
+    return f, npix, cpix
 
 
 
