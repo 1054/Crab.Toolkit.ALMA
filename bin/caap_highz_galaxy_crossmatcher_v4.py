@@ -507,14 +507,15 @@ class CrossMatch_Identifier(object):
                                                     ( 1.0 - 
                                                       1.0 * (
                                                         self.Match['Morphology']['SepDist'] / (
-                                                          numpy.abs(self.Source.Morphology['Major Axis']/2.0*numpy.cos(numpy.deg2rad(self.Match['Morphology']['SepAngle']))) + 
-                                                          numpy.abs(self.Source.Morphology['Minor Axis']/2.0*numpy.sin(numpy.deg2rad(self.Match['Morphology']['SepAngle'])))
+                                                          numpy.abs(self.Source.Morphology['Major Axis']*numpy.cos(numpy.deg2rad(self.Match['Morphology']['SepAngle']))) + 
+                                                          numpy.abs(self.Source.Morphology['Minor Axis']*numpy.sin(numpy.deg2rad(self.Match['Morphology']['SepAngle'])))
                                                         )
                                                       )
                                                     )
                                                     # Separation projected relative to a*cos(theta) + b*sin(theta)
                                                     # 50% means that the SepDist equals the radius of the ellipse at that SepAngle. 
                                                     # 
+                self.Match['Morphology']['Score'] = numpy.min([self.Match['Morphology']['Score'], 0])
                 PlotPanel.annotate("M. Score = %.1f [%%]"%(self.Match['Morphology']['Score']), 
                                    xy=(0.97, 0.95-0.075-0.045*4), xycoords='axes fraction', color=hex2color('#00CC00'), fontsize=13, 
                                    bbox = dict(boxstyle="round,pad=0.1", alpha=0.6, facecolor=hex2color('#FFFFFF'), edgecolor=hex2color('#FFFFFF'), linewidth=2), 
