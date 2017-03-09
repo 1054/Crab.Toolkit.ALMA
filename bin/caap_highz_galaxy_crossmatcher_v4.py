@@ -683,14 +683,11 @@ class CrossMatch_Identifier(object):
                 # 
                 # 
                 #<20170304><dzliu><plang># down-weight the offset so as to improve the score
+                offset_down_weighting = 1.0
                 if self.Match['Morphology']['Extended'] > 0 and self.Match['Morphology']['Extended'] == self.Match['Morphology']['Extended']:
                     if self.Match['Photometry']['S/N'] >= 5.0:
-                        temp_down_weighting = numpy.min([numpy.max([self.Match['Morphology']['Extended']/100.0, 1.0]), 3.0]) # -- <20170308>
-                    else:
-                        temp_down_weighting = 1.0 # no down-weighting if failed to find the source ['S/N'] >= 3.0 -- <20170308>
-                else:
-                    temp_down_weighting = 1.0 # no down-weighting if failed to find ellipse that have ['S/N']>=2.0 -- <20170308>
-                self.Match['Morphology']['Score'] = self.Match['Morphology']['Score'] * temp_down_weighting #<TODO># Extended parameter above 100 will be down-weighted in their Separation, by maximum a factor of 3. 
+                        offset_down_weighting = numpy.min([numpy.max([self.Match['Morphology']['Extended']/100.0, 1.0]), 3.0]) # -- <20170308> only down-weight if source image S/N>5.0
+                self.Match['Morphology']['Score'] = self.Match['Morphology']['Score'] * offset_down_weighting #<TODO># Extended parameter above 100 will be down-weighted in their Separation, by maximum a factor of 3. 
                 self.Match['Morphology']['Score'] = numpy.min([self.Match['Morphology']['Score'], 100])
                 # 
                 #<test># self.Match['Photometry']['Score'] = ( 1.0 - numpy.exp( -(self.Match['Photometry']['S/N']/12.0                 ) ) ) * 50.0 
@@ -708,32 +705,38 @@ class CrossMatch_Identifier(object):
                                    horizontalalignment='right', verticalalignment='center')
                 # 
                 # plot annotation
-                PlotPanel.annotate("Image S/N = %.3f"%(self.Match['Photometry']['S/N']), 
+                PlotPanel.annotate("Downweight = %.1f [%%]"%(offset_down_weighting), 
                                    xy=(0.97, 0.95-0.075-0.045*6), xycoords='axes fraction', color=hex2color('#00CC00'), fontsize=13, 
                                    bbox = dict(boxstyle="round,pad=0.1", alpha=0.6, facecolor=hex2color('#FFFFFF'), edgecolor=hex2color('#FFFFFF'), linewidth=2), 
                                    horizontalalignment='right', verticalalignment='center')
                 # 
                 # plot annotation
-                PlotPanel.annotate("ALMA S/N = %.3f"%(self.Source.Photometry['ALMA Band 6 240 GHz S/N']), 
+                PlotPanel.annotate("Image S/N = %.3f"%(self.Match['Photometry']['S/N']), 
                                    xy=(0.97, 0.95-0.075-0.045*7), xycoords='axes fraction', color=hex2color('#00CC00'), fontsize=13, 
                                    bbox = dict(boxstyle="round,pad=0.1", alpha=0.6, facecolor=hex2color('#FFFFFF'), edgecolor=hex2color('#FFFFFF'), linewidth=2), 
                                    horizontalalignment='right', verticalalignment='center')
                 # 
                 # plot annotation
-                PlotPanel.annotate("P. Score = %.1f [%%]"%(self.Match['Photometry']['Score']), 
+                PlotPanel.annotate("ALMA S/N = %.3f"%(self.Source.Photometry['ALMA Band 6 240 GHz S/N']), 
                                    xy=(0.97, 0.95-0.075-0.045*8), xycoords='axes fraction', color=hex2color('#00CC00'), fontsize=13, 
                                    bbox = dict(boxstyle="round,pad=0.1", alpha=0.6, facecolor=hex2color('#FFFFFF'), edgecolor=hex2color('#FFFFFF'), linewidth=2), 
                                    horizontalalignment='right', verticalalignment='center')
                 # 
                 # plot annotation
-                PlotPanel.annotate("Score = %.1f [%%]"%(self.Match['Score']), 
+                PlotPanel.annotate("P. Score = %.1f [%%]"%(self.Match['Photometry']['Score']), 
                                    xy=(0.97, 0.95-0.075-0.045*9), xycoords='axes fraction', color=hex2color('#00CC00'), fontsize=13, 
                                    bbox = dict(boxstyle="round,pad=0.1", alpha=0.6, facecolor=hex2color('#FFFFFF'), edgecolor=hex2color('#FFFFFF'), linewidth=2), 
                                    horizontalalignment='right', verticalalignment='center')
                 # 
                 # plot annotation
+                PlotPanel.annotate("Score = %.1f [%%]"%(self.Match['Score']), 
+                                   xy=(0.97, 0.95-0.075-0.045*10), xycoords='axes fraction', color=hex2color('#00CC00'), fontsize=13, 
+                                   bbox = dict(boxstyle="round,pad=0.1", alpha=0.6, facecolor=hex2color('#FFFFFF'), edgecolor=hex2color('#FFFFFF'), linewidth=2), 
+                                   horizontalalignment='right', verticalalignment='center')
+                # 
+                # plot annotation
                 PlotPanel.annotate("zp = %.3f"%(self.Source.Redshifts['Laigle 2015 photo-z']), 
-                                   xy=(0.97, 0.95-0.075-0.045*10), xycoords='axes fraction', color=hex2color('#CC0000'), fontsize=13, 
+                                   xy=(0.97, 0.95-0.075-0.045*11), xycoords='axes fraction', color=hex2color('#CC0000'), fontsize=13, 
                                    bbox = dict(boxstyle="round,pad=0.1", alpha=0.6, facecolor=hex2color('#FFFFFF'), edgecolor=hex2color('#FFFFFF'), linewidth=2), 
                                    horizontalalignment='right', verticalalignment='center')
                 # 
