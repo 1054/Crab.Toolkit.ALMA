@@ -684,7 +684,7 @@ class CrossMatch_Identifier(object):
                 # 
                 #<20170304><dzliu><plang># down-weight the offset so as to improve the score
                 if self.Match['Morphology']['Extended'] > 0 and self.Match['Morphology']['Extended'] == self.Match['Morphology']['Extended']:
-                    if self.Match['Photometry']['S/N'] >= 3.0:
+                    if self.Match['Photometry']['S/N'] >= 5.0:
                         temp_down_weighting = numpy.min([numpy.max([self.Match['Morphology']['Extended']/100.0, 1.0]), 3.0]) # -- <20170308>
                     else:
                         temp_down_weighting = 1.0 # no down-weighting if failed to find the source ['S/N'] >= 3.0 -- <20170308>
