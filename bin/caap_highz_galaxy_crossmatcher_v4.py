@@ -507,8 +507,8 @@ class CrossMatch_Identifier(object):
                                                     ( 1.0 - 
                                                       1.0 * (
                                                         self.Match['Morphology']['SepDist'] / (
-                                                          numpy.abs(self.Source.Morphology['Major Axis']*numpy.cos(numpy.deg2rad(self.Match['Morphology']['SepAngle']))) + 
-                                                          numpy.abs(self.Source.Morphology['Minor Axis']*numpy.sin(numpy.deg2rad(self.Match['Morphology']['SepAngle'])))
+                                                          numpy.abs(self.Source.Morphology['Major Axis']/2.0*numpy.cos(numpy.deg2rad(self.Match['Morphology']['SepAngle']))) + 
+                                                          numpy.abs(self.Source.Morphology['Minor Axis']/2.0*numpy.sin(numpy.deg2rad(self.Match['Morphology']['SepAngle'])))
                                                         )
                                                       )
                                                     )
@@ -889,11 +889,11 @@ for i in range(len(Cat.TableData)):
         beam_maj = float(Cat.TableData[i].field('MINAX_BEAM')) * float(Cat.TableData[i].field('AXRATIO_BEAM'))
         beam_min = float(Cat.TableData[i].field('MINAX_BEAM'))
         beam_pa = float(Cat.TableData[i].field('POSANG_BEAM'))
-        if beam_maj*beam_min > source_maj*source_min:
+        # prevent source size too small
+        if source_maj*source_min < beam_maj*beam_min:
             source_maj = beam_maj
             source_min = beam_min
             source_pa = beam_pa
-        # prevent source size too small
     if source_maj != source_maj or source_min != source_min or source_pa != source_pa:
         print("")
         print("Error! Could not find appropriate columns in the input topcat cross-matched catalog!")
