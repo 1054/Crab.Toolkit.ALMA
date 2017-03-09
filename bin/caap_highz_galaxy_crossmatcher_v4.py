@@ -500,31 +500,12 @@ class CrossMatch_Identifier(object):
                                    bbox = dict(boxstyle="round,pad=0.1", alpha=0.6, facecolor=hex2color('#FFFFFF'), edgecolor=hex2color('#FFFFFF'), linewidth=2), 
                                    horizontalalignment='right', verticalalignment='center')
                 # 
-                # calc match quality -- get a score
-                self.Match['Morphology']['SepDist'] = SepDist # value ranges from 0 to Major Axis and more
-                self.Match['Morphology']['SepAngle'] = numpy.min([numpy.abs(SepAngle-PosAngle),numpy.abs(SepAngle-PosAngle-360),numpy.abs(SepAngle-PosAngle+360)]) # value ranges from 0 to 180.0
-                self.Match['Morphology']['Score'] = 100.0 * \
-                                                    ( 1.0 - 
-                                                      1.0 * (
-                                                        self.Match['Morphology']['SepDist'] / (
-                                                          numpy.abs(self.Source.Morphology['Major Axis']*numpy.cos(numpy.deg2rad(self.Match['Morphology']['SepAngle']))) + 
-                                                          numpy.abs(self.Source.Morphology['Minor Axis']*numpy.sin(numpy.deg2rad(self.Match['Morphology']['SepAngle'])))
-                                                        )
-                                                      )
-                                                    )
-                                                    # Separation projected relative to a*cos(theta) + b*sin(theta)
-                                                    # 50% means that the SepDist equals the radius of the ellipse at that SepAngle. 
-                                                    # 
-                self.Match['Morphology']['Score'] = numpy.min([self.Match['Morphology']['Score'], 0])
-                PlotPanel.annotate("M. Score = %.1f [%%]"%(self.Match['Morphology']['Score']), 
-                                   xy=(0.97, 0.95-0.075-0.045*4), xycoords='axes fraction', color=hex2color('#00CC00'), fontsize=13, 
-                                   bbox = dict(boxstyle="round,pad=0.1", alpha=0.6, facecolor=hex2color('#FFFFFF'), edgecolor=hex2color('#FFFFFF'), linewidth=2), 
-                                   horizontalalignment='right', verticalalignment='center')
+                # 
                 # 
                 # draw the image
-                pyplot.grid(False)
-                pyplot.draw()
-                pyplot.pause(0.15)
+                #pyplot.grid(False)
+                #pyplot.draw()
+                #pyplot.pause(0.15)
                 # 
                 # check the source to be extended or not -- by doing aperture photometry
                 print("")
@@ -688,7 +669,29 @@ class CrossMatch_Identifier(object):
                 if self.Match['Morphology']['Extended'] > 0 and self.Match['Morphology']['Extended'] == self.Match['Morphology']['Extended']:
                     if self.Match['Photometry']['S/N'] >= 5.0:
                         offset_down_weighting = numpy.min([numpy.max([self.Match['Morphology']['Extended']/100.0, 1.0]), 3.0]) # -- <20170308> only down-weight if source image S/N>5.0
-                self.Match['Morphology']['Score'] = self.Match['Morphology']['Score'] * offset_down_weighting #<TODO># Extended parameter above 100 will be down-weighted in their Separation, by maximum a factor of 3. 
+                # 
+                # 
+                # 
+                # 
+                # 
+                # 
+                # 
+                # calc match quality -- get a score
+                self.Match['Morphology']['SepDist'] = SepDist # value ranges from 0 to Major Axis and more
+                self.Match['Morphology']['SepAngle'] = numpy.min([numpy.abs(SepAngle-PosAngle),numpy.abs(SepAngle-PosAngle-360),numpy.abs(SepAngle-PosAngle+360)]) # value ranges from 0 to 180.0
+                self.Match['Morphology']['Score'] = 100.0 * \
+                                                    ( 1.0 - 
+                                                      1.0 * (
+                                                        self.Match['Morphology']['SepDist'] / offset_down_weighting / (
+                                                          numpy.abs(self.Source.Morphology['Major Axis']*numpy.cos(numpy.deg2rad(self.Match['Morphology']['SepAngle']))) + 
+                                                          numpy.abs(self.Source.Morphology['Minor Axis']*numpy.sin(numpy.deg2rad(self.Match['Morphology']['SepAngle'])))
+                                                        )
+                                                      )
+                                                    )
+                                                    # Separation projected relative to a*cos(theta) + b*sin(theta)
+                                                    # 50% means that the SepDist equals the radius of the ellipse at that SepAngle. 
+                                                    # 
+                self.Match['Morphology']['Score'] = numpy.max([self.Match['Morphology']['Score'], 0])
                 self.Match['Morphology']['Score'] = numpy.min([self.Match['Morphology']['Score'], 100])
                 # 
                 #<test># self.Match['Photometry']['Score'] = ( 1.0 - numpy.exp( -(self.Match['Photometry']['S/N']/12.0                 ) ) ) * 50.0 
@@ -696,8 +699,15 @@ class CrossMatch_Identifier(object):
                 self.Match['Photometry']['Score'] = ( numpy.min([self.Match['Photometry']['S/N']/12.0, 0.5]) + 
                                                       numpy.min([self.Source.Photometry['ALMA Band 6 240 GHz S/N']/12.0, 0.5])
                                                     ) * 100.0
+                # 
                 self.Match['Score'] = ( self.Match['Morphology']['Score']*0.5 + 
                                         self.Match['Photometry']['Score']*0.5 )
+                # 
+                # plot annotation
+                PlotPanel.annotate("M. Score = %.1f [%%]"%(self.Match['Morphology']['Score']), 
+                                   xy=(0.97, 0.95-0.075-0.045*4), xycoords='axes fraction', color=hex2color('#00CC00'), fontsize=13, 
+                                   bbox = dict(boxstyle="round,pad=0.1", alpha=0.6, facecolor=hex2color('#FFFFFF'), edgecolor=hex2color('#FFFFFF'), linewidth=2), 
+                                   horizontalalignment='right', verticalalignment='center')
                 # 
                 # plot annotation
                 PlotPanel.annotate("Extended = %.1f [%%]"%(self.Match['Morphology']['Extended']), 
