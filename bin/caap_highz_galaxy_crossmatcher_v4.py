@@ -705,7 +705,7 @@ class CrossMatch_Identifier(object):
                                    horizontalalignment='right', verticalalignment='center')
                 # 
                 # plot annotation
-                PlotPanel.annotate("Downweight = %.1f [%%]"%(offset_down_weighting), 
+                PlotPanel.annotate("Downweight = %.0f [%%]"%(offset_down_weighting*100), 
                                    xy=(0.97, 0.95-0.075-0.045*6), xycoords='axes fraction', color=hex2color('#00CC00'), fontsize=13, 
                                    bbox = dict(boxstyle="round,pad=0.1", alpha=0.6, facecolor=hex2color('#FFFFFF'), edgecolor=hex2color('#FFFFFF'), linewidth=2), 
                                    horizontalalignment='right', verticalalignment='center')
