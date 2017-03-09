@@ -503,9 +503,11 @@ class CrossMatch_Identifier(object):
                 # 
                 # 
                 # draw the image
-                #pyplot.grid(False)
-                #pyplot.draw()
-                #pyplot.pause(0.15)
+                pyplot.grid(False)
+                pyplot.draw()
+                pyplot.pause(0.15)
+                # 
+                # 
                 # 
                 # check the source to be extended or not -- by doing aperture photometry
                 print("")
