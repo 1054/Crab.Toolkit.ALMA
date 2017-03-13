@@ -383,7 +383,7 @@ class CrossMatch_Identifier(object):
                     zoomposxy = numpy.subtract(posxy, [zoomrect[0],zoomrect[2]])
                     zoomellip = Ellipse(xy=zoomposxy, width=major, height=minor, angle=angle, edgecolor=hex2color('#00CC00'), facecolor="none", linewidth=2, zorder=10)
                 else:
-                    zoomsize = self.FitsImageData.shape
+                    zoomsize = numpy.array(self.FitsImageData.shape)
                     zoomrect = numpy.array([1, self.FitsImageData.shape[0], 1, self.FitsImageData.shape[1]])
                     zoomimage = self.FitsImageData
                     zoomwcs = self.FitsImageWCS
