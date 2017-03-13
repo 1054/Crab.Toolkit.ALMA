@@ -473,6 +473,8 @@ class CrossMatch_Identifier(object):
                 # 
                 # draw the RefSource by a red cross symbol
                 refposxy = zoomwcs.wcs_world2pix(self.RefSource.RA, self.RefSource.Dec, 1)
+                #refposxy = numpy.subtract(refposxy, [zoomrect[0],zoomrect[2]])
+                refposxy = numpy.array(refposxy)
                 PlotPanel.autoscale(False)
                 PlotPanel.plot([refposxy[0]], [refposxy[1]], marker='+', markeredgewidth=1.85, 
                                markersize=numpy.mean(0.06*PlotDevice.get_size_inches()*PlotDevice.dpi), 
