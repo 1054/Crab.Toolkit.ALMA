@@ -524,7 +524,7 @@ class CrossMatch_Identifier(object):
                     tempellip = copy(zoomellip)
                     tempellip.width = tempellip.width*PhotAper_Value
                     tempellip.height = tempellip.height*PhotAper_Value
-                    tempflux, tempnpix, tempcpix = elliptical_Photometry(zoomimage, tempellip)
+                    tempflux, tempnpix, tempcpix = elliptical_Photometry(zoomimage, tempellip, imagewcs=zoomwcs)
                     PhotAper_Array.append({'Radius':PhotAper_Value, 'Shape':tempellip, 
                                            'Cpix':tempcpix, 
                                            'Npix':tempnpix, 'Fint':tempflux, 'Fbkg':numpy.nan, 
