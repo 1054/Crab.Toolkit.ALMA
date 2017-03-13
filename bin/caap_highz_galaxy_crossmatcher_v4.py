@@ -698,15 +698,15 @@ class CrossMatch_Identifier(object):
                 # 
                 #<test># self.Match['Photometry']['Score'] = ( 1.0 - numpy.exp( -(self.Match['Photometry']['S/N']/12.0                 ) ) ) * 50.0 
                 #<test>#                                   + ( 1.0 - numpy.exp( -(self.Source.Photometry['ALMA Band 6 240 GHz S/N']/6.0) ) ) * 50.0
-                #<20170313># self.Match['Photometry']['Score'] = ( numpy.min([self.Match['Photometry']['S/N']/12.0, 0.5] ) + 
-                #<20170313>#                                       numpy.min([self.Source.Photometry['ALMA Band 6 240 GHz S/N']/12.0, 0.5] )
-                #<20170313>#                                     ) * 100.0
-                #<20170313>#                                     # it means: ALMA S/N ~6 = 100%
-                #<20170313>#                                     #           image S/N ~6 -> ~10 = 100% [x] <TODO><20170310>
-                self.Match['Photometry']['Score'] = numpy.sqrt( ( self.Match['Photometry']['S/N'] )**2 + 
-                                                                ( self.Source.Photometry['ALMA Band 6 240 GHz S/N'] )**2 )
-                self.Match['Photometry']['Score'] = numpy.min( [self.Match['Photometry']['Score']/10.0, 1.0] ) * 100.0
-                                                    # it means: ALMA and image quadratic S/N ~10 = score 100
+                self.Match['Photometry']['Score'] = ( numpy.min([self.Match['Photometry']['S/N']/12.0, 0.5]) + 
+                                                      numpy.min([self.Source.Photometry['ALMA Band 6 240 GHz S/N']/12.0, 0.5])
+                                                    ) * 100.0
+                                                    # it means: ALMA S/N ~6 = 100%
+                                                    #           image S/N ~6 -> ~10 = 100% [x] <TODO><20170310>
+                #<20170313>#self.Match['Photometry']['Score'] = numpy.sqrt( ( self.Match['Photometry']['S/N'] )**2 + 
+                #<20170313>#                                                ( self.Source.Photometry['ALMA Band 6 240 GHz S/N'] )**2 )
+                #<20170313>#self.Match['Photometry']['Score'] = numpy.min( [self.Match['Photometry']['Score']/10.0, 1.0] ) * 100.0
+                #<20170313>#                                    # it means: ALMA and image quadratic S/N ~10 = score 100
                 # 
                 self.Match['Score'] = ( self.Match['Morphology']['Score']*0.5 + 
                                         self.Match['Photometry']['Score']*0.5 )
