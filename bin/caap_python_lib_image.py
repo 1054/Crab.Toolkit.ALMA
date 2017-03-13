@@ -65,7 +65,7 @@ def crop(image, zoomrect, imagewcs=[]):
     m = (mask>0)
     if imagewcs:
         zoomwcs = imagewcs
-        zoomwcs.crpix = imagewcs.crpix - numpy.array([i0, j0])
+        zoomwcs.wcs.crpix = imagewcs.wcs.crpix - numpy.array([i0, j0])
         return image[m].reshape((j1+1-j0, i1+1-i0)), zoomwcs
     return image[m].reshape((j1+1-j0, i1+1-i0))
 
