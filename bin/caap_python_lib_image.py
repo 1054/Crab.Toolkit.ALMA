@@ -115,6 +115,8 @@ def elliptical_Photometry(image, ellipse=Ellipse([0,0],0,0,0)):
     mask_rsub = ( mask_rdis - mask_rlim )
     #pprint(mask_rdis)
     #pprint(rdis)
+    # 
+    # count pixels including fractional pixels near the edge
     mask = numpy.zeros(image.shape)
     npix = 0
     m = (mask_rsub<-0.5)
@@ -132,6 +134,7 @@ def elliptical_Photometry(image, ellipse=Ellipse([0,0],0,0,0)):
     mask_pix[m_pix] = 1.0
     f_pix = numpy.sum(image*mask_pix)
     # 
+    # compute weighted center
     cpix_x = numpy.mean(numpy.sum(mask_x*image*mask)/numpy.sum(image*mask))
     cpix_y = numpy.mean(numpy.sum(mask_y*image*mask)/numpy.sum(image*mask))
     cpix = (cpix_x, cpix_y)
