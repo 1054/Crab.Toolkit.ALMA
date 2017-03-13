@@ -31,7 +31,7 @@ def calc_JanskyPerKelvin(Aeff_m2, Frequency_GHz, Diameter_m):
     return (2.0 * 1.38e-23 / Aeff_m2 * 1e26) # this is better because "Aeff_m2" considers "eta_ap".
 
 
-def calc_Sensitivity(Tint=[], Tsys=[], Nant=0, Npol=2, Bandwidth=0.0, bw=0.0, Velowidth=0.0, dv=0.0, Frequency=0.0, freq=0.0, Telescope='NOEMA'):
+def calc_Sensitivity(Tint=[], Tsys=[], Nant=0, Npol=2, Bandwidth=0.0, bw=0.0, Velowidth=0.0, dv=0.0, Frequency=0.0, freq=0.0, Telescope='NOEMA', Weather='summer', Verbose=True):
     # 
     # NOEMACapabilities.pdf 
     # 
@@ -53,6 +53,8 @@ def calc_Sensitivity(Tint=[], Tsys=[], Nant=0, Npol=2, Bandwidth=0.0, bw=0.0, Ve
     # If input Frequency by argument freq
     if Frequency <= 0.0 and freq > 0.0:
         Frequency = freq
+    if type(Frequency) is str:
+        Frequency = float(Frequency)
     # 
     # If input velocity width by argument dv
     if Velowidth <= 0.0 and dv > 0.0:
@@ -95,7 +97,11 @@ def calc_Sensitivity(Tint=[], Tsys=[], Nant=0, Npol=2, Bandwidth=0.0, bw=0.0, Ve
     if Bandwidth > 0.0 and Frequency > 0.0:
         Frequency = float(Frequency)
         Bandwidth = float(Bandwidth)
+        # 
+        # Loop each Tint
         for i_Tint in range(len(Tint)):
+            # 
+            # prepare an array for each Tsys
             Output_1d = []
             # 
             # determine Tsys
@@ -113,30 +119,62 @@ def calc_Sensitivity(Tint=[], Tsys=[], Nant=0, Npol=2, Bandwidth=0.0, bw=0.0, Ve
                 t_Nant = 0         # temporary variable, will be overriden if it has been given by the user. 
                 t_Tsys = numpy.nan # temporary variable, will be overriden if it has been given by the user. 
                 t_Tint = numpy.nan # temporary variable, will be overriden if it has been given by the user. 
+                rms = numpy.nan
                 # 
                 if Telescope.upper().find('NOEMA')>=0:
                     telescop = 'NOEMA'
                     Beamsize = calc_BeamSize(Frequency, 15.0)
-                    if Frequency >= 80 and Frequency <= 116:
+                    # Band 1 before 201703 was 80-116GHz
+                    # Band 1 after 201703 was 70.9-121.6GHz
+                    # Band 2 before 201703 was 130-177GHz
+                    # Band 2 after 201703 was 124.4-183.6GHz
+                    # Band 3 before 201703 was 202-267GHz
+                    # Band 3 after 201703 was 196.4-279.6GHz
+                    if Frequency >= 70.9 and Frequency <= 121.6:
                         bandnumb = 1    # NOEMA Band 1
                         eta = 0.9       # NOEMA Band 1, February 22, 2016
                         JpK = 22.0      # NOEMA Band 1, February 22, 2016
-                        JpK = calc_JanskyPerKelvin(numpy.pi*(15.0/2.0)**2 * 0.95, Frequency, 15.0) / eta #<TODO># dzliu
-                        t_Tsys = 100.0 if(Frequency<110) else (Frequency-110)/(116-110)*(185.0-100.0)+100.0
+                        # JpK = calc_JanskyPerKelvin(numpy.pi*(15.0/2.0)**2 * 0.95, Frequency, 15.0) / eta      #<before><20170312><pms.iram.fr># 
+                        # t_Tsys = 100.0 if(Frequency<110) else (Frequency-110)/(116-110)*(185.0-100.0)+100.0     #<before><20170312><pms.iram.fr># 
+                        # t_Tsys = 85.0 if(Frequency<110) else (Frequency-110)/(121.6-110)*(185.0-100.0)+100.0
+                        if(Weather.lower().find('winter')>=0):
+                            database_Tsys = {'freq':[70., 80, 110, 122.],
+                                             'Tsys':[140, 75, 85., 313.]} #<20170312># /Users/dzliu/Softwares/GILDAS/gildas-exe-10feb17/pro/noema-sensitivity-estimator.astro
+                        else:
+                            database_Tsys = {'freq':[70., 80, 110, 122.],
+                                             'Tsys':[150, 85, 95., 323.]} #<20170312># /Users/dzliu/Softwares/GILDAS/gildas-exe-10feb17/pro/noema-sensitivity-estimator.astro
+                        # 
+                        t_Tsys = numpy.interp(Frequency, database_Tsys['freq'], database_Tsys['Tsys'])
                         t_Nant = 7
-                    elif Frequency >= 130 and Frequency <= 177:
+                    elif Frequency >= 124.4 and Frequency <= 183.6:
                         bandnumb = 2    # NOEMA Band 2
                         eta = 0.8       # NOEMA Band 2, February 22, 2016
                         JpK = 29.0      # NOEMA Band 2, February 22, 2016
-                        JpK = calc_JanskyPerKelvin(numpy.pi*(15.0/2.0)**2 * 0.85, Frequency, 15.0) / eta #<TODO># dzliu
-                        t_Tsys = 150.0 if(Frequency<150) else (Frequency-150)/(177-150)*(200.0-150.0)+150.0
+                        # JpK = calc_JanskyPerKelvin(numpy.pi*(15.0/2.0)**2 * 0.85, Frequency, 15.0) / eta #<TODO># dzliu
+                        # t_Tsys = 150.0 if(Frequency<150) else (Frequency-150)/(177-150)*(200.0-150.0)+150.0
+                        if(Weather.lower().find('winter')>=0):
+                            database_Tsys = {'freq':[124, 126, 150, 184.],
+                                             'Tsys':[110, 110, 110, 195.]} #<20170312># /Users/dzliu/Softwares/GILDAS/gildas-exe-10feb17/pro/noema-sensitivity-estimator.astro
+                        else:
+                            database_Tsys = {'freq':[124, 126, 150, 184.],
+                                             'Tsys':[140, 140, 140, 242.]} #<20170312># /Users/dzliu/Softwares/GILDAS/gildas-exe-10feb17/pro/noema-sensitivity-estimator.astro
+                        # 
+                        t_Tsys = numpy.interp(Frequency, database_Tsys['freq'], database_Tsys['Tsys'])
                         t_Nant = 7
-                    elif Frequency >= 202 and Frequency <= 267:
+                    elif Frequency >= 196.4 and Frequency <= 279.6:
                         bandnumb = 3    # NOEMA Band 3
                         eta = 0.6       # NOEMA Band 3, February 22, 2016
                         JpK = 35.0      # NOEMA Band 3, February 22, 2016
-                        JpK = calc_JanskyPerKelvin(numpy.pi*(15.0/2.0)**2 * 0.75, Frequency, 15.0) / eta #<TODO># dzliu
-                        t_Tsys = 250.0
+                        # JpK = calc_JanskyPerKelvin(numpy.pi*(15.0/2.0)**2 * 0.75, Frequency, 15.0) / eta #<TODO># dzliu
+                        # t_Tsys = 250.0
+                        if(Weather.lower().find('winter')>=0):
+                            database_Tsys = {'freq':[195, 196, 230, 280.],
+                                             'Tsys':[190, 190, 190, 190.]} #<20170312># /Users/dzliu/Softwares/GILDAS/gildas-exe-10feb17/pro/noema-sensitivity-estimator.astro
+                        else:
+                            database_Tsys = {'freq':[195, 196, 230, 280.],
+                                             'Tsys':[250, 250, 250, 250.]} #<20170312># /Users/dzliu/Softwares/GILDAS/gildas-exe-10feb17/pro/noema-sensitivity-estimator.astro
+                        # 
+                        t_Tsys = numpy.interp(Frequency, database_Tsys['freq'], database_Tsys['Tsys'])
                         t_Nant = 7
                 # 
                 elif Telescope.upper().find('ALMA')>=0:
@@ -254,33 +292,45 @@ def calc_Sensitivity(Tint=[], Tsys=[], Nant=0, Npol=2, Bandwidth=0.0, bw=0.0, Ve
                 if eta is not numpy.nan and JpK is not numpy.nan and t_Tsys is not numpy.nan and t_Tint is not numpy.nan:
                     # rms = ( 2 * k_B * Tsys ) / ( Aeff * sqrt( N * (N-1) * BW * Tint * Npol) )
                     rms = ( float(JpK) * float(t_Tsys) ) / ( float(eta) * numpy.sqrt(float(t_Nant)*float(t_Nant-1)*float(t_Tint)*float(Bandwidth)*1e9*float(Npol)) ) * 1e3 # mJy
-                    print("")
-                    print("Telescope = %s"%(telescop))
-                    print("Bandnumber = %s"%(bandnumb))
-                    print("Frequency = %s GHz"%(Frequency))
-                    print("Bandwidth = %s GHz"%(Bandwidth))
-                    print("Velowidth = %s km/s"%(Velowidth))
-                    print("Beamsize = %s arcsec"%(Beamsize))
-                    print("Jy/K = %s"%(JpK))
-                    print("Nant = %s"%(t_Nant))
-                    print("Tsys = %s K"%(t_Tsys))
-                    print("Tint = %s s"%(t_Tint))
-                    print("rms = %s mJy"%(rms))
+                    if Verbose:
+                        print("")
+                        print("Telescope = %s"%(telescop))
+                        print("Weather = %s"%(Weather))
+                        print("Bandnumber = %s"%(bandnumb))
+                        print("Frequency = %s GHz"%(Frequency))
+                        print("Bandwidth = %s GHz"%(Bandwidth))
+                        print("Velowidth = %s km/s"%(Velowidth))
+                        print("Beamsize = %s arcsec"%(Beamsize))
+                        print("Jy/K = %s"%(JpK))
+                        print("Nant = %s"%(t_Nant))
+                        print("Tsys = %s K"%(t_Tsys))
+                        print("Tint = %s s"%(t_Tint))
+                        print("rms = %s mJy"%(rms))
                 else:
                     print("")
                     print("Sorry! Could not determine eta and Tsys for Telescope %s Frequency %0.6f GHz!"%(Telescope, Frequency))
                 # 
                 # output item --> output 1d array --> output 2d array
-                Output_item = {'Telescope':telescop, 'Bandnumber':bandnumb, 'Bandwidth':Bandwidth, 
+                Output_item = {'Telescope':telescop, 'Bandnumber':bandnumb, 'Bandwidth':Bandwidth, 'Frequency':Frequency, 
                                 'JpK':JpK, 'Tsys':t_Tsys, 
-                                'eta':eta, 'Nant':Nant, 'Npol':Npol, 'Tint':t_Tint
+                                'eta':eta, 'Nant':Nant, 'Npol':Npol, 'Tint':t_Tint, 
+                                'rms':rms,
                               }
                 #print(Output_item)
                 # 
                 # next
             Output_1d.append(Output_item)
         Output_2d.append(Output_1d)
-    return Output_2d
+    # 
+    Output_data = Output_2d
+    # 
+    if len(Tsys) == 1:
+        Output_data = [x[0] for x in Output_data]
+    # 
+    if len(Tint) == 1:
+        Output_data = Output_data[0]
+    # 
+    return Output_data
             
 
 
