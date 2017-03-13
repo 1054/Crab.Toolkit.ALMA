@@ -100,7 +100,8 @@ def elliptical_Photometry(image, ellipse=Ellipse([0,0],0,0,0), imagewcs=[]):
     #amin = 20.4 # 2.5
     #aang = 0.0
     # 
-    mask_x, mask_y = zip( *( (x+1.0, y+1.0) for y in range(image.shape[1]) for x in range(image.shape[0]) ) ) # numpy.zeros(image.shape) # -- http://stackoverflow.com/questions/9082829/creating-2d-coordinates-map-in-python
+    #<BUGGY><20170313># mask_x, mask_y = zip( *( (x+1.0, y+1.0) for y in range(image.shape[1]) for x in range(image.shape[0]) ) ) # numpy.zeros(image.shape) # -- http://stackoverflow.com/questions/9082829/creating-2d-coordinates-map-in-python
+    mask_x, mask_y = zip( *( (x+1.0, y+1.0) for y in range(image.shape[0]) for x in range(image.shape[1]) ) ) # numpy.zeros(image.shape) # -- http://stackoverflow.com/questions/9082829/creating-2d-coordinates-map-in-python
     mask_x = numpy.array(mask_x).reshape(image.shape)
     mask_y = numpy.array(mask_y).reshape(image.shape)
     #pprint(mask_x)

@@ -431,6 +431,12 @@ class CrossMatch_Identifier(object):
                 PlotPanel.grid(False)
                 PlotPanel.coords[0].set_major_formatter('hh:mm:ss.ss')
                 PlotPanel.coords[1].set_major_formatter('dd:mm:ss.s')
+                PlotPanel.coords[0].set_ticks_visible(True)
+                PlotPanel.coords[1].set_ticks_visible(True)
+                PlotPanel.coords[0].display_minor_ticks(True)
+                PlotPanel.coords[1].display_minor_ticks(True)
+                PlotPanel.coords[0].set_minor_frequency(10)
+                PlotPanel.coords[1].set_minor_frequency(10)
                 PlotPanel.set_xlabel('RA')
                 PlotPanel.set_ylabel('Dec')
                 # 
