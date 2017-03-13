@@ -361,18 +361,6 @@ class CrossMatch_Identifier(object):
             # 
             # do morphology check
             if True:
-                print('Showing FitsImage')
-                PlotDevice = pyplot.figure()
-                PlotPanel = PlotDevice.add_axes([0.10, 0.10, 0.85, 0.85], projection = self.FitsImageWCS) # plot RA Dec axes #  PlotPanel = PlotDevice.add_subplot(1,1,1)
-                PlotPanel.grid(False)
-                PlotPanel.coords[0].set_major_formatter('hh:mm:ss.ss')
-                PlotPanel.coords[1].set_major_formatter('dd:mm:ss.s')
-                PlotPanel.set_xlabel('RA')
-                PlotPanel.set_ylabel('Dec')
-                # 
-                #normfactor = ImageNormalize(self.FitsImageData, interval=AsymmetricPercentileInterval(5,99.5)) # , stretch=SqrtStretch()
-                #PlotImage = PlotPanel.imshow(self.FitsImageData, origin='lower', cmap='binary', norm=normfactor, aspect='equal') # cmap='gray' # cmap='jet' # cmap='binary'
-                ##PlotDevice.colorbar(PlotImage)
                 # 
                 # draw the source as an Ellipse
                 posxy = self.FitsImageWCS.wcs_world2pix(self.Source.RA, self.Source.Dec, 1) # 3rd arg: origin is the coordinate in the upper left corner of the image. In FITS and Fortran standards, this is 1. In Numpy and C standards this is 0.
@@ -393,7 +381,7 @@ class CrossMatch_Identifier(object):
                 if(zoomFoV>0.0):
                     zoomsize = zoomFoV / self.FitsImagePixScale # zoomsize in pixel unit corresponding to 7 arcsec
                     zoomrect = (numpy.round([posxy[0]-(zoomsize[0]/2.0), posxy[0]+(zoomsize[0]/2.0), posxy[1]-(zoomsize[1]/2.0), posxy[1]+(zoomsize[1]/2.0)]).astype(long))
-                    zoomimage = crop(self.FitsImageData, zoomrect)
+                    zoomimage, zoomwcs = crop(self.FitsImageData, zoomrect, imagewcs = self.FitsImageWCS)
                     zoomscale = numpy.divide(numpy.array(zoomimage.shape, dtype=float), numpy.array(self.FitsImageData.shape, dtype=float))
                     zoomposxy = numpy.subtract(posxy, [zoomrect[0],zoomrect[2]])
                     zoomellip = Ellipse(xy=zoomposxy, width=major, height=minor, angle=angle, edgecolor=hex2color('#00CC00'), facecolor="none", linewidth=2, zorder=10)
@@ -434,6 +422,21 @@ class CrossMatch_Identifier(object):
                 blankellip_small.set_linewidth(1.25)
                 blankellip_small.width = blankellip_small.width * 0.25
                 blankellip_small.height = blankellip_small.height * 0.25
+                # 
+                # 
+                # Plot fits image
+                print('Showing FitsImage')
+                PlotDevice = pyplot.figure()
+                PlotPanel = PlotDevice.add_axes([0.10, 0.10, 0.85, 0.85], projection = self.FitsImageWCS) # plot RA Dec axes #  PlotPanel = PlotDevice.add_subplot(1,1,1)
+                PlotPanel.grid(False)
+                PlotPanel.coords[0].set_major_formatter('hh:mm:ss.ss')
+                PlotPanel.coords[1].set_major_formatter('dd:mm:ss.s')
+                PlotPanel.set_xlabel('RA')
+                PlotPanel.set_ylabel('Dec')
+                # 
+                #normfactor = ImageNormalize(self.FitsImageData, interval=AsymmetricPercentileInterval(5,99.5)) # , stretch=SqrtStretch()
+                #PlotImage = PlotPanel.imshow(self.FitsImageData, origin='lower', cmap='binary', norm=normfactor, aspect='equal') # cmap='gray' # cmap='jet' # cmap='binary'
+                ##PlotDevice.colorbar(PlotImage)
                 # 
                 normfactor = ImageNormalize(zoomimage, interval=AsymmetricPercentileInterval(19.5,99.5))
                 # 
