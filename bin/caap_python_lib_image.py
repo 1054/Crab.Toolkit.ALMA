@@ -19,7 +19,7 @@ pkg_resources.require("matplotlib")
 import os, sys, math, numpy, matplotlib
 from matplotlib.patches import Ellipse, Circle, Rectangle
 from astropy.wcs import WCS
-
+import copy
 
 
 
@@ -64,7 +64,7 @@ def crop(image, zoomrect, imagewcs=[]):
     mask[j0:j1+1,i0:i1+1] = 1
     m = (mask>0)
     if imagewcs:
-        zoomwcs = imagewcs
+        zoomwcs = copy.copy(imagewcs)
         zoomwcs.wcs.crpix = imagewcs.wcs.crpix - numpy.array([i0, j0])
         return image[m].reshape((j1+1-j0, i1+1-i0)), zoomwcs
     return image[m].reshape((j1+1-j0, i1+1-i0))

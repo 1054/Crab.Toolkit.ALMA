@@ -424,7 +424,7 @@ class CrossMatch_Identifier(object):
                 # Plot fits image
                 print('Showing FitsImage')
                 PlotDevice = pyplot.figure()
-                PlotPanel = PlotDevice.add_axes([0.10, 0.10, 0.85, 0.85], projection = self.FitsImageWCS) # plot RA Dec axes #  PlotPanel = PlotDevice.add_subplot(1,1,1)
+                PlotPanel = PlotDevice.add_axes([0.10, 0.10, 0.85, 0.85], projection = zoomwcs) # plot RA Dec axes #  PlotPanel = PlotDevice.add_subplot(1,1,1)
                 PlotPanel.grid(False)
                 PlotPanel.coords[0].set_major_formatter('hh:mm:ss.ss')
                 PlotPanel.coords[1].set_major_formatter('dd:mm:ss.s')
