@@ -126,11 +126,17 @@ def elliptical_Photometry(image, ellipse=Ellipse([0,0],0,0,0)):
     f = numpy.sum(image*mask)
     npix = numpy.sum(mask)
     # 
+    # count integer pixels only
+    mask_pix = numpy.zeros(image.shape)
+    m_pix = (mask_rsub<=0.0)
+    mask_pix[m_pix] = 1.0
+    f_pix = numpy.sum(image*mask_pix)
+    # 
     cpix_x = numpy.mean(numpy.sum(mask_x*image*mask)/numpy.sum(image*mask))
     cpix_y = numpy.mean(numpy.sum(mask_y*image*mask)/numpy.sum(image*mask))
     cpix = (cpix_x, cpix_y)
     # 
-    print("elliptical_Photometry: xc=%.2f yc=%.2f amaj/2=%.2f amin/2=%.2f aang=%.2f npix=%.2f"%(xc, yc, amaj/2.0, amin/2.0, aang/math.pi*180.0, numpy.sum(mask)))
+    print("elliptical_Photometry: xc=%.2f yc=%.2f amaj/2=%.2f amin/2=%.2f aang=%.2f npix=%.2f fpix=%g f=%g"%(xc, yc, amaj/2.0, amin/2.0, aang/math.pi*180.0, numpy.sum(mask), f_pix, f))
     #print(image[0,0])
     return f, npix, cpix
 
