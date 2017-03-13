@@ -1012,10 +1012,11 @@ for i in range(len(Cat.TableData)):
                   (CutoutFileName.find('_mips_24_GO3_')>=0) or \
                   (CutoutFileName.find('.J.original-psf.')>=0) or \
                   (CutoutFileName.find('.H.original_psf.')>=0) or \
-                  (CutoutFileName.find('.Ks.original_psf.')>=0) or \
-                  (CutoutFileName.find('_vla_20cm_dp')>=0) or \
-                  (CutoutFileName.find('_vla_3ghz')>=0) 
+                  (CutoutFileName.find('.Ks.original_psf.')>=0) 
                 ) :
+                # 
+                # (CutoutFileName.find('_vla_20cm_dp')>=0)
+                # (CutoutFileName.find('_vla_3ghz')>=0)
                 # 
                 CutoutFileNames.append("%s/%s/%s"%(CutoutOutputDir, CutoutOutputName, CutoutFileName))
                 # 
