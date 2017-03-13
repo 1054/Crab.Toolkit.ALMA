@@ -705,7 +705,7 @@ class CrossMatch_Identifier(object):
                 #<20170313>#                                     #           image S/N ~6 -> ~10 = 100% [x] <TODO><20170310>
                 self.Match['Photometry']['Score'] = numpy.sqrt( numpy.min([self.Match['Photometry']['S/N']/12.0, 0.5] )**2 + 
                                                                 numpy.min([self.Source.Photometry['ALMA Band 6 240 GHz S/N']/12.0, 0.5] )**2 )
-                self.Match['Photometry']['Score'] = numpy.min( [self.Match['Photometry']['Score']/10.0, 1.0] )) * 100.0
+                self.Match['Photometry']['Score'] = numpy.min( [self.Match['Photometry']['Score']/10.0, 1.0] ) * 100.0
                                                     # it means: ALMA and image quadratic S/N ~10 = score 100
                 # 
                 self.Match['Score'] = ( self.Match['Morphology']['Score']*0.5 + 
