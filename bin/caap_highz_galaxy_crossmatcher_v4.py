@@ -371,10 +371,6 @@ class CrossMatch_Identifier(object):
                 #PlotPanel.add_artist(ellip)
                 #print("Plotting Source as %s"%(ellip))
                 # 
-                #pyplot.grid(False)
-                #pyplot.draw()
-                #pyplot.pause(0.15)
-                # 
                 # zoom the image to a zoomsize of 15 arcsec
                 #zoomFoV = 15.0 # 0.0 # 15.0 #<TODO># FoV Field of View
                 zoomFoV = float(FoV)
@@ -389,6 +385,7 @@ class CrossMatch_Identifier(object):
                     zoomsize = self.FitsImageData.shape
                     zoomrect = numpy.array([1, self.FitsImageData.shape[0], 1, self.FitsImageData.shape[1]])
                     zoomimage = self.FitsImageData
+                    zoomwcs = self.FitsImageWCS
                     zoomscale = numpy.array([1.0, 1.0])
                     zoomposxy = numpy.array(posxy)
                     zoomellip = ellip
@@ -475,8 +472,7 @@ class CrossMatch_Identifier(object):
                                    horizontalalignment='right', verticalalignment='center')
                 # 
                 # draw the RefSource by a red cross symbol
-                refposxy = self.FitsImageWCS.wcs_world2pix(self.RefSource.RA, self.RefSource.Dec, 1)
-                refposxy = numpy.subtract(refposxy, [zoomrect[0],zoomrect[2]])
+                refposxy = zoomwcs.wcs_world2pix(self.RefSource.RA, self.RefSource.Dec, 1)
                 PlotPanel.autoscale(False)
                 PlotPanel.plot([refposxy[0]], [refposxy[1]], marker='+', markeredgewidth=1.85, 
                                markersize=numpy.mean(0.06*PlotDevice.get_size_inches()*PlotDevice.dpi), 
