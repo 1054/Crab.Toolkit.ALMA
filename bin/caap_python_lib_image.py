@@ -44,7 +44,7 @@ from astropy.wcs import WCS
 
 
 # 
-def crop(image, zoomrect):
+def crop(image, zoomrect, imagewcs=[]):
     """
     Return the cropped image at the x1, x2, y1, y2 coordinates -- http://stackoverflow.com/questions/7665076/matplotlib-imshow-zoom-function
     """
@@ -63,6 +63,10 @@ def crop(image, zoomrect):
     mask = numpy.zeros(image.shape)
     mask[j0:j1+1,i0:i1+1] = 1
     m = (mask>0)
+    if len(imagewcs)>0:
+        zoomwcs = imagewcs
+        zoomwcs.crpix = imagewcs.crpix - numpy.array([i0, j0])
+        return image[m].reshape((j1+1-j0, i1+1-i0)), zoomwcs
     return image[m].reshape((j1+1-j0, i1+1-i0))
 
 
