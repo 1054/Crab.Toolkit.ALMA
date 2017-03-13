@@ -646,9 +646,13 @@ class CrossMatch_Identifier(object):
                 # -- try to use just final and first 'S.B'
                 #self.Match['Morphology']['Extended'] = PhotAper_Array[-1]['S.B.'] / PhotAper_Array[0]['S.B.'] * 100.0
                 # -- try to use the final and first 'S.B' where 'S/N' > 2 -- <20170308><dzliu><plang> 
-                temp_s = [t['S.B.'] for t in PhotAper_Array if(t['S/N']>=2.0)]
-                if len(temp_s) <= 1: temp_s = [numpy.nan]
-                self.Match['Morphology']['Extended'] = temp_s[-1] / temp_s[0] * 100.0
+                temp_r, temp_s = [(t['Radius'], t['S.B. Annulus']) for t in PhotAper_Array if(t['S/N']>=2.0)]
+                if len(temp_s) <= 1: 
+                    #temp_s = [numpy.nan]
+                    self.Match['Morphology']['Extended'] = 0.0
+                else:
+                    #self.Match['Morphology']['Extended'] = temp_s[-1] / temp_s[0] * 100.0
+                    self.Match['Morphology']['Extended'] = temp_s[-1] / temp_s[0] / (temp_r[-1]-temp_r[0]) * 100.0
                 print("")
                 print('Radial annulus polyfit: %s'%(temp_x))
                 print('Radial annulus polyfit: %s'%(temp_y))
@@ -724,8 +728,8 @@ class CrossMatch_Identifier(object):
                 #                                      0.5 * self.Source.Photometry['ALMA Band 6 240 GHz S/N']/15.0
                 #                                    ) * 100.0
                 # 
-                self.Match['Photometry']['Score'] = ( 0.25 * numpy.min( [ self.Match['Photometry']['S/N']/15.0, 1.0] ) + 
-                                                      0.75 * self.Source.Photometry['ALMA Band 6 240 GHz S/N']/15.0
+                self.Match['Photometry']['Score'] = ( 0.25 * numpy.min( [ self.Match['Photometry']['S/N']/12.0, 2.0 ] ) + 
+                                                      0.75 * numpy.min( [ self.Source.Photometry['ALMA Band 6 240 GHz S/N']/12.0, 2.0 ] )
                                                     ) * 100.0
                 # 
                 # 
