@@ -374,6 +374,7 @@ class CrossMatch_Identifier(object):
                 # zoom the image to a zoomsize of 15 arcsec
                 #zoomFoV = 15.0 # 0.0 # 15.0 #<TODO># FoV Field of View
                 zoomFoV = float(FoV)
+                zoomFoV = 0.0
                 if(zoomFoV>0.0):
                     zoomsize = zoomFoV / self.FitsImagePixScale # zoomsize in pixel unit corresponding to 7 arcsec
                     zoomrect = (numpy.round([posxy[0]-(zoomsize[0]/2.0), posxy[0]+(zoomsize[0]/2.0), posxy[1]-(zoomsize[1]/2.0), posxy[1]+(zoomsize[1]/2.0)]).astype(long))
