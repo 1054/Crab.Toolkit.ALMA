@@ -729,7 +729,7 @@ class CrossMatch_Identifier(object):
                 #                                      0.5 * self.Source.Photometry['ALMA Band 6 240 GHz S/N']/15.0
                 #                                    ) * 100.0
                 # 
-                self.Match['Photometry']['Score'] = ( 0.25 * numpy.min( [ self.Match['Photometry']['S/N']/12.0, 2.0 ] ) + 
+                self.Match['Photometry']['Score'] = ( 0.25 * numpy.min( [ self.Match['Photometry']['S/N']/15.0, 2.0 ] ) + 
                                                       0.75 * numpy.min( [ self.Source.Photometry['ALMA Band 6 240 GHz S/N']/12.0, 2.0 ] )
                                                     ) * 100.0
                 # 

@@ -69,7 +69,7 @@ if 'BMAJ' in hdulist[0].header and 'BMIN' in hdulist[0].header and 'BPA' in hdul
     if os.path.isfile(outfile):
         os.system('mv \"%s\" \"%s\"'%(outfile, outfile.replace('.fits','.backup.fits')))
         print('Backed up existing \"%s\" as \"%s\"!'%(outfile, outfile.replace('.fits','.backup.fits')))
-    hduli.writeto(outfile, overwrite=False)
+    hduli.writeto(outfile)
     print('Output to \"%s\"!'%(outfile))
 
 
