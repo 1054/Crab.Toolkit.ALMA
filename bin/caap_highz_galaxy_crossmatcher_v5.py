@@ -1058,8 +1058,8 @@ for i in range(len(Cat.TableData)):
     if not os.path.isdir("%s/%s"%(CutoutOutputDir, CutoutOutputName)):
         os.mkdir("%s/%s"%(CutoutOutputDir, CutoutOutputName))
         # Copy cutouts from Input_Cut directory
-        print(source_Date)
-        print(source_Date in Cutouts_Lookmap.keys())
+        #<DEBUG><20170320>#print(source_Date)
+        #<DEBUG><20170320>#print(source_Date in Cutouts_Lookmap.keys())
         if source_Name in Cutouts_Lookmap.keys():
             CutoutFileFindingStr = "%s"%(Cutouts_Lookmap[source_Name])
         elif source_Date in Cutouts_Lookmap.keys():
