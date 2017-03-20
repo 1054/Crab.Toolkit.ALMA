@@ -22,7 +22,6 @@ pkg_resources.require("wcsaxes") # http://wcsaxes.readthedocs.io/en/latest/getti
 
 import os
 import sys
-import platform
 import re
 import glob
 import inspect
@@ -46,6 +45,7 @@ try:
 except ImportError:
     raise SystemExit("Error! Failed to import matplotlib!")
 
+import platform
 if platform.system() == 'Darwin':
     matplotlib.use('Qt5Agg')
 else:

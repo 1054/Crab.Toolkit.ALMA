@@ -40,7 +40,11 @@ from datetime import datetime
 from dateutil import parser
 
 import matplotlib
-matplotlib.use('Qt5Agg') # must before import pyplot
+import platform
+if platform.system() == 'Darwin':
+    matplotlib.use('Qt5Agg')
+else:
+    matplotlib.use('TkAgg') # must before import pyplot
 from matplotlib import pyplot
 from matplotlib.colors import hex2color, rgb2hex
 from matplotlib.patches import Ellipse, Circle, Rectangle, Polygon

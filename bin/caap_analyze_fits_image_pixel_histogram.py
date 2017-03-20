@@ -49,7 +49,11 @@ import scipy
 import astropy
 from astropy.io import fits
 import matplotlib
-matplotlib.use('Qt5Agg') # must before import pyplot
+import platform
+if platform.system() == 'Darwin':
+    matplotlib.use('Qt5Agg')
+else:
+    matplotlib.use('TkAgg') # must before import pyplot
 import matplotlib.pyplot as pl
 import matplotlib.mlab as mlab
 from matplotlib.colors import LogNorm

@@ -45,7 +45,11 @@ try:
 except ImportError:
     raise SystemExit("Error! Failed to import matplotlib!")
 
-matplotlib.use('Qt5Agg')
+import platform
+if platform.system() == 'Darwin':
+    matplotlib.use('Qt5Agg')
+else:
+    matplotlib.use('TkAgg')
 
 try: 
     from matplotlib import pyplot
