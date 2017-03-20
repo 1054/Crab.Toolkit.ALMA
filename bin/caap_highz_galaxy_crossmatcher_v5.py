@@ -379,6 +379,7 @@ class CrossMatch_Identifier(object):
                 if(zoomFoV>0.0):
                     zoomsize = zoomFoV / self.FitsImagePixScale # zoomsize in pixel unit corresponding to 7 arcsec
                     zoomrect = (numpy.round([posxy[0]-(zoomsize[0]/2.0), posxy[0]+(zoomsize[0]/2.0), posxy[1]-(zoomsize[1]/2.0), posxy[1]+(zoomsize[1]/2.0)]).astype(long))
+                    print("Zooming to FoV %.3f arcsec with zoomrect %s"%(zoomFoV, zoomrect))
                     zoomimage, zoomwcs = crop(self.FitsImageData, zoomrect, imagewcs = self.FitsImageWCS)
                     zoomscale = numpy.divide(numpy.array(zoomimage.shape, dtype=float), numpy.array(self.FitsImageData.shape, dtype=float))
                     zoomposxy = numpy.subtract(posxy, [zoomrect[0],zoomrect[2]])
@@ -880,9 +881,9 @@ if len(sys.argv) > 2:
     Input_Cut = sys.argv[2]
     if not os.path.isfile(Input_Cut):
         if not os.path.isdir(Input_Cut):
-            print("Warning! The input cutout directory \"%s\" was not found!"%(Input_Cut))
+            print("Warning! The input cutouts directory \"%s\" was not found!"%(Input_Cut))
     else:
-        print("Using the input cutout lookmap file \"%s\""%(Input_Cut))
+        print("Using the input cutouts lookmap file \"%s\""%(Input_Cut))
         with open(Input_Cut,'r') as fp:
             for lp in fp:
                 tmp_str_list = lp.strip().split()
@@ -1088,7 +1089,7 @@ for i in range(len(Cat.TableData)):
         for CutoutFilePath in CutoutFilePaths:
             CutoutFileName = os.path.basename(CutoutFilePath)
             if  ( (CutoutFileName.find('_acs_I_mosaic_')>=0) or \
-                 ((CutoutFileName.find('_irac_ch')>=0) and (CutoutFileName.find('_DEEP_')>=0)) or \
+                  (CutoutFileName.find('_irac_ch')>=0) or \
                   (CutoutFileName.find('_mips_24_GO3_')>=0) or \
                   (CutoutFileName.find('.J.original-psf.')>=0) or \
                   (CutoutFileName.find('.H.original_psf.')>=0) or \
