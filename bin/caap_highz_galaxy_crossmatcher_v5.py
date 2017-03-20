@@ -350,7 +350,7 @@ class CrossMatch_Identifier(object):
                        math.isnan(float(temp_Score_Morph)) or \
                        math.isnan(float(temp_Score_Photo)) or \
                        math.isnan(float(temp_Score_Exten)) :
-                        print("Warning! Previous crossmatching result \"%s\" contains \"nan\"! Will redo the crossmatching unless the \"overwrite\" option are input!"%(TextOutput))
+                        print("Warning! Previous crossmatching result \"%s\" contains \"nan\"! Will redo the crossmatching due to NaN values found!"%(TextOutput))
                         Overwrite = True
                         pyplot.pause(2.0)
                 #if(TextOutput.find('22721')>=0):
