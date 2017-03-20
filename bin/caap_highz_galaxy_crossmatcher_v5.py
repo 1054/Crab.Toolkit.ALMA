@@ -1069,7 +1069,7 @@ for i in range(len(Cat.TableData)):
         CutoutFilePaths = glob.glob(CutoutFileFindingStr)
     else:
         # Copy from certain other directory <TODO>
-        CutoutFileFindingStr = "%s/%s/%s[._]*.fits"%(CutoutOutputDir, CutoutOutputName, Source.Name) # cutout fits file names always contain ID but not full names. 
+        CutoutFileFindingStr = "%s/%s/[^.~-].*.fits"%(CutoutOutputDir, CutoutOutputName) # cutout fits file names always contain ID but not full names. 
         CutoutFilePaths = glob.glob(CutoutFileFindingStr)
     
     # 
