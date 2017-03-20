@@ -885,13 +885,13 @@ if len(sys.argv) > 2:
         with open(Input_Cut,'r') as fp:
             for lp in fp:
                 tmp_str_list = lp.strip().split()
-                print(len(tmp_str_list))
+                #print(len(tmp_str_list))
                 if len(tmp_str_list)==2:
                     Input_Cutouts_Lookmap[tmp_str_list[0]] = tmp_str_list[1] # use obj name
-                elif len(tmp_str_list)==2:
+                elif len(tmp_str_list)==3:
                     Input_Cutouts_Lookmap[tmp_str_list[1]] = tmp_str_list[2] # 
             fp.close()
-            print(Input_Cutouts_Lookmap)
+            #print(Input_Cutouts_Lookmap)
 else:
     Input_Cut = '/home/dzliu/Temp/cutouts'
 
