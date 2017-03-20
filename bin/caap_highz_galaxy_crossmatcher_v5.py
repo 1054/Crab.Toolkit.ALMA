@@ -350,13 +350,13 @@ class CrossMatch_Identifier(object):
                        math.isnan(float(temp_Score_Morph)) or \
                        math.isnan(float(temp_Score_Photo)) or \
                        math.isnan(float(temp_Score_Exten)) :
-                        print("Warning! Previous crossmatching result \"%s\" contains \"nan\"! Will redo the crossmatching!"%(TextOutput))
+                        print("Warning! Previous crossmatching result \"%s\" contains \"nan\"! Will redo the crossmatching unless the \"overwrite\" option are input!"%(TextOutput))
                         Overwrite = True
                         pyplot.pause(2.0)
                 #if(TextOutput.find('22721')>=0):
                 #    pyplot.pause(2.0)
                 if not Overwrite:
-                    print("Found previous crossmatching result: \"%s\"! Will not redo the crossmatching!"%(TextOutput))
+                    print("Found previous crossmatching result: \"%s\"! Will not redo the crossmatching unless the \"overwrite\" option are input!"%(TextOutput))
                     return
             # 
             # do morphology check
