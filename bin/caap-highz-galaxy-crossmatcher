@@ -1,7 +1,7 @@
 #!/bin/bash
 # 
 
-if [[ $(type caap_highz_galaxy_crossmatcher_v4.py 2>/dev/null | wc -l) -eq 0 ]]; then
+if [[ $(type caap_highz_galaxy_crossmatcher_v5.py 2>/dev/null | wc -l) -eq 0 ]]; then
     #ls $(dirname "${BASH_SOURCE[0]}")/../SETUP.bash
     source $(dirname "${BASH_SOURCE[0]}")/../SETUP.bash
 fi
@@ -26,5 +26,5 @@ if [[ $# -eq 0 ]]; then
     exit
 fi
 
-caap_highz_galaxy_crossmatcher_v4.py "$@"
+caap_highz_galaxy_crossmatcher_v5.py "$@"
 
