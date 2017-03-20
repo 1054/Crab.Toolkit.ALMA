@@ -22,6 +22,7 @@ pkg_resources.require("wcsaxes") # http://wcsaxes.readthedocs.io/en/latest/getti
 
 import os
 import sys
+import platform
 import re
 import glob
 import inspect
@@ -45,8 +46,10 @@ try:
 except ImportError:
     raise SystemExit("Error! Failed to import matplotlib!")
 
-#matplotlib.use('Qt5Agg')
-matplotlib.use('TkAgg')
+if platform.system() == 'Darwin':
+    matplotlib.use('Qt5Agg')
+else:
+    matplotlib.use('TkAgg')
 
 try: 
     from matplotlib import pyplot
@@ -892,6 +895,8 @@ if len(sys.argv) > 2:
                     Cutouts_Lookmap[tmp_str_list[0]] = tmp_str_list[1] # use obj name
                 elif len(tmp_str_list)==3:
                     Cutouts_Lookmap[tmp_str_list[1]] = tmp_str_list[2] # 
+                elif len(tmp_str_list)==6:
+                    Cutouts_Lookmap[(tmp_str_list[1],tmp_str_list[2],tmp_str_list[3],tmp_str_list[4])] = tmp_str_list[5] # 
             fp.close()
             #print(Cutouts_Lookmap.keys())
 else:
@@ -996,8 +1001,10 @@ for i in range(len(Cat.TableData)):
     if 'ZPDF' in Cat.TableHeaders:
         source_z = { 'Laigle 2015 photo-z': float(Cat.TableData[i].field('ZPDF')) }
     
-    if 'OBS_DATE' in Cat.TableHeaders:
-        source_Date = Cat.TableData[i].field('OBS_DATE').strip()
+    #if 'OBS_DATE' in Cat.TableHeaders:
+    #    source_Date = Cat.TableData[i].field('OBS_DATE').strip()
+    #    # I tried to use DATE-OBS to distinguish fields in a same obs scan but failed. 
+    #    # Now I have to check the RA Dec to determine cutouts lookmap.
     
     # 
     # Create ALMA Source
@@ -1056,23 +1063,60 @@ for i in range(len(Cat.TableData)):
     CutoutFilePaths = []
     if not os.path.isdir(CutoutOutputDir):
         os.mkdir(CutoutOutputDir)
+    # 
     # check if we have already cutouts for each source (from previous runs)
+    # 
     if not os.path.isdir("%s/%s"%(CutoutOutputDir, CutoutOutputName)):
         os.mkdir("%s/%s"%(CutoutOutputDir, CutoutOutputName))
-        # Copy cutouts from Input_Cut directory
-        #<DEBUG><20170320>#print(source_Date)
-        #<DEBUG><20170320>#print(source_Date in Cutouts_Lookmap.keys())
-        if source_Name in Cutouts_Lookmap.keys():
-            CutoutFileFindingStr = "%s"%(Cutouts_Lookmap[source_Name])
-        elif source_Date in Cutouts_Lookmap.keys():
-            CutoutFileFindingStr = "%s"%(Cutouts_Lookmap[source_Date])
-        else:
-            CutoutFileFindingStr = "%s/*/%s[._]*.fits"%(Input_Cut, Source.Name)
-        CutoutFilePaths = glob.glob(CutoutFileFindingStr)
     else:
-        # Copy from certain other directory <TODO>
         CutoutFileFindingStr = "%s/%s/*.fits"%(CutoutOutputDir, CutoutOutputName) # cutout fits file names always contain ID but not full names. 
-        CutoutFilePaths = glob.glob(CutoutFileFindingStr)
+    # 
+    # Copy cutouts from Input_Cut directory
+    # 
+    # -- use Cutouts_Lookmap
+    #    and Cutouts_Lookmap is using Object Name to look for cutouts image file
+    if CutoutFileFindingStr == 'N/A':
+        if source_Name in Cutouts_Lookmap.keys():
+            print("Found cutouts in cutouts lookmap file for object name \"%s\""%(source_Name))
+            CutoutFileFindingStr = "%s"%(Cutouts_Lookmap[source_Name])
+    # -- use Cutouts_Lookmap
+    #    and Cutouts_Lookmap is using Object RA Dec to look for cutouts image file
+    if CutoutFileFindingStr == 'N/A':
+        Cutouts_Lookmap_Polygon_Center_Selected = []
+        for Cutouts_Lookmap_Key in Cutouts_Lookmap.keys():
+            if type(Cutouts_Lookmap_Key) is tuple:
+                if len(Cutouts_Lookmap_Key) == 4:
+                    Cutouts_Lookmap_Rectangle = numpy.array(Cutouts_Lookmap_Key).astype(numpy.float)
+                    #print(Cutouts_Lookmap_Rectangle, len(Cutouts_Lookmap_Rectangle))
+                    Cutouts_Lookmap_Polygon_Center = (
+                        (Cutouts_Lookmap_Rectangle[0]+Cutouts_Lookmap_Rectangle[1])/2.0, \
+                        (Cutouts_Lookmap_Rectangle[2]+Cutouts_Lookmap_Rectangle[3])/2.0
+                        )
+                    Cutouts_Lookmap_Polygon = matplotlib.path.Path([ \
+                        [Cutouts_Lookmap_Rectangle[0],Cutouts_Lookmap_Rectangle[2]], \
+                        [Cutouts_Lookmap_Rectangle[0],Cutouts_Lookmap_Rectangle[3]], \
+                        [Cutouts_Lookmap_Rectangle[1],Cutouts_Lookmap_Rectangle[3]], \
+                        [Cutouts_Lookmap_Rectangle[1],Cutouts_Lookmap_Rectangle[2]], \
+                        [Cutouts_Lookmap_Rectangle[0],Cutouts_Lookmap_Rectangle[2]] \
+                        ])
+                    #print(Cutouts_Lookmap_Polygon)
+                    if Cutouts_Lookmap_Polygon.contains_point((source_RA,source_DEC)):
+                        print("Found cutouts in cutouts lookmap file for object RA Dec %.7f %.7f"%(source_RA, source_DEC))
+                        if len(Cutouts_Lookmap_Polygon_Center_Selected) == 0:
+                            Cutouts_Lookmap_Polygon_Center_Selected = Cutouts_Lookmap_Polygon_Center
+                            CutoutFileFindingStr = "%s"%(Cutouts_Lookmap[Cutouts_Lookmap_Key])
+                        else:
+                            if ((source_RA-Cutouts_Lookmap_Polygon_Center[0])**2 + (source_DEC-Cutouts_Lookmap_Polygon_Center[1])**2) < ((source_RA-Cutouts_Lookmap_Polygon_Center_Selected[0])**2 + (source_DEC-Cutouts_Lookmap_Polygon_Center_Selected[1])**2):
+                                Cutouts_Lookmap_Polygon_Center_Selected = Cutouts_Lookmap_Polygon_Center
+                                CutoutFileFindingStr = "%s"%(Cutouts_Lookmap[Cutouts_Lookmap_Key])
+    if CutoutFileFindingStr == 'N/A':
+        CutoutFileFindingStr = "%s/*/%s[._]*.fits"%(Input_Cut, Source.Name)
+    # 
+    # Search for cutouts image files
+    # 
+    print("Searching cutouts image files with pattern \"%s\""%(CutoutFileFindingStr))
+    CutoutFilePaths = glob.glob(CutoutFileFindingStr)
+    
     
     # 
     # List cutouts (Source.Name[._]*.fits)
@@ -1102,6 +1146,7 @@ for i in range(len(Cat.TableData)):
                 CutoutFileNames.append("%s/%s/%s"%(CutoutOutputDir, CutoutOutputName, CutoutFileName))
                 # 
                 if not os.path.isfile("%s/%s/%s"%(CutoutOutputDir, CutoutOutputName, CutoutFileName)):
+                    print("Copying cutouts image file \"%s\" to \"%s/%s/%s\""%(CutoutFilePath, CutoutOutputDir, CutoutOutputName, CutoutFileName))
                     shutil.copy2(CutoutFilePath, "%s/%s/%s"%(CutoutOutputDir, CutoutOutputName, CutoutFileName))
         # 
         pprint(CutoutFilePaths)
