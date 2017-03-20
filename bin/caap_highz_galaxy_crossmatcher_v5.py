@@ -374,6 +374,7 @@ class CrossMatch_Identifier(object):
             PlotOutput = OutputDir+'/'+self.Source.Field+'--'+str(self.Source.Name)+'--'+str(self.Source.SubID)+'--'+StrTelescope+'--'+StrInstrument.replace(' ','-')+'.pdf'
             TextOutput = OutputDir+'/'+self.Source.Field+'--'+str(self.Source.Name)+'--'+str(self.Source.SubID)+'--'+StrTelescope+'--'+StrInstrument.replace(' ','-')+'.txt'
             LoggOutput = OutputDir+'/'+self.Source.Field+'--'+str(self.Source.Name)+'--'+str(self.Source.SubID)+'--'+StrTelescope+'--'+StrInstrument.replace(' ','-')+'.log'
+            LockOutput = OutputDir+'/'+self.Source.Field+'--'+str(self.Source.Name)+'--'+str(self.Source.SubID)+'--'+StrTelescope+'--'+StrInstrument.replace(' ','-')+'.lock' #<TODO># 
             # 
             # begin Logger
             temp_Logger = Logger(LoggOutput, mode='w')
@@ -917,7 +918,7 @@ class CrossMatch_Identifier(object):
 #Source.about()
 
 if len(sys.argv) <= 1:
-    print("Usage: caap_highz_galaxy_crossmatcher_v2.py \"Match_cycle2_new_detections_1.5arcsec.fits\"")
+    print("Usage: caap_highz_galaxy_crossmatcher_v5.py \"Match_cycle2_new_detections_1.5arcsec.fits\"")
     sys.exit()
 
 # 
@@ -963,14 +964,20 @@ else:
 Input_Overwrite = False
 Input_DoSources = []
 Input_DoSubIDs = []
+Input_DoIndexes = []
 for i in range(3,len(sys.argv)):
     if sys.argv[i].lower() != 'overwrite':
-        if sys.argv[i].find('--') > 0:
-            Input_DoSources.append(sys.argv[i].split('--')[0])
-            Input_DoSubIDs.append(sys.argv[i].split('--')[1])
+        if sys.argv[i].lower().find('index') == 0:
+            # if this argument is index number range
+            Input_DoIndexes = numpy.array(sys.argv[i].lower().replace('index','').strip().split(','))
         else:
-            Input_DoSources.append(sys.argv[i])
-            Input_DoSubIDs.append('*')
+            # if this argument is source name (and subid, if separated with --)
+            if sys.argv[i].find('--') > 0:
+                Input_DoSources.append(sys.argv[i].split('--')[0])
+                Input_DoSubIDs.append(sys.argv[i].split('--')[1])
+            else:
+                Input_DoSources.append(sys.argv[i])
+                Input_DoSubIDs.append('*')
     else:
         Input_Overwrite = True
 
@@ -994,8 +1001,35 @@ for i in range(len(Cat.TableData)):
     #if Cat.TableData[i].field('OBJECT') != '238643':
     #    continue
     
+    # 
+    # Skip some sources that do not meet the 3rd argument, which is like "index 3~50"
+    # 
+    source_OK = False
+    
+    if len(Input_DoIndexes) > 0:
+        for Input_DoIndex in Input_DoIndexes:
+            if Input_DoIndex.find('-') > 0:
+                temp_str_split = Input_DoIndex.split('-')
+                if len(temp_str_split) == 2:
+                    if i > long(temp_str_split[0]) and i < long(temp_str_split[1]):
+                        source_OK = True
+            elif Input_DoIndex.find('~') > 0:
+                temp_str_split = Input_DoIndex.split('~')
+                if len(temp_str_split) == 2:
+                    if i > long(temp_str_split[0]) and i < long(temp_str_split[1]):
+                        source_OK = True
+            else:
+                if i == long(Input_DoIndex):
+                    source_OK = True
+    
+    if not source_OK:
+        continue
+    
+    # 
+    # Skip some sources that do not meet the 3rd argument, which is like "SOURCE-NAME--SUBID"
+    # 
     if len(Input_DoSources) > 0:
-        if Cat.TableData[i].field('OBJECT') not in Input_DoSources:
+        if Cat.TableData[i].field('OBJECT') in Input_DoSources:
             Input_DoSubID = '*'
             continue
         else:
@@ -1005,6 +1039,8 @@ for i in range(len(Cat.TableData)):
         if Input_DoSubID != '*':
             if Cat.TableData[i].field('SUBID_TILE') != long(Input_DoSubID):
                 continue
+    
+    
     
     Overwrite = Input_Overwrite
     
@@ -1116,7 +1152,7 @@ for i in range(len(Cat.TableData)):
     # Prepare cutouts and copy to CutoutOutputDir
     # 
     CutoutOutputDir = 'cutouts'
-    CutoutOutputName = 'cutouts_%d_'%(i)+Source.Name #<20170320><fixed># Source.Name not unique
+    CutoutOutputName = 'cutouts_'+Source.Name #<20170320><fixed># Source.Name not unique
     CutoutFileFindingStr = 'N/A'
     CutoutFilePaths = []
     if not os.path.isdir(CutoutOutputDir):
