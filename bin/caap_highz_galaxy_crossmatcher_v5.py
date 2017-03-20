@@ -1028,7 +1028,7 @@ for i in range(len(Cat.TableData)):
     # Skip some sources that do not meet the 3rd argument, which is like "SOURCE-NAME--SUBID"
     # 
     if len(Input_DoSources) > 0:
-        if Cat.TableData[i].field('OBJECT') in Input_DoSources:
+        if Cat.TableData[i].field('OBJECT') not in Input_DoSources:
             Input_DoSubID = '*'
             continue
         else:
