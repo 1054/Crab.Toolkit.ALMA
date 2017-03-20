@@ -427,7 +427,8 @@ class CrossMatch_Identifier(object):
                 angle = self.Source.Morphology['Pos Angle']
                 ellip = Ellipse(xy=posxy, width=major, height=minor, angle=angle, edgecolor='green', facecolor="none", linewidth=2, zorder=10)
                 #PlotPanel.add_artist(ellip)
-                #print("Plotting Source as %s"%(ellip))
+                print("Plotting Cutouts image file \"%s\""%(self.FitsImageFile))
+                print("Plotting Source as %s"%(ellip))
                 # 
                 # zoom the image to a zoomsize of 15 arcsec
                 #zoomFoV = 15.0 # 0.0 # 15.0 #<TODO># FoV Field of View
