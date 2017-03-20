@@ -289,9 +289,9 @@ class CrossMatch_Identifier(object):
             if not self.Source.Name:
                 print("Error! \"Source\" does not have \"Name\" info!")
                 return
-            if not self.Source.ID:
-                print("Error! \"Source\" does not have \"ID\" info!")
-                return
+            #if not self.Source.ID:
+            #    print("Error! \"Source\" does not have \"ID\" info!")
+            #    return
             if not self.Source.SubID:
                 print("Error! \"Source\" does not have \"SubID\" info!")
                 return
@@ -810,9 +810,10 @@ class CrossMatch_Identifier(object):
                 TextFilePtr = open(TextOutput, 'w')
                 TextFilePtr.write("# %s\n"%(str(datetime.now())))
                 TextFilePtr.write("Source.Name = %s\n"%(self.Source.Name))
-                TextFilePtr.write("Source.ID = %ld\n"%(self.Source.ID))
+                #TextFilePtr.write("Source.ID = %ld\n"%(self.Source.ID))
                 TextFilePtr.write("Source.SubID = %ld\n"%(self.Source.SubID))
                 TextFilePtr.write("Source.ALMA.S/N = %.3f\n"%(self.Source.Photometry['ALMA Band 6 240 GHz S/N']))
+                TextFilePtr.write("RefSource.ID = %ld\n"%(self.RefSource.ID))
                 TextFilePtr.write("Match.Score = %.1f\n"%(self.Match['Score']))
                 TextFilePtr.write("Match.Morphology.Score = %.1f\n"%(self.Match['Morphology']['Score']))
                 TextFilePtr.write("Match.Morphology.Extended = %.1f\n"%(self.Match['Morphology']['Extended']))
@@ -1050,6 +1051,7 @@ for i in range(len(Cat.TableData)):
     CutoutFilePaths = []
     if not os.path.isdir(CutoutOutputDir):
         os.mkdir(CutoutOutputDir)
+    # check if we have already cutouts for each source (from previous runs)
     if not os.path.isdir("%s/%s"%(CutoutOutputDir, CutoutOutputName)):
         os.mkdir("%s/%s"%(CutoutOutputDir, CutoutOutputName))
         # Copy cutouts from Input_Cut directory
