@@ -45,7 +45,8 @@ try:
 except ImportError:
     raise SystemExit("Error! Failed to import matplotlib!")
 
-matplotlib.use('Qt5Agg')
+#matplotlib.use('Qt5Agg')
+matplotlib.use('TkAgg')
 
 try: 
     from matplotlib import pyplot
@@ -112,7 +113,7 @@ except ImportError:
 
 
 
-pyplot.rcParams['font.family'] = 'NGC'
+#pyplot.rcParams['font.family'] = 'NGC'
 pyplot.rcParams['font.size'] = 13
 pyplot.rcParams['axes.labelsize'] = 'large'
 #pyplot.rcParams['axes.labelpad'] = 5.0
