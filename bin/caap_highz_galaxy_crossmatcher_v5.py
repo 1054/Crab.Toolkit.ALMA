@@ -379,7 +379,7 @@ class CrossMatch_Identifier(object):
                 if(zoomFoV>0.0):
                     zoomsize = zoomFoV / self.FitsImagePixScale # zoomsize in pixel unit corresponding to 7 arcsec
                     zoomrect = (numpy.round([posxy[0]-(zoomsize[0]/2.0), posxy[0]+(zoomsize[0]/2.0), posxy[1]-(zoomsize[1]/2.0), posxy[1]+(zoomsize[1]/2.0)]).astype(long))
-                    print("Zooming to FoV %.3f arcsec with zoomrect %s"%(zoomFoV, zoomrect))
+                    print("Zooming to FoV %.3f arcsec around source position %.3f %.3f with zoomrect %s"%(zoomFoV, posxy[0], posxy[1], zoomrect))
                     zoomimage, zoomwcs = crop(self.FitsImageData, zoomrect, imagewcs = self.FitsImageWCS)
                     zoomscale = numpy.divide(numpy.array(zoomimage.shape, dtype=float), numpy.array(self.FitsImageData.shape, dtype=float))
                     zoomposxy = numpy.subtract(posxy, [zoomrect[0],zoomrect[2]])
