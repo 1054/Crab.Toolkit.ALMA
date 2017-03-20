@@ -128,6 +128,24 @@ with open('%s.pixel.statistics.txt'%(FitsFile), 'w') as fp:
     fp.close()
 
 
+# 
+# Inner sigma
+# 
+FitInnerSigma = 5.0
+InnerRange = np.where((BinVar>=(BinMean-FitInnerSigma*BinSigma)) & (BinVar<=(BinMean+FitInnerSigma*BinSigma))) # logical_and (() & ())
+InnerSigma = np.std(BinVar[InnerRange])
+# output to txt file
+with open('%s.pixel.statistics.txt'%(FitsFile), 'a') as fp:
+    print(   "InnerSigma  = %.10g  # FitInnerSigma = %.1f"  %(InnerSigma, FitInnerSigma))
+    fp.write("InnerSigma  = %.10g  # FitInnerSigma = %.1f\n"%(InnerSigma, FitInnerSigma))
+    fp.close()
+
+
+# 
+# pyplot.show()
+# 
+#pl.show()
+
 
 # 
 # Loop to make sure we get Gaussian fitting for the histogram
@@ -136,13 +154,25 @@ with open('%s.pixel.statistics.txt'%(FitsFile), 'w') as fp:
 BinNumb = 0
 BinLoop = True
 
-while BinLoop and BinNumb <= (len(BinVar)/1.5):
+while BinLoop and BinNumb <= (len(BinVar)/1.75):
     # 
     # Bin pixel value histogram
     # 
-    BinNumb = BinNumb + 1000
+    if BinNumb<=10000:
+        BinNumb = BinNumb + 1000
+    else:
+        if BinNumb<=1000000:
+            BinNumb = long(BinNumb * 1.15)
+        else:
+            BinNumb = len(BinVar)
+            break
+            
+    
     BinHists, BinEdges, BinPatches = pl.hist(BinVar, BinNumb, histtype='stepfilled', color=hex2color('#0000FF'), linewidth=0.2) # histtype='bar', 'step', 'stepfilled'
     BinCents = (BinEdges[:-1] + BinEdges[1:]) / 2.0
+    
+    pl.draw()
+    #pl.show()
     
     
     # 
@@ -153,6 +183,7 @@ while BinLoop and BinNumb <= (len(BinVar)/1.5):
     FitRange = np.where((BinCents>=(BinMean-FitInnerSigma*BinSigma)) & (BinCents<=(BinMean+FitInnerSigma*BinSigma))) # logical_and (() & ())
     if len(FitRange) == 0:
         FitRange = range(len(BinCents))
+    
     print("Fitting_range = %.10g %.10g (nbins = %d, ndata = %d)"%(np.min(BinCents[FitRange]), np.max(BinCents[FitRange]), BinNumb, len(BinVar)))
     # 
     FitParam = {'A': np.nan, 'mu': np.nan, 'sigma': np.nan}
@@ -161,6 +192,7 @@ while BinLoop and BinNumb <= (len(BinVar)/1.5):
     if True:
         try:
             FitGauss, FitParam = fit_Gaussian_1D(BinCents[FitRange], BinHists[FitRange], np.max(BinHists[FitRange]), np.min([BinMode,BinMedian]), BinSigma)
+            #print(FitParam)
         except:
             FitParam = {'A': np.nan, 'mu': np.nan, 'sigma': np.nan}
         # 
@@ -171,6 +203,7 @@ while BinLoop and BinNumb <= (len(BinVar)/1.5):
     if FitParam['sigma'] == np.nan or FitParam['sigma'] <= 0.0:
         try:
             FitGauss, FitParam = fit_Gaussian_1D(BinCents[FitRange], BinHists[FitRange], np.max(BinHists[FitRange]), np.min([BinMode,BinMedian]), BinSigma/2.0)
+            #print(FitParam)
         except:
             FitParam = {'A': np.nan, 'mu': np.nan, 'sigma': np.nan}
         # 
@@ -181,6 +214,7 @@ while BinLoop and BinNumb <= (len(BinVar)/1.5):
     if FitParam['sigma'] == np.nan or FitParam['sigma'] <= 0.0:
         try:
             FitGauss, FitParam = fit_Gaussian_1D(BinCents[FitRange], BinHists[FitRange], np.max(BinHists[FitRange]), np.min([BinMode,BinMedian]), BinSigma*2.0)
+            #print(FitParam)
         except:
             FitParam = {'A': np.nan, 'mu': np.nan, 'sigma': np.nan}
         # 
@@ -204,6 +238,7 @@ while BinLoop and BinNumb <= (len(BinVar)/1.5):
         # 
         BinLoop = False # this will jump out of the loop
 
+
 #FitGauss = mlab.normpdf(BinEdges, BinMean, BinSigma)
 #FitGauss = FitGauss / np.max(FitGauss) * np.max(BinHists)
 pl.xlabel("Pixel Value")
@@ -215,6 +250,7 @@ pl.ylabel("N")
 # 
 #pl.show()
 pl.tight_layout()
+print('Saving to %s.pixel.histogram.eps'%(FitsFile))
 fig.savefig('%s.pixel.histogram.eps'%(FitsFile), format='eps')
 #os.system('open "%s.pixel.histogram.eps"'%(FitsFile))
 
