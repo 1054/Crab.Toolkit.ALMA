@@ -1116,7 +1116,7 @@ for i in range(len(Cat.TableData)):
     # Prepare cutouts and copy to CutoutOutputDir
     # 
     CutoutOutputDir = 'cutouts'
-    CutoutOutputName = 'cutouts_'+Source.Name # Source.Name
+    CutoutOutputName = 'cutouts_%d_'%(i)+Source.Name #<20170320><fixed># Source.Name not unique
     CutoutFileFindingStr = 'N/A'
     CutoutFilePaths = []
     if not os.path.isdir(CutoutOutputDir):
