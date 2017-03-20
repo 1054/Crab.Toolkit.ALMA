@@ -966,20 +966,20 @@ Input_DoSources = []
 Input_DoSubIDs = []
 Input_DoIndexes = []
 for i in range(3,len(sys.argv)):
-    if sys.argv[i].lower() != 'overwrite':
-        if sys.argv[i].lower().find('index') == 0:
-            # if this argument is index number range
-            Input_DoIndexes = numpy.array(sys.argv[i].lower().replace('index','').strip().split(','))
-        else:
-            # if this argument is source name (and subid, if separated with --)
-            if sys.argv[i].find('--') > 0:
-                Input_DoSources.append(sys.argv[i].split('--')[0])
-                Input_DoSubIDs.append(sys.argv[i].split('--')[1])
-            else:
-                Input_DoSources.append(sys.argv[i])
-                Input_DoSubIDs.append('*')
-    else:
+    if sys.argv[i].lower() == 'overwrite':
+        # if this argument is 'overwrite'
         Input_Overwrite = True
+    elif sys.argv[i].lower().startswith('index'):
+        # if this argument is index number range
+        Input_DoIndexes = numpy.array(sys.argv[i].lower().replace('index','').strip().split(','))
+    else:
+        # if this argument is source name (and subid, if separated with --)
+        if sys.argv[i].find('--') > 0:
+            Input_DoSources.append(sys.argv[i].split('--')[0])
+            Input_DoSubIDs.append(sys.argv[i].split('--')[1])
+        else:
+            Input_DoSources.append(sys.argv[i])
+            Input_DoSubIDs.append('*')
 
 
 
@@ -1005,22 +1005,23 @@ for i in range(len(Cat.TableData)):
     # Skip some sources that do not meet the 3rd argument, which is like "index 3~50"
     # 
     if len(Input_DoIndexes) > 0:
-        source_OK = False
+        Input_DoIndex_OK = False
         for Input_DoIndex in Input_DoIndexes:
             if Input_DoIndex.find('-') > 0:
                 temp_str_split = Input_DoIndex.split('-')
                 if len(temp_str_split) == 2:
                     if i > long(temp_str_split[0]) and i < long(temp_str_split[1]):
-                        source_OK = True
+                        Input_DoIndex_OK = True
             elif Input_DoIndex.find('~') > 0:
                 temp_str_split = Input_DoIndex.split('~')
                 if len(temp_str_split) == 2:
                     if i > long(temp_str_split[0]) and i < long(temp_str_split[1]):
-                        source_OK = True
+                        Input_DoIndex_OK = True
             else:
                 if i == long(Input_DoIndex):
-                    source_OK = True
-        if not source_OK:
+                    Input_DoIndex_OK = True
+        # 
+        if not Input_DoIndex_OK:
             continue
     
     # 
@@ -1033,7 +1034,7 @@ for i in range(len(Cat.TableData)):
         else:
             Input_DoSubID = [DoSubID for DoSource, DoSubID in zip(Input_DoSources,Input_DoSubIDs) if DoSource == Cat.TableData[i].field('OBJECT')]
             Input_DoSubID = Input_DoSubID[0]
-        
+        # 
         if Input_DoSubID != '*':
             if Cat.TableData[i].field('SUBID_TILE') != long(Input_DoSubID):
                 continue
