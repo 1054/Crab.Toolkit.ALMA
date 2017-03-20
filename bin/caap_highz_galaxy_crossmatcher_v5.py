@@ -145,6 +145,55 @@ pyplot.style.use(astropy_mpl_style)
 
 
 
+# 
+class Logger(object):
+    # "Lumberjack class - duplicates sys.stdout to a log file and it's okay"
+    # source: http://stackoverflow.com/q/616645
+    # see -- http://stackoverflow.com/questions/616645/how-do-i-duplicate-sys-stdout-to-a-log-file-in-python/2216517#2216517
+    # usage:
+    #    Log=Logger('Sleeps_all.night')
+    #    print('works all day')
+    #    Log.close()
+    # 
+    def __init__(self, filename="Logger.log", mode="a", buff=0):
+        self.stdout = sys.stdout
+        self.file = open(filename, mode, buff)
+        sys.stdout = self
+    
+    def __del__(self):
+        self.close()
+    
+    def __enter__(self):
+        pass
+    
+    def __exit__(self, *args):
+        self.close()
+    
+    def write(self, message):
+        self.stdout.write(message)
+        self.file.write(message)
+    
+    def flush(self):
+        self.stdout.flush()
+        self.file.flush()
+        os.fsync(self.file.fileno())
+    
+    def close(self):
+        if self.stdout != None:
+            sys.stdout = self.stdout
+            self.stdout = None
+        
+        if self.file != None:
+            self.file.close()
+            self.file = None
+
+
+
+
+
+
+
+
 
 # 
 class CrossMatch_Identifier(object):
@@ -324,6 +373,10 @@ class CrossMatch_Identifier(object):
             # prepare output figure and text file names
             PlotOutput = OutputDir+'/'+self.Source.Field+'--'+str(self.Source.Name)+'--'+str(self.Source.SubID)+'--'+StrTelescope+'--'+StrInstrument.replace(' ','-')+'.pdf'
             TextOutput = OutputDir+'/'+self.Source.Field+'--'+str(self.Source.Name)+'--'+str(self.Source.SubID)+'--'+StrTelescope+'--'+StrInstrument.replace(' ','-')+'.txt'
+            LoggOutput = OutputDir+'/'+self.Source.Field+'--'+str(self.Source.Name)+'--'+str(self.Source.SubID)+'--'+StrTelescope+'--'+StrInstrument.replace(' ','-')+'.log'
+            # 
+            # begin Logger
+            temp_Logger = Logger(LoggOutput, mode='w')
             # 
             # check previous crossmatch results
             if os.path.isfile(TextOutput):
@@ -831,6 +884,9 @@ class CrossMatch_Identifier(object):
                 TextFilePtr.close()
                 print("Saved to \"%s\"!"%(TextOutput))
                 print("")
+            # 
+            # end Logger
+            temp_Logger.close()
 
 
 
@@ -917,6 +973,8 @@ for i in range(3,len(sys.argv)):
             Input_DoSubIDs.append('*')
     else:
         Input_Overwrite = True
+
+
 
 # 
 # Loop each source in the topcat cross-matched catalog
