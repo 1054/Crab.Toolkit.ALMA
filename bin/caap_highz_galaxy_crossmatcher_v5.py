@@ -1152,7 +1152,7 @@ for i in range(len(Cat.TableData)):
     # Prepare cutouts and copy to CutoutOutputDir
     # 
     CutoutOutputDir = 'cutouts'
-    CutoutOutputName = 'cutouts_'+Source.Name #<20170320><fixed># Source.Name not unique
+    CutoutOutputName = 'cutouts_temporary' # 'cutouts_'+Source.Name #<20170320><TODO># Source.Name not unique
     CutoutFileFindingStr = 'N/A'
     CutoutFilePaths = []
     if not os.path.isdir(CutoutOutputDir):
@@ -1162,8 +1162,8 @@ for i in range(len(Cat.TableData)):
     # 
     if not os.path.isdir("%s/%s"%(CutoutOutputDir, CutoutOutputName)):
         os.mkdir("%s/%s"%(CutoutOutputDir, CutoutOutputName))
-    else:
-        CutoutFileFindingStr = "%s/%s/*.fits"%(CutoutOutputDir, CutoutOutputName) # cutout fits file names always contain ID but not full names. 
+    #<20170320><TODO>#else:
+    #<20170320><TODO>#    CutoutFileFindingStr = "%s/%s/*.fits"%(CutoutOutputDir, CutoutOutputName) # cutout fits file names always contain ID but not full names. 
     # 
     # Copy cutouts from Input_Cut directory
     # 
