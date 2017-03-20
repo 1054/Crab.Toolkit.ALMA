@@ -328,7 +328,7 @@ class CrossMatch_Identifier(object):
         print(' |-----------------%s-|'%( tmp_str_format_filleddash.format('-')                               ))
         print("")
     # 
-    def match_morphology(self, OutputDir='results', Overwrite=False, FoV=15.0):
+    def match_morphology(self, OutputDir='results', OutputName='', Overwrite=False, FoV=15.0):
         if len(self.FitsImageData)>0 and self.Source and self.RefSource:
             # 
             # check output directory
@@ -371,10 +371,12 @@ class CrossMatch_Identifier(object):
                 return
             # 
             # prepare output figure and text file names
-            PlotOutput = OutputDir+'/'+self.Source.Field+'--'+str(self.Source.Name)+'--'+str(self.Source.SubID)+'--'+StrTelescope+'--'+StrInstrument.replace(' ','-')+'.pdf'
-            TextOutput = OutputDir+'/'+self.Source.Field+'--'+str(self.Source.Name)+'--'+str(self.Source.SubID)+'--'+StrTelescope+'--'+StrInstrument.replace(' ','-')+'.txt'
-            LoggOutput = OutputDir+'/'+self.Source.Field+'--'+str(self.Source.Name)+'--'+str(self.Source.SubID)+'--'+StrTelescope+'--'+StrInstrument.replace(' ','-')+'.log'
-            LockOutput = OutputDir+'/'+self.Source.Field+'--'+str(self.Source.Name)+'--'+str(self.Source.SubID)+'--'+StrTelescope+'--'+StrInstrument.replace(' ','-')+'.lock' #<TODO># 
+            if OutputName == '':
+                OutputName = self.Source.Field+'--'+str(self.Source.Name)+'--'+str(self.Source.SubID)
+            PlotOutput = OutputDir+'/'+OutputName+'--'+StrTelescope+'--'+StrInstrument.replace(' ','-')+'.pdf'
+            TextOutput = OutputDir+'/'+OutputName+'--'+StrTelescope+'--'+StrInstrument.replace(' ','-')+'.txt'
+            LoggOutput = OutputDir+'/'+OutputName+'--'+StrTelescope+'--'+StrInstrument.replace(' ','-')+'.log'
+            LockOutput = OutputDir+'/'+OutputName+'--'+StrTelescope+'--'+StrInstrument.replace(' ','-')+'.lock' #<TODO># 
             # 
             # begin Logger
             temp_Logger = Logger(LoggOutput, mode='w')
@@ -1011,12 +1013,17 @@ for i in range(len(Cat.TableData)):
             if Input_DoIndex.find('-') > 0:
                 temp_str_split = Input_DoIndex.split('-')
                 if len(temp_str_split) == 2:
-                    if i > long(temp_str_split[0]) and i < long(temp_str_split[1]):
+                    if i >= long(temp_str_split[0]) and i <= long(temp_str_split[1]):
                         Input_DoIndex_OK = True
             elif Input_DoIndex.find('~') > 0:
                 temp_str_split = Input_DoIndex.split('~')
                 if len(temp_str_split) == 2:
-                    if i > long(temp_str_split[0]) and i < long(temp_str_split[1]):
+                    if i >= long(temp_str_split[0]) and i <= long(temp_str_split[1]):
+                        Input_DoIndex_OK = True
+            elif Input_DoIndex.find(' ') > 0:
+                temp_str_split = Input_DoIndex.split(' ')
+                for temp_str_item in temp_str_split:
+                    if i == long(temp_str_item):
                         Input_DoIndex_OK = True
             else:
                 if i == long(Input_DoIndex):
@@ -1264,7 +1271,7 @@ for i in range(len(Cat.TableData)):
             FitsImageFile = CutoutFileName
         )
         IDX.about()
-        IDX.match_morphology(Overwrite=Overwrite)
+        IDX.match_morphology(Overwrite=Overwrite, OutputName=str(i))
         #break
     
     #break
