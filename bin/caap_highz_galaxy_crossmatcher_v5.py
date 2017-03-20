@@ -874,7 +874,7 @@ Cat = Highz_Catalogue(Input_Cat)
 # <Added><20170320> -- the cutout lookmap file should contain two or three columns
 #                      if two columns, should be OBJECT and cutouts file basename
 #                      if three columns, should be OBJECT, DATE-OBS and cutouts file basename
-Input_Cutouts_Lookmap = {} #<Added><20170320># 
+Cutouts_Lookmap = {} #<Added><20170320># 
 if len(sys.argv) > 2:
     Input_Cut = sys.argv[2]
     if not os.path.isfile(Input_Cut):
@@ -887,11 +887,11 @@ if len(sys.argv) > 2:
                 tmp_str_list = lp.strip().split()
                 #print(len(tmp_str_list))
                 if len(tmp_str_list)==2:
-                    Input_Cutouts_Lookmap[tmp_str_list[0]] = tmp_str_list[1] # use obj name
+                    Cutouts_Lookmap[tmp_str_list[0]] = tmp_str_list[1] # use obj name
                 elif len(tmp_str_list)==3:
-                    Input_Cutouts_Lookmap[tmp_str_list[1]] = tmp_str_list[2] # 
+                    Cutouts_Lookmap[tmp_str_list[1]] = tmp_str_list[2] # 
             fp.close()
-            #print(Input_Cutouts_Lookmap)
+            #print(Cutouts_Lookmap.keys())
 else:
     Input_Cut = '/home/dzliu/Temp/cutouts'
 
@@ -978,9 +978,9 @@ for i in range(len(Cat.TableData)):
     # Read info
     # 
     if 'OBJECT' in Cat.TableHeaders:
-        source_Name = Cat.TableData[i].field('OBJECT')
+        source_Name = Cat.TableData[i].field('OBJECT').strip()
     if 'PROJECT' in Cat.TableHeaders:
-        source_Name = Cat.TableData[i].field('PROJECT')+'--'+source_Name
+        source_Name = Cat.TableData[i].field('PROJECT').strip()+'--'+source_Name
     if 'SUBID_TILE' in Cat.TableHeaders:
         source_SubID = Cat.TableData[i].field('SUBID_TILE')
     if 'RA' in Cat.TableHeaders:
@@ -995,7 +995,7 @@ for i in range(len(Cat.TableData)):
         source_z = { 'Laigle 2015 photo-z': float(Cat.TableData[i].field('ZPDF')) }
     
     if 'OBS_DATE' in Cat.TableHeaders:
-        source_Date = Cat.TableData[i].field('OBS_DATE')
+        source_Date = Cat.TableData[i].field('OBS_DATE').strip()
     
     # 
     # Create ALMA Source
@@ -1058,10 +1058,12 @@ for i in range(len(Cat.TableData)):
     if not os.path.isdir("%s/%s"%(CutoutOutputDir, CutoutOutputName)):
         os.mkdir("%s/%s"%(CutoutOutputDir, CutoutOutputName))
         # Copy cutouts from Input_Cut directory
-        if source_Name in Input_Cutouts_Lookmap.keys():
-            CutoutFileFindingStr = "%s"%(Input_Cutouts_Lookmap[source_Name])
-        elif source_Date in Input_Cutouts_Lookmap.keys():
-            CutoutFileFindingStr = "%s"%(Input_Cutouts_Lookmap[source_Date])
+        print(source_Date)
+        print(source_Date in Cutouts_Lookmap.keys())
+        if source_Name in Cutouts_Lookmap.keys():
+            CutoutFileFindingStr = "%s"%(Cutouts_Lookmap[source_Name])
+        elif source_Date in Cutouts_Lookmap.keys():
+            CutoutFileFindingStr = "%s"%(Cutouts_Lookmap[source_Date])
         else:
             CutoutFileFindingStr = "%s/*/%s[._]*.fits"%(Input_Cut, Source.Name)
         CutoutFilePaths = glob.glob(CutoutFileFindingStr)
