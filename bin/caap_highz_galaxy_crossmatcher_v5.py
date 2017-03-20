@@ -1004,9 +1004,8 @@ for i in range(len(Cat.TableData)):
     # 
     # Skip some sources that do not meet the 3rd argument, which is like "index 3~50"
     # 
-    source_OK = False
-    
     if len(Input_DoIndexes) > 0:
+        source_OK = False
         for Input_DoIndex in Input_DoIndexes:
             if Input_DoIndex.find('-') > 0:
                 temp_str_split = Input_DoIndex.split('-')
@@ -1021,9 +1020,8 @@ for i in range(len(Cat.TableData)):
             else:
                 if i == long(Input_DoIndex):
                     source_OK = True
-    
-    if not source_OK:
-        continue
+        if not source_OK:
+            continue
     
     # 
     # Skip some sources that do not meet the 3rd argument, which is like "SOURCE-NAME--SUBID"
