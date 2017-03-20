@@ -881,7 +881,7 @@ if len(sys.argv) > 2:
         if not os.path.isdir(Input_Cut):
             print("Warning! The input cutout directory \"%s\" was not found!"%(Input_Cut))
     else:
-        print("Using the input cutout file \"%s\""%(Input_Cut))
+        print("Using the input cutout lookmap file \"%s\""%(Input_Cut))
         with open(Input_Cut,'r') as fp:
             for lp in fp:
                 tmp_str_list = lp.strip().split()
@@ -889,6 +889,8 @@ if len(sys.argv) > 2:
                     Input_Cutouts_Lookmap[tmp_str_list[0]] = tmp_str_list[1] # use obj name
                 elif len(tmp_str_list)==2:
                     Input_Cutouts_Lookmap[tmp_str_list[1]] = tmp_str_list[2] # 
+            fp.close()
+            print(Input_Cutouts_Lookmap)
 else:
     Input_Cut = '/home/dzliu/Temp/cutouts'
 

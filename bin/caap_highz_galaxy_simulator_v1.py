@@ -185,6 +185,10 @@ if type(Input_Size) is str:
     Simulator_Size = numpy.array(Input_Size.replace('[','').replace(']','').split(',')).astype(numpy.float)
     print(Simulator_Size, type(Simulator_Size))
 
+# 
+# Generate simulated galaxies
+# 
+
 
 
 
