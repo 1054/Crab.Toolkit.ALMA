@@ -1102,7 +1102,7 @@ for i in range(len(Cat.TableData)):
     if 'ZPDF' in Cat.TableHeaders:
         source_z = { 'Laigle 2015 photo-z': float(Cat.TableData[i].field('ZPDF')) }
     else:
-        source_z = -99
+        source_z = { 'Laigle 2015 photo-z': -99.0 }
     
     #if 'OBS_DATE' in Cat.TableHeaders:
     #    source_Date = Cat.TableData[i].field('OBS_DATE').strip()
