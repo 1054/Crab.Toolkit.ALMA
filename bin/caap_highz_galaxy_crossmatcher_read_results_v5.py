@@ -37,6 +37,10 @@ for band in ['HST--ACS', 'Spitzer--IRAC-ch1', 'Spitzer--IRAC-ch2', 'Spitzer--IRA
     list_Score_Exten = []
     
     for i in range(len(list_Obj)):
+        # fix list_Obj empty
+        if list_Obj[i] == '':
+            list_Obj[i] = '__'
+        # read result file
         temp_Score_Total = numpy.nan
         temp_Score_Morph = numpy.nan
         temp_Score_Photo = numpy.nan
@@ -72,13 +76,13 @@ for band in ['HST--ACS', 'Spitzer--IRAC-ch1', 'Spitzer--IRAC-ch2', 'Spitzer--IRA
     output_Txt = crossmatch_TableFile.replace('.fits','_crossmatched_scores_'+band.replace('--','_')+'.txt')
     with open(output_Txt, 'w') as fp:
         # print header
-        fmt = '# {:<%ds} {:>12s} {:>12s} {:>12s} {:>12s} {:>12s} {:>12s} {:>12s} {:>12s}\n'%(strlen_Obj)
-        fp.write( fmt.format("OBJECT", "SUBID_TILE", "SNR_FIT", "Separation", "PHOTOZ", "Score_Total", "Score_Morph", "Score_Photo", "Score_Exten") )
+        fmt = '# {:<%10s} {:<%ds} {:>12s} {:>12s} {:>12s} {:>12s} {:>12s} {:>12s} {:>12s} {:>12s}\n'%(strlen_Obj)
+        fp.write( fmt.format("INDEX", "OBJECT", "SUBID_TILE", "SNR_FIT", "Separation", "PHOTOZ", "Score_Total", "Score_Morph", "Score_Photo", "Score_Exten") )
         fp.write( "# \n" )
         # loop each source
         for i in range(len(list_Obj)):
-            fmt = '  {:<%ds} {:12d} {:12.3f} {:12.3f} {:12.4f} {:12g} {:12g} {:12g} {:12g}\n'%(strlen_Obj)
-            fp.write( fmt.format(list_Obj[i], list_Sid[i], list_SNR[i], list_Sep[i], list_z[i], \
+            fmt = '  {:<10d} {:<%ds} {:12d} {:12.3f} {:12.3f} {:12.4f} {:12g} {:12g} {:12g} {:12g}\n'%(strlen_Obj)
+            fp.write( fmt.format(i, list_Obj[i], list_Sid[i], list_SNR[i], list_Sep[i], list_z[i], \
                         float(list_Score_Total[i]), float(list_Score_Morph[i]), float(list_Score_Photo[i]), float(list_Score_Exten[i])) )
         fp.close()
     
