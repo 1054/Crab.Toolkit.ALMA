@@ -1,17 +1,10 @@
 #!/bin/bash
 #
-# readlink
-if [[ $(uname) == *"Darwin"* ]]; then
-    function readlink() {
-        if [[ $# -gt 1 ]]; then if [[ "$1" == "-f" ]]; then shift; fi; fi
-        DIR="$1"; if [[ "$DIR" != *"/"* ]]; then DIR="./$DIR"; fi # 20170228: fixed bug: path without "/"
-        DIR=$(echo "${DIR%/*}") # 20160410: fixed bug: source SETUP just under the Softwares dir
-        if [[ -d "$DIR" ]]; then cd "$DIR" && echo "$(pwd -P)/$(basename ${1})"; 
-        else echo "$(pwd -P)/$(basename ${1})"; fi
-    }
+# CURRENT DIR
+export CRABTOOLKITCAAP=$(dirname $(perl -MCwd -e 'print Cwd::abs_path shift' "${BASH_SOURCE[0]}"))
+if [[ x"$CRABTOOLKITCAAP" = x"" ]]; then
+    echo "Failed to source ${BASH_SOURCE[0]}!"; exit 1
 fi
-CRABTOOLKITCAAP=$(dirname $(readlink -f "${BASH_SOURCE[0]}"))
-export CRABTOOLKITCAAP
 #
 # PATH
 if [[ $PATH != *"$CRABTOOLKITCAAP/bin"* ]]; then
@@ -19,7 +12,7 @@ if [[ $PATH != *"$CRABTOOLKITCAAP/bin"* ]]; then
 fi
 #
 # LIST
-CRABTOOLKITCMD=("alma-sky-coverage" "fits-image-to-coverage-polyogn" "caap-analyze-fits-image-pixel-histogram" "caap-generate-PSF-Gaussian-2D")
+CRABTOOLKITCMD=("alma-sky-coverage" "fits-image-to-coverage-polyogn" "caap-analyze-fits-image-pixel-histogram" "caap-generate-PSF-Gaussian-2D" "caap-highz-galaxy-crossmatcher" "caap-highz-galaxy-crossmatcher-read-results")
 # 
 # CHECK
 # -- 20160427 only for interactive shell

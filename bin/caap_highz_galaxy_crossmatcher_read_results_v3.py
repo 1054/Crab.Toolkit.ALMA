@@ -23,7 +23,10 @@ list_Obj = crossmatch_TableData.getColumn('OBJECT')
 list_Sid = crossmatch_TableData.getColumn('SUBID_TILE')
 list_SNR = crossmatch_TableData.getColumn('SNR_FIT')
 list_Sep = crossmatch_TableData.getColumn('Separation')
-list_z = crossmatch_TableData.getColumn('ZPDF')
+if 'ZPDF' in crossmatch_TableData.getColumnNames():
+    list_z = crossmatch_TableData.getColumn('ZPDF')
+else:
+    list_z = list_SNR*0.0 -99.0
 
 
 for band in ['HST--ACS', 'Spitzer--IRAC-ch1', 'Spitzer--IRAC-ch2', 'Spitzer--IRAC-ch3', 'Spitzer--IRAC-ch4', 'UltraVISTA--J', 'UltraVISTA--H', 'UltraVISTA--Ks']: 
