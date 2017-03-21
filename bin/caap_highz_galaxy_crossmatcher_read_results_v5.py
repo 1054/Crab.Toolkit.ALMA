@@ -42,7 +42,7 @@ for band in ['HST--ACS', 'Spitzer--IRAC-ch1', 'Spitzer--IRAC-ch2', 'Spitzer--IRA
             list_Obj[i] = '__'
         # fix list_Obj white space
         if list_Obj[i].find(' ')>=0:
-            list_Obj[i].replace(' ','_')
+            list_Obj[i] = list_Obj[i].replace(' ','_')
         # read result file
         temp_Score_Total = numpy.nan
         temp_Score_Morph = numpy.nan
