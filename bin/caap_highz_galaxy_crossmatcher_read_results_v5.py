@@ -76,7 +76,7 @@ for band in ['HST--ACS', 'Spitzer--IRAC-ch1', 'Spitzer--IRAC-ch2', 'Spitzer--IRA
     output_Txt = crossmatch_TableFile.replace('.fits','_crossmatched_scores_'+band.replace('--','_')+'.txt')
     with open(output_Txt, 'w') as fp:
         # print header
-        fmt = '# {:<%10s} {:<%ds} {:>12s} {:>12s} {:>12s} {:>12s} {:>12s} {:>12s} {:>12s} {:>12s}\n'%(strlen_Obj)
+        fmt = '# {:<10s} {:<%ds} {:>12s} {:>12s} {:>12s} {:>12s} {:>12s} {:>12s} {:>12s} {:>12s}\n'%(strlen_Obj)
         fp.write( fmt.format("INDEX", "OBJECT", "SUBID_TILE", "SNR_FIT", "Separation", "PHOTOZ", "Score_Total", "Score_Morph", "Score_Photo", "Score_Exten") )
         fp.write( "# \n" )
         # loop each source
