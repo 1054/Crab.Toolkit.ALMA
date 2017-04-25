@@ -743,10 +743,10 @@ class CrossMatch_Identifier(object):
                 self.Match['Photometry']['Flux'] = PhotAper_Array[temp_index_x1FWHM]['Flux']
                 self.Match['Photometry']['FluxError'] = PhotAper_Array[temp_index_x1FWHM]['Error']
                 self.Match['Photometry']['Aperture'] = PhotAper_Array[temp_index_x1FWHM]['Radius']
-                Centroid_RADEC = zoomwcs.wcs_pix2world(PhotAper_Array[temp_index_x1FWHM]['Cpix'][0], PhotAper_Array[temp_index_x1FWHM]['Cpix'][1], 1)
-                Position_RADEC = zoomwcs.wcs_pix2world(PhotAper_Array[temp_index_x1FWHM]['Shape'].center[0], PhotAper_Array[temp_index_x1FWHM]['Shape'].center[1], 1)
-                #Centroid_RADEC = [Centroid_RA, Centroid_DEC]
-                #Position_RADEC = [Position_RA, Position_DEC]
+                Centroid_RA, Centroid_DEC = zoomwcs.wcs_pix2world(PhotAper_Array[temp_index_x1FWHM]['Cpix'][0], PhotAper_Array[temp_index_x1FWHM]['Cpix'][1], 1)
+                Position_RA, Position_DEC = zoomwcs.wcs_pix2world(PhotAper_Array[temp_index_x1FWHM]['Shape'].center[0], PhotAper_Array[temp_index_x1FWHM]['Shape'].center[1], 1)
+                Centroid_RADEC = [Centroid_RA, Centroid_DEC]
+                Position_RADEC = [Position_RA, Position_DEC]
                 self.Match['Photometry']['Position'] = Position_RADEC
                 self.Match['Photometry']['Centroid'] = Centroid_RADEC
                 self.Match['Photometry']['S/N'] = self.Match['Photometry']['Flux'] / self.Match['Photometry']['FluxError']
