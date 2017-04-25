@@ -4,6 +4,7 @@
 # 
 
 
+import numpy
 
 
 def calc_BeamSize(Frequency_GHz, Diameter_m):
@@ -31,7 +32,7 @@ def calc_JanskyPerKelvin(Aeff_m2, Frequency_GHz, Diameter_m):
     return (2.0 * 1.38e-23 / Aeff_m2 * 1e26) # this is better because "Aeff_m2" considers "eta_ap".
 
 
-def calc_Sensitivity(Tint=[], Tsys=[], Nant=0, Npol=2, Bandwidth=0.0, bw=0.0, Velowidth=0.0, dv=0.0, Frequency=0.0, freq=0.0, Telescope='NOEMA', Weather='summer', Verbose=True):
+def calc_Sensitivity(Tint=[], Tsys=[], Nant=0, Npol=2, Bandwidth=0.0, bw=0.0, Velowidth=0.0, dv=0.0, Frequency=0.0, freq=0.0, Telescope='NOEMA', Weather='summer', eta_ap=numpy.nan, Verbose=True):
     # 
     # NOEMACapabilities.pdf 
     # 
@@ -97,6 +98,8 @@ def calc_Sensitivity(Tint=[], Tsys=[], Nant=0, Npol=2, Bandwidth=0.0, bw=0.0, Ve
     if Bandwidth > 0.0 and Frequency > 0.0:
         Frequency = float(Frequency)
         Bandwidth = float(Bandwidth)
+        # 
+        Output_1d = []
         # 
         # Loop each Tint
         for i_Tint in range(len(Tint)):
@@ -289,6 +292,14 @@ def calc_Sensitivity(Tint=[], Tsys=[], Nant=0, Npol=2, Bandwidth=0.0, bw=0.0, Ve
                 if Tint[i_Tint] is not numpy.nan:
                     t_Tint = float(Tint[i_Tint])
                 # 
+                # If JpK could not be determined but the user input eta_ap
+                if numpy.isnan(JpK):
+                    if not numpy.isnan(eta_ap):
+                        if Telescope.find('12m')>=0:
+                            JpK = calc_JanskyPerKelvin(eta_ap * 113.1, Frequency, 12.0)
+                        elif Telescope.find('7m')>=0:
+                            JpK = calc_JanskyPerKelvin(eta_ap * 38.5, Frequency, 7.0)
+                # 
                 if eta is not numpy.nan and JpK is not numpy.nan and t_Tsys is not numpy.nan and t_Tint is not numpy.nan:
                     # rms = ( 2 * k_B * Tsys ) / ( Aeff * sqrt( N * (N-1) * BW * Tint * Npol) )
                     rms = ( float(JpK) * float(t_Tsys) ) / ( float(eta) * numpy.sqrt(float(t_Nant)*float(t_Nant-1)*float(t_Tint)*float(Bandwidth)*1e9*float(Npol)) ) * 1e3 # mJy
@@ -312,8 +323,9 @@ def calc_Sensitivity(Tint=[], Tsys=[], Nant=0, Npol=2, Bandwidth=0.0, bw=0.0, Ve
                 # 
                 # output item --> output 1d array --> output 2d array
                 Output_item = {'Telescope':telescop, 'Bandnumber':bandnumb, 'Bandwidth':Bandwidth, 'Frequency':Frequency, 
+                                'BeamSize':BeamSize, 
                                 'JpK':JpK, 'Tsys':t_Tsys, 
-                                'eta':eta, 'Nant':Nant, 'Npol':Npol, 'Tint':t_Tint, 
+                                'eta':eta, 'Nant':t_Nant, 'Npol':Npol, 'Tint':t_Tint, 
                                 'rms':rms,
                               }
                 #print(Output_item)

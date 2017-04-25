@@ -1,0 +1,74 @@
+#!/bin/bash
+# 
+# Aim:
+#     print the rectangle of the input fits images
+# 
+# Output:
+#     a text data table containing: "RA_lower" "RA_higher" "Dec_lower" "Dec_higher" "cutouts_image_file"
+# 
+# Last update:
+#     20170323
+# 
+
+
+
+if [[ $# -eq 0 ]]; then
+    echo "Usage: caap-analyze-fits-image-rectangle *.fits"
+fi
+
+if [[ $(type xy2sky 2>/dev/null | wc -l) -eq 0 ]]; then
+    echo "Error! xy2sky was not found!"
+    exit 1
+fi
+
+
+
+Input_files=("$@")
+
+
+printf "# %-48s %15s %15s %15s %15s   %-s\n" \
+        "OBJECT" "RA_lower" "RA_upper" "Dec_lower" "Dec_upper" "Fits_image_file"
+
+
+
+for (( i=0; i<${#Input_files[@]}; i++ )); do
+    Input_file="${Input_files[i]}"
+    if [[ "$Input_files" == *".fits" || "$Input_files" == *".FITS" ]]; then
+        Fits_image_files=("$Input_file")
+    else
+        Fits_image_files=($(cat "$Input_file" | sed -e 's/^ *//g' | grep -v "^#" | grep -i ".fits$"))
+    fi
+    for (( j=0; j<${#Fits_image_files[@]}; j++ )); do
+        Fits_image_file="${Fits_image_files[j]}"
+        Fits_image_OBJECT=$(gethead "$Fits_image_file" "OBJECT")
+        Fits_image_NAXIS1=$(gethead "$Fits_image_file" "NAXIS1")
+        Fits_image_NAXIS2=$(gethead "$Fits_image_file" "NAXIS2")
+        Cutouts_RADec_lower=($(xy2sky -d -n 10 "$Fits_image_file" "$Fits_image_NAXIS1" 1 | sed -e 's/-> *J2000 *//g'))
+        Cutouts_RADec_upper=($(xy2sky -d -n 10 "$Fits_image_file" 1 "$Fits_image_NAXIS2" | sed -e 's/-> *J2000 *//g'))
+        # 
+        if [[ x"$Fits_image_OBJECT" != x ]]; then
+            printf "%-50s %15.10f %15.10f %15.10f %15.10f   %-s\n" \
+                    "$Fits_image_OBJECT" "${Cutouts_RADec_lower[0]}" "${Cutouts_RADec_upper[0]}" "${Cutouts_RADec_lower[1]}" "${Cutouts_RADec_upper[1]}" "$Fits_image_file"
+        else
+            printf "%-50s %15.10f %15.10f %15.10f %15.10f   %-s\n" \
+                    "___" "${Cutouts_RADec_lower[0]}" "${Cutouts_RADec_upper[0]}" "${Cutouts_RADec_lower[1]}" "${Cutouts_RADec_upper[1]}" "$Fits_image_file"
+        fi
+    done
+done
+
+#date +"%Y-%m-%d %H:%M:%s %Z" > "cutouts_lookmap.readme"
+#echo "Cutouts lookmap file for \"caap-highz-galaxy-crossmatcher\"" >> "cutouts_lookmap.readme"
+#echo "output by $(pwd -P)/$(basename ${BASH_SOURCE[0]})" >> "cutouts_lookmap.readme"
+#echo "" >> "cutouts_lookmap.readme"
+
+
+
+
+
+
+
+
+
+
+
+

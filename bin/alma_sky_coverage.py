@@ -272,6 +272,7 @@ def find_closest_data_point(points, posxy):
 # 
 #AlmaTableFile = '%s/data/COSMOS_1degree_ALMA_Archive_asa_query_result_2016-12-29_11-28-04_edited_by_dzliu.fits'%(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 AlmaTableFile = '%s/data/alma_archive_queried_all_v20170215.csv'%(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+#<20170323><PI:Schinnerer># AlmaTableFile = '%s/data/alma_archive_queried_all_v20170215.subset_PI_Schinnerer.csv'%(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 # 
@@ -460,6 +461,8 @@ for i in range(len(List_Source)):
         color = "mediumseagreen" # "mediumseagreen" for COSMOS
         alpha_min = 0.2 # 0.0 for COSMOS with other overlaying sky coverages
         alpha_max = 0.9 # 0.5 for COSMOS with other overlaying sky coverages
+        #<20170323><PI:Schinnerer># alpha_min = 1.0 # 0.0 for COSMOS with other overlaying sky coverages
+        #<20170323><PI:Schinnerer># alpha_max = 1.0 # 0.5 for COSMOS with other overlaying sky coverages
         integ = numpy.sqrt(float(List_Integration[i]) / 3600.0) # transparency. propotional to integration time, 
         if integ > alpha_max: integ = alpha_max
         if integ < alpha_min: integ = alpha_min
