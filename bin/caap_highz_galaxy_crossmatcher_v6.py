@@ -515,11 +515,11 @@ class CrossMatch_Identifier(object):
                 #normfactor = ImageNormalize(zoomimage, interval=AsymmetricPercentileInterval(19.5,99.5))
                 # 
                 if StrInstrument.find('IRAC')>=0:
-                    normfactor = ImageNormalize(zoomimage, interval=AsymmetricPercentileInterval(9.5,99.5))
+                    normfactor = ImageNormalize(zoomimage, interval=AsymmetricPercentileInterval(0.5,99.5))
                 elif StrInstrument.find('UltraVISTA')>=0:
-                    normfactor = ImageNormalize(zoomimage, interval=AsymmetricPercentileInterval(8.5,99.5))
+                    normfactor = ImageNormalize(zoomimage, interval=AsymmetricPercentileInterval(0.5,99.5))
                 elif StrInstrument.find('MIPS')>=0:
-                    normfactor = ImageNormalize(zoomimage, interval=AsymmetricPercentileInterval(6.5,99.5))
+                    normfactor = ImageNormalize(zoomimage, interval=AsymmetricPercentileInterval(0.5,99.5))
                 else:
                     normfactor = ImageNormalize(zoomimage, interval=AsymmetricPercentileInterval(19.5,99.5))
                 # 
