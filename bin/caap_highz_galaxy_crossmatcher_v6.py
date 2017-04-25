@@ -33,6 +33,8 @@ from astropy.io import fits
 from astropy.wcs import WCS
 import wcsaxes
 from pprint import pprint
+from scipy import spatial
+from scipy.spatial import KDTree
 
 
 from caap_python_lib_highz import *
@@ -1002,6 +1004,29 @@ for i in range(3,len(sys.argv)):
 
 
 
+
+
+# 
+# Read 'ref_catalog.fits'
+if os.path.isfile('ref_catalog.fits'):
+    print("")
+    print("Found reference catalog 'ref_catalog.fits' under current directory! We will calculate the 'Crowdedness' and 'Clean_Index' parameters!")
+    print("")
+    #refcatalog_KDTree = KDTree()
+    refcatalog_CAT = CrabFitsTable('ref_catalog.fits')
+    refcatalog_RA = refcatalog_CAT.getColumn('RA')
+    refcatalog_DEC = refcatalog_CAT.getColumn('Dec')
+else:
+    print("")
+    print("Warning! No reference catalog 'ref_catalog.fits' was found under current directory! Will not calculate 'Crowdedness' and 'Clean_Index'!")
+    print("")
+
+
+
+
+
+
+
 # 
 # Loop each source in the topcat cross-matched catalog
 for i in range(len(Cat.TableData)):
@@ -1150,8 +1175,8 @@ for i in range(len(Cat.TableData)):
     # 
     # Create Counterpart Source from Laigle 2015 Catalog
     # 
-    refcatalog_RA = []
-    refcatalog_DEC = []
+    #refcatalog_RA = []
+    #refcatalog_DEC = []
     if 'NUMBER' in Cat.TableHeaders:
         refsource_ID = Cat.TableData[i].field('NUMBER')
         refsource_Names = { 'Laigle 2015': str(Cat.TableData[i].field('NUMBER')) }
@@ -1160,16 +1185,16 @@ for i in range(len(Cat.TableData)):
         refsource_Names = { 'Sanders IRAC Catalog': str(Cat.TableData[i].field('ID')) }
     if 'ALPHA_J2000' in Cat.TableHeaders:
         refsource_RA = Cat.TableData[i].field('ALPHA_J2000')
-        refcatalog_RA = Cat.TableData.field('ALPHA_J2000')
+        #refcatalog_RA = Cat.TableData.field('ALPHA_J2000')
     if 'RA_2' in Cat.TableHeaders:
         refsource_RA = Cat.TableData[i].field('RA_2')
-        refcatalog_RA = Cat.TableData.field('RA_2')
+        #refcatalog_RA = Cat.TableData.field('RA_2')
     if 'DELTA_J2000' in Cat.TableHeaders:
         refsource_DEC = Cat.TableData[i].field('DELTA_J2000')
-        refcatalog_DEC = Cat.TableData.field('DELTA_J2000')
+        #refcatalog_DEC = Cat.TableData.field('DELTA_J2000')
     if 'DEC_2' in Cat.TableHeaders:
         refsource_DEC = Cat.TableData[i].field('DEC_2')
-        refcatalog_DEC = Cat.TableData.field('DEC_2')
+        #refcatalog_DEC = Cat.TableData.field('DEC_2')
     RefSource = Highz_Galaxy(
         Field = 'COSMOS', 
         Name  = refsource_ID, 
@@ -1189,13 +1214,15 @@ for i in range(len(Cat.TableData)):
         Crowdedness = numpy.sum(numpy.exp(-(Separation_RA**2 + Separation_DEC**2)/(1.5**2)))
         Clean_Index = numpy.sum((Separation_RA**2 + Separation_DEC**2) <= (1.5**2))
     else:
-        print("Error! Could not match source RA Dec to the reference catalog RA Dec list!")
-        print("Please check: ")
-        print("    source_RA")
-        print("    source_DEC")
-        print("    refcatalog_RA")
-        print("    refcatalog_DEC")
-        print("")
+        Crowdedness = numpy.nan
+        Clean_Index = numpy.nan
+        #print("Error! Could not match source RA Dec to the reference catalog RA Dec list!")
+        #print("Please check: ")
+        #print("    source_RA")
+        #print("    source_DEC")
+        #print("    refcatalog_RA")
+        #print("    refcatalog_DEC")
+        #print("")
     
     # 
     # Prepare cutouts and copy to CutoutOutputDir
