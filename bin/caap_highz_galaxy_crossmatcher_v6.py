@@ -1148,6 +1148,8 @@ for i in range(len(Cat.TableData)):
     # 
     # Create Counterpart Source from Laigle 2015 Catalog
     # 
+    refcatalog_RA = []
+    refcatalog_DEC = []
     if 'NUMBER' in Cat.TableHeaders:
         refsource_ID = Cat.TableData[i].field('NUMBER')
         refsource_Names = { 'Laigle 2015': str(Cat.TableData[i].field('NUMBER')) }
@@ -1179,12 +1181,19 @@ for i in range(len(Cat.TableData)):
     # 
     # Compute crowdedness
     # 
-    if source_RA and source_DEC and refcatalog_RA and refcatalog_DEC:
+    if source_RA and source_DEC and len(refcatalog_RA)>0 and len(refcatalog_DEC)>0:
         Separation_DEC = (numpy.array(refcatalog_DEC) - source_DEC) * 3600.0 # arcsec
         Separation_RA = (numpy.array(refcatalog_RA) - source_RA) * 3600.0 * numpy.cos(source_DEC / 180.0 * numpy.pi)
         Crowdedness = numpy.sum(numpy.exp(-(Separation_RA**2 + Separation_DEC**2)/(1.5**2)))
         Clean_Index = numpy.sum((Separation_RA**2 + Separation_DEC**2) <= (1.5**2))
-    
+    else:
+        print("Error! Could not match source RA Dec to the reference catalog RA Dec list!")
+        print("Please check: ")
+        print("    source_RA")
+        print("    source_DEC")
+        print("    refcatalog_RA")
+        print("    refcatalog_DEC")
+        print("")
     
     # 
     # Prepare cutouts and copy to CutoutOutputDir
