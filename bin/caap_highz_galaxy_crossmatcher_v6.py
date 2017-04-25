@@ -336,6 +336,7 @@ class CrossMatch_Identifier(object):
         print("")
     # 
     def match_morphology(self, OutputDir='results', OutputName='', Overwrite=False, FoV=15.0):
+        # 
         if len(self.FitsImageData)>0 and self.Source and self.RefSource:
             # 
             # check output directory
@@ -513,7 +514,14 @@ class CrossMatch_Identifier(object):
                 # 
                 #normfactor = ImageNormalize(zoomimage, interval=AsymmetricPercentileInterval(19.5,99.5))
                 # 
-                normfactor = ImageNormalize(zoomimage, interval=AsymmetricPercentileInterval(12.5,99.5))
+                if StrInstrument.find('IRAC')>=0:
+                    normfactor = ImageNormalize(zoomimage, interval=AsymmetricPercentileInterval(9.5,99.5))
+                elif StrInstrument.find('UltraVISTA')>=0:
+                    normfactor = ImageNormalize(zoomimage, interval=AsymmetricPercentileInterval(8.5,99.5))
+                elif StrInstrument.find('MIPS')>=0:
+                    normfactor = ImageNormalize(zoomimage, interval=AsymmetricPercentileInterval(6.5,99.5))
+                else:
+                    normfactor = ImageNormalize(zoomimage, interval=AsymmetricPercentileInterval(19.5,99.5))
                 # 
                 PlotImage = PlotPanel.imshow(zoomimage, origin='lower', cmap='binary', norm=normfactor, aspect='equal')
                 #PlotDevice.colorbar(PlotImage)
