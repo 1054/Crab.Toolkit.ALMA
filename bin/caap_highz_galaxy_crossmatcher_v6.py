@@ -514,14 +514,15 @@ class CrossMatch_Identifier(object):
                 # 
                 #normfactor = ImageNormalize(zoomimage, interval=AsymmetricPercentileInterval(19.5,99.5))
                 # 
+                temp_stddev = numpy.std(zoomimage)
                 if StrInstrument.find('IRAC')>=0:
-                    normfactor = ImageNormalize(zoomimage, interval=AsymmetricPercentileInterval(0.5,99.5))
+                    normfactor = ImageNormalize(zoomimage, vmin=-1.0*temp_stddev, vmax=5.0*temp_stddev)
                 elif StrInstrument.find('UltraVISTA')>=0:
-                    normfactor = ImageNormalize(zoomimage, interval=AsymmetricPercentileInterval(0.5,99.5))
+                    normfactor = ImageNormalize(zoomimage, vmin=-1.0*temp_stddev, vmax=5.0*temp_stddev)
                 elif StrInstrument.find('MIPS')>=0:
-                    normfactor = ImageNormalize(zoomimage, interval=AsymmetricPercentileInterval(0.5,99.5))
+                    normfactor = ImageNormalize(zoomimage, vmin=-1.0*temp_stddev, vmax=5.0*temp_stddev)
                 else:
-                    normfactor = ImageNormalize(zoomimage, interval=AsymmetricPercentileInterval(19.5,99.5))
+                    normfactor = ImageNormalize(zoomimage, vmin=-1.0*temp_stddev, vmax=5.0*temp_stddev)
                 # 
                 PlotImage = PlotPanel.imshow(zoomimage, origin='lower', cmap='binary', norm=normfactor, aspect='equal')
                 #PlotDevice.colorbar(PlotImage)
