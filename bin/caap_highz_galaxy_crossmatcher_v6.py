@@ -511,7 +511,9 @@ class CrossMatch_Identifier(object):
                 #PlotImage = PlotPanel.imshow(self.FitsImageData, origin='lower', cmap='binary', norm=normfactor, aspect='equal') # cmap='gray' # cmap='jet' # cmap='binary'
                 ##PlotDevice.colorbar(PlotImage)
                 # 
-                normfactor = ImageNormalize(zoomimage, interval=AsymmetricPercentileInterval(9.5,99.5))
+                #normfactor = ImageNormalize(zoomimage, interval=AsymmetricPercentileInterval(19.5,99.5))
+                # 
+                normfactor = ImageNormalize(zoomimage, interval=AsymmetricPercentileInterval(2.5,80.5))
                 # 
                 PlotImage = PlotPanel.imshow(zoomimage, origin='lower', cmap='binary', norm=normfactor, aspect='equal')
                 #PlotDevice.colorbar(PlotImage)
