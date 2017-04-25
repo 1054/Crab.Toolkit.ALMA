@@ -517,13 +517,13 @@ class CrossMatch_Identifier(object):
                 temp_mean = numpy.mean(zoomimage)
                 temp_stddev = numpy.std(zoomimage)
                 if StrInstrument.find('IRAC')>=0:
-                    normfactor = ImageNormalize(zoomimage, vmin=temp_mean-1.0*temp_stddev, vmax=temp_mean+5.0*temp_stddev)
+                    normfactor = ImageNormalize(zoomimage, vmin=temp_mean-0.5*temp_stddev, vmax=temp_mean+3.0*temp_stddev)
                 elif StrInstrument.find('UltraVISTA')>=0:
-                    normfactor = ImageNormalize(zoomimage, vmin=temp_mean-1.0*temp_stddev, vmax=temp_mean+5.0*temp_stddev)
+                    normfactor = ImageNormalize(zoomimage, vmin=temp_mean-0.5*temp_stddev, vmax=temp_mean+3.0*temp_stddev)
                 elif StrInstrument.find('MIPS')>=0:
-                    normfactor = ImageNormalize(zoomimage, vmin=temp_mean-1.0*temp_stddev, vmax=temp_mean+5.0*temp_stddev)
+                    normfactor = ImageNormalize(zoomimage, vmin=temp_mean-0.5*temp_stddev, vmax=temp_mean+3.0*temp_stddev)
                 else:
-                    normfactor = ImageNormalize(zoomimage, vmin=temp_mean-1.0*temp_stddev, vmax=temp_mean+5.0*temp_stddev)
+                    normfactor = ImageNormalize(zoomimage, vmin=temp_mean-0.5*temp_stddev, vmax=temp_mean+3.0*temp_stddev)
                 # 
                 PlotImage = PlotPanel.imshow(zoomimage, origin='lower', cmap='binary', norm=normfactor, aspect='equal')
                 #PlotDevice.colorbar(PlotImage)
