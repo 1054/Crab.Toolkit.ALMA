@@ -744,7 +744,7 @@ class CrossMatch_Identifier(object):
                 self.Match['Photometry']['FluxError'] = PhotAper_Array[temp_index_x1FWHM]['Error']
                 self.Match['Photometry']['Aperture'] = PhotAper_Array[temp_index_x1FWHM]['Radius']
                 Centroid_RA, Centroid_DEC = zoomwcs.wcs_pix2world(PhotAper_Array[temp_index_x1FWHM]['Cpix'][0], PhotAper_Array[temp_index_x1FWHM]['Cpix'][1], 1)
-                Position_RADEC = zoomwcs.wcs_pix2world(PhotAper_Array[temp_index_x1FWHM]['Shape'].xy, 1)
+                Position_RADEC = zoomwcs.wcs_pix2world(PhotAper_Array[temp_index_x1FWHM]['Shape'].x, PhotAper_Array[temp_index_x1FWHM]['Shape'].y, 1)
                 Centroid_RADEC = [Centroid_RA, Centroid_DEC]
                 self.Match['Photometry']['Position'] = Position_RADEC
                 self.Match['Photometry']['Centroid'] = Centroid_RADEC
