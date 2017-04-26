@@ -1322,12 +1322,14 @@ for i in range(len(Cat.TableData)):
         # Copy Cutouts fits files and store file names
         for CutoutFilePath in CutoutFilePaths:
             CutoutFileName = os.path.basename(CutoutFilePath)
-            if  ( (CutoutFileName.find('_acs_I_mosaic_')>=0) or \
-                  (CutoutFileName.find('.J.original-psf.')>=0) or \
-                  (CutoutFileName.find('.H.original_psf.')>=0) or \
-                  (CutoutFileName.find('.Ks.original_psf.')>=0) 
+            if  ( 
+                  (CutoutFileName.find('_irac_ch')>=0) 
                 ) :
                 # 
+                # (CutoutFileName.find('_acs_I_mosaic_')>=0)
+                # (CutoutFileName.find('.J.original-psf.')>=0)
+                # (CutoutFileName.find('.H.original_psf.')>=0)
+                # (CutoutFileName.find('.Ks.original_psf.')>=0)
                 # (CutoutFileName.find('_vla_20cm_dp')>=0)
                 # (CutoutFileName.find('_vla_3ghz')>=0)
                 # (CutoutFileName.find('_irac_ch')>=0)
