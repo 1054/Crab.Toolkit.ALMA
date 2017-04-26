@@ -982,11 +982,20 @@ if len(sys.argv) > 2:
                 tmp_str_list = lp.strip().split()
                 #print(len(tmp_str_list))
                 if len(tmp_str_list)==2:
-                    Cutouts_Lookmap[tmp_str_list[0]] = tmp_str_list[1] # use obj name
+                    if tmp_str_list[0] in Cutouts_Lookmap.keys():
+                        Cutouts_Lookmap[tmp_str_list[0]].append(tmp_str_list[1]) # use obj name (check duplication)
+                    else:
+                        Cutouts_Lookmap[tmp_str_list[0]] = [ tmp_str_list[1] ] # use obj name
                 elif len(tmp_str_list)==3:
-                    Cutouts_Lookmap[tmp_str_list[1]] = tmp_str_list[2] # 
+                    if tmp_str_list[1] in Cutouts_Lookmap.keys():
+                        Cutouts_Lookmap[tmp_str_list[1]].append(tmp_str_list[2]) # use obj name (skip [0]) (check duplication)
+                    else:
+                        Cutouts_Lookmap[tmp_str_list[1]] = [ tmp_str_list[2] ] # use obj name (skip [0])
                 elif len(tmp_str_list)==6:
-                    Cutouts_Lookmap[(tmp_str_list[1],tmp_str_list[2],tmp_str_list[3],tmp_str_list[4])] = tmp_str_list[5] # 
+                    if (tmp_str_list[1],tmp_str_list[2],tmp_str_list[3],tmp_str_list[4]) in Cutouts_Lookmap.keys():
+                        Cutouts_Lookmap[(tmp_str_list[1],tmp_str_list[2],tmp_str_list[3],tmp_str_list[4])].append(tmp_str_list[5]) # use coordinate rectangle RA_Lo RA_Hi Dec_Lo Dec_Hi (check duplication)
+                    else:
+                        Cutouts_Lookmap[(tmp_str_list[1],tmp_str_list[2],tmp_str_list[3],tmp_str_list[4])] = [ tmp_str_list[5] ] # use coordinate rectangle RA_Lo RA_Hi Dec_Lo Dec_Hi
             fp.close()
             #print(Cutouts_Lookmap.keys())
 else:
@@ -1241,7 +1250,7 @@ for i in range(len(Cat.TableData)):
     # 
     CutoutOutputDir = 'cutouts'
     CutoutOutputName = 'cutouts_temporary' # 'cutouts_'+Source.Name #<20170320><TODO># Source.Name not unique
-    CutoutFileFindingStr = 'N/A'
+    CutoutFileFindingStrs = []
     CutoutFilePaths = []
     if not os.path.isdir(CutoutOutputDir):
         os.mkdir(CutoutOutputDir)
@@ -1250,20 +1259,18 @@ for i in range(len(Cat.TableData)):
     # 
     if not os.path.isdir("%s/%s"%(CutoutOutputDir, CutoutOutputName)):
         os.mkdir("%s/%s"%(CutoutOutputDir, CutoutOutputName))
-    #<20170320><TODO>#else:
-    #<20170320><TODO>#    CutoutFileFindingStr = "%s/%s/*.fits"%(CutoutOutputDir, CutoutOutputName) # cutout fits file names always contain ID but not full names. 
     # 
     # Copy cutouts from Input_Cut directory
     # 
     # -- use Cutouts_Lookmap
     #    and Cutouts_Lookmap is using Object Name to look for cutouts image file
-    if CutoutFileFindingStr == 'N/A':
+    if len(CutoutFileFindingStrs) == 0:
         if source_Name in Cutouts_Lookmap.keys():
             print("Found cutouts in cutouts lookmap file for object name \"%s\""%(source_Name))
-            CutoutFileFindingStr = "%s"%(Cutouts_Lookmap[source_Name])
+            CutoutFileFindingStrs = Cutouts_Lookmap[source_Name] # "%s"%(Cutouts_Lookmap[source_Name])
     # -- use Cutouts_Lookmap
     #    and Cutouts_Lookmap is using Object RA Dec to look for cutouts image file
-    if CutoutFileFindingStr == 'N/A':
+    if len(CutoutFileFindingStrs) == 0:
         Cutouts_Lookmap_Polygon_Center_Selected = []
         for Cutouts_Lookmap_Key in Cutouts_Lookmap.keys():
             if type(Cutouts_Lookmap_Key) is tuple:
@@ -1286,18 +1293,19 @@ for i in range(len(Cat.TableData)):
                         print("Found cutouts in cutouts lookmap file for object RA Dec %.7f %.7f"%(source_RA, source_DEC))
                         if len(Cutouts_Lookmap_Polygon_Center_Selected) == 0:
                             Cutouts_Lookmap_Polygon_Center_Selected = Cutouts_Lookmap_Polygon_Center
-                            CutoutFileFindingStr = "%s"%(Cutouts_Lookmap[Cutouts_Lookmap_Key])
+                            CutoutFileFindingStr = Cutouts_Lookmap[Cutouts_Lookmap_Key]
                         else:
                             if ((source_RA-Cutouts_Lookmap_Polygon_Center[0])**2 + (source_DEC-Cutouts_Lookmap_Polygon_Center[1])**2) < ((source_RA-Cutouts_Lookmap_Polygon_Center_Selected[0])**2 + (source_DEC-Cutouts_Lookmap_Polygon_Center_Selected[1])**2):
                                 Cutouts_Lookmap_Polygon_Center_Selected = Cutouts_Lookmap_Polygon_Center
-                                CutoutFileFindingStr = "%s"%(Cutouts_Lookmap[Cutouts_Lookmap_Key])
-    if CutoutFileFindingStr == 'N/A':
-        CutoutFileFindingStr = "%s/*/%s[._]*.fits"%(Input_Cut, Source.Name)
+                                CutoutFileFindingStr = Cutouts_Lookmap[Cutouts_Lookmap_Key]
+    if len(CutoutFileFindingStrs) == 0:
+        CutoutFileFindingStr = [ "%s/*/%s[._]*.fits"%(Input_Cut, Source.Name) ]
     # 
     # Search for cutouts image files
     # 
-    print("Searching cutouts image files with pattern \"%s\""%(CutoutFileFindingStr))
-    CutoutFilePaths = glob.glob(CutoutFileFindingStr)
+    for CutoutFileFindingStr in CutoutFileFindingStrs:
+        print("Searching cutouts image files with pattern \"%s\""%(CutoutFileFindingStr))
+        CutoutFilePaths.append(glob.glob(CutoutFileFindingStr))
     
     
     # 
@@ -1315,8 +1323,6 @@ for i in range(len(Cat.TableData)):
         for CutoutFilePath in CutoutFilePaths:
             CutoutFileName = os.path.basename(CutoutFilePath)
             if  ( (CutoutFileName.find('_acs_I_mosaic_')>=0) or \
-                  (CutoutFileName.find('_irac_ch')>=0) or \
-                  (CutoutFileName.find('_mips_24_GO3_')>=0) or \
                   (CutoutFileName.find('.J.original-psf.')>=0) or \
                   (CutoutFileName.find('.H.original_psf.')>=0) or \
                   (CutoutFileName.find('.Ks.original_psf.')>=0) 
@@ -1324,6 +1330,9 @@ for i in range(len(Cat.TableData)):
                 # 
                 # (CutoutFileName.find('_vla_20cm_dp')>=0)
                 # (CutoutFileName.find('_vla_3ghz')>=0)
+                # (CutoutFileName.find('_irac_ch')>=0)
+                # (CutoutFileName.find('_mips_24_GO3_')>=0)
+                # 
                 # 
                 CutoutFileNames.append("%s/%s/%s"%(CutoutOutputDir, CutoutOutputName, CutoutFileName))
                 # 

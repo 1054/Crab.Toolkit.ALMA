@@ -1,0 +1,68 @@
+#!/bin/bash
+# 
+
+
+# The lookmap is like
+#   RA_lower RA_higher Dec_lower Dec_higher cutouts_image_file
+
+if [[ $# -eq 0 ]]; then
+    echo "Usage: "
+    echo "       caap-generate-cutouts-lookmap *.fits"
+    echo "Output: "
+    echo "       \"cutouts_lookmap.txt\""
+    echo ""
+    exit
+fi
+
+
+# 
+# Check wcstools
+if [[ $(type gethead 2>/dev/null | wc -l) -eq 0 ]]; then
+    echo "Error! The command \"gethead\" was not found!"
+    type gethead
+    exit
+fi
+if [[ $(type sethead 2>/dev/null | wc -l) -eq 0 ]]; then
+    echo "Error! The command \"sethead\" was not found!"
+    type sethead
+    exit
+fi
+if [[ $(type xy2sky 2>/dev/null | wc -l) -eq 0 ]]; then
+    echo "Error! The command \"xy2sky\" was not found!"
+    type xy2sky
+    exit
+fi
+
+
+List_of_images=($@)
+
+
+if [[ -f "cutouts_lookmap.txt" ]]; then
+    mv "cutouts_lookmap.txt" "cutouts_lookmap.txt.backup"
+fi
+
+
+for (( i=0; i<${#List_of_images[@]}; i++ )); do
+    Fits_header_object=$(gethead "${List_of_images[i]}" "OBJECT")
+    Simple_image_name=$(basename "${List_of_images[i]}" | perl -p -e 's/(.*)_sci\.spw.*\.cont\.I\.image\.fits/\1/g' | perl -p -e 's/_$//g')
+    Simple_project_name=${Simple_image_name:0:14}
+    Fits_image_NAXIS1=$(gethead "${List_of_images[i]}" "NAXIS1")
+    Fits_image_NAXIS2=$(gethead "${List_of_images[i]}" "NAXIS2")
+    Cutouts_RADec_lower=($(xy2sky -d -n 10 "${List_of_images[i]}" "$Fits_image_NAXIS1" 1 | sed -e 's/-> *J2000 *//g'))
+    Cutouts_RADec_upper=($(xy2sky -d -n 10 "${List_of_images[i]}" 1 "$Fits_image_NAXIS2" | sed -e 's/-> *J2000 *//g'))
+    if [[ x"$Fits_header_object" != x ]]; then
+        printf "%-50s %15.10f %15.10f %15.10f %15.10f   %-s\n" "$Simple_project_name--$Fits_header_object" "${Cutouts_RADec_lower[0]}" "${Cutouts_RADec_upper[0]}" "${Cutouts_RADec_lower[1]}" "${Cutouts_RADec_upper[1]}" "../../../../../ALMA_COSMOS/ALMA_archive_Feb23_2017/cutouts/*/${Simple_image_name}_*.fits"
+        printf "%-50s %15.10f %15.10f %15.10f %15.10f   %-s\n" "$Simple_project_name--$Fits_header_object" "${Cutouts_RADec_lower[0]}" "${Cutouts_RADec_upper[0]}" "${Cutouts_RADec_lower[1]}" "${Cutouts_RADec_upper[1]}" "../../../../../ALMA_COSMOS/ALMA_archive_Feb23_2017/cutouts/*/${Simple_image_name}_*.fits" >> "cutouts_lookmap.txt"
+    else
+        echo "Error! Failed to get fits header \"OBJECT\" from image \"${List_of_images[i]}\"!"
+    fi
+done
+
+date +"%Y-%m-%d %H:%M:%s %Z" > "cutouts_lookmap.readme"
+echo "Cutouts lookmap file for \"caap-highz-galaxy-crossmatcher\"" >> "cutouts_lookmap.readme"
+echo "output by $(pwd -P)/$(basename ${BASH_SOURCE[0]})" >> "cutouts_lookmap.readme"
+echo "" >> "cutouts_lookmap.readme"
+
+
+
+
