@@ -983,19 +983,19 @@ if len(sys.argv) > 2:
                 #print(len(tmp_str_list))
                 if len(tmp_str_list)==2:
                     if tmp_str_list[0] in Cutouts_Lookmap.keys():
-                        Cutouts_Lookmap[tmp_str_list[0]].append(tmp_str_list[1]) # use obj name (check duplication)
+                        Cutouts_Lookmap[tmp_str_list[0]].append(tmp_str_list[1].replace('"','')) # use obj name (check duplication)
                     else:
-                        Cutouts_Lookmap[tmp_str_list[0]] = [ tmp_str_list[1] ] # use obj name
+                        Cutouts_Lookmap[tmp_str_list[0]] = [ tmp_str_list[1].replace('"','') ] # use obj name
                 elif len(tmp_str_list)==3:
                     if tmp_str_list[1] in Cutouts_Lookmap.keys():
-                        Cutouts_Lookmap[tmp_str_list[1]].append(tmp_str_list[2]) # use obj name (skip [0]) (check duplication)
+                        Cutouts_Lookmap[tmp_str_list[1]].append(tmp_str_list[2].replace('"','')) # use obj name (skip [0]) (check duplication)
                     else:
-                        Cutouts_Lookmap[tmp_str_list[1]] = [ tmp_str_list[2] ] # use obj name (skip [0])
+                        Cutouts_Lookmap[tmp_str_list[1]] = [ tmp_str_list[2].replace('"','') ] # use obj name (skip [0])
                 elif len(tmp_str_list)==6:
                     if (tmp_str_list[1],tmp_str_list[2],tmp_str_list[3],tmp_str_list[4]) in Cutouts_Lookmap.keys():
-                        Cutouts_Lookmap[(tmp_str_list[1],tmp_str_list[2],tmp_str_list[3],tmp_str_list[4])].append(tmp_str_list[5]) # use coordinate rectangle RA_Lo RA_Hi Dec_Lo Dec_Hi (check duplication)
+                        Cutouts_Lookmap[(tmp_str_list[1],tmp_str_list[2],tmp_str_list[3],tmp_str_list[4])].append(tmp_str_list[5].replace('"','')) # use coordinate rectangle RA_Lo RA_Hi Dec_Lo Dec_Hi (check duplication)
                     else:
-                        Cutouts_Lookmap[(tmp_str_list[1],tmp_str_list[2],tmp_str_list[3],tmp_str_list[4])] = [ tmp_str_list[5] ] # use coordinate rectangle RA_Lo RA_Hi Dec_Lo Dec_Hi
+                        Cutouts_Lookmap[(tmp_str_list[1],tmp_str_list[2],tmp_str_list[3],tmp_str_list[4])] = [ tmp_str_list[5].replace('"','') ] # use coordinate rectangle RA_Lo RA_Hi Dec_Lo Dec_Hi
             fp.close()
             #print(Cutouts_Lookmap.keys())
 else:
