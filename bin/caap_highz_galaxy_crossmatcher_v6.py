@@ -1299,7 +1299,7 @@ for i in range(len(Cat.TableData)):
                                 Cutouts_Lookmap_Polygon_Center_Selected = Cutouts_Lookmap_Polygon_Center
                                 CutoutFileFindingStr = Cutouts_Lookmap[Cutouts_Lookmap_Key]
     if len(CutoutFileFindingStrs) == 0:
-        CutoutFileFindingStr = [ "%s/*/%s[._]*.fits"%(Input_Cut, Source.Name) ]
+        CutoutFileFindingStrs = [ "%s/*/%s[._]*.fits"%(Input_Cut, Source.Name) ]
     # 
     # Search for cutouts image files
     # 
