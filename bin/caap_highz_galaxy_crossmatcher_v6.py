@@ -1305,7 +1305,7 @@ for i in range(len(Cat.TableData)):
     # 
     for CutoutFileFindingStr in CutoutFileFindingStrs:
         print("Searching cutouts image files with pattern \"%s\""%(CutoutFileFindingStr))
-        CutoutFilePaths.append(glob.glob(CutoutFileFindingStr))
+        CutoutFilePaths.append(glob.glob(CutoutFileFindingStr)[0])
     
     
     # 
