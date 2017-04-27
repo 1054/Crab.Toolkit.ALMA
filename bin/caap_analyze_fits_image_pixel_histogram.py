@@ -153,7 +153,7 @@ with open('%s.pixel.statistics.txt'%(FitsFile), 'a') as fp:
 # 
 
 BinNumb = 0
-BinStep = long( float(FitsHeader['NAXIS1']) * float(FitsHeader['NAXIS2']) / 50.0 )
+BinStep = long( float(FitsHeader['NAXIS1']) * float(FitsHeader['NAXIS2']) / 100.0 )
 BinLoop = True
 
 while BinLoop and BinNumb <= (len(BinVar)/1.75):
@@ -181,7 +181,7 @@ while BinLoop and BinNumb <= (len(BinVar)/1.75):
     # 
     # Fit the histogram
     # 
-    FitInnerSigma = 3.0
+    #FitInnerSigma = 5.0
     FitRange = []
     FitRange = np.where((BinCents>=(BinMean-FitInnerSigma*BinSigma)) & (BinCents<=(BinMean+FitInnerSigma*BinSigma))) # logical_and (() & ())
     if len(FitRange) == 0:
