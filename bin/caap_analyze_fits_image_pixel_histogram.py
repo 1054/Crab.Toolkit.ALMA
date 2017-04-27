@@ -153,7 +153,7 @@ with open('%s.pixel.statistics.txt'%(FitsFile), 'a') as fp:
 # 
 
 BinNumb = 0
-BinStep = long( float(FitsHeader['NAXIS1']) * float(FitsHeader['NAXIS2']) / 20.0 )
+BinStep = long( float(FitsHeader['NAXIS1']) * float(FitsHeader['NAXIS2']) / 50.0 )
 BinLoop = True
 
 while BinLoop and BinNumb <= (len(BinVar)/1.75):
