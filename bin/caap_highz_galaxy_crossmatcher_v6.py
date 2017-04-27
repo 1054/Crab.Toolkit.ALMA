@@ -160,7 +160,8 @@ class Logger(object):
     def __init__(self, filename="Logger.log", mode="a", buff=0):
         self.stdout = sys.stdout
         self.file = open(filename, mode, buff)
-        sys.stdout = self
+        if self.stdout != None:
+            sys.stdout = self
     
     def __del__(self):
         self.close()
@@ -184,7 +185,6 @@ class Logger(object):
         if self.stdout != None:
             sys.stdout = self.stdout
             self.stdout = None
-        
         if self.file != None:
             self.file.close()
             self.file = None
