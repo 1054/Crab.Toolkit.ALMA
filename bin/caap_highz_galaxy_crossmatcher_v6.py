@@ -664,12 +664,14 @@ class CrossMatch_Identifier(object):
                     os.system('%s "%s"'%('caap_analyze_fits_image_pixel_histogram.py', self.FitsImageFile))
                 background_flux = numpy.nan
                 background_sigma = numpy.nan
+                background_method = 'N/A'
                 with open(self.FitsImageFile+'.pixel.statistics.txt', 'r') as fp:
                     for lp in fp:
                         if lp.startswith('Gaussian_mu'):
                             background_flux = float((lp.split('=')[1]).split('#')[0].replace(' ',''))
                         elif lp.startswith('Gaussian_sigma'):
                             background_sigma = float((lp.split('=')[1]).split('#')[0].replace(' ',''))
+                            background_method = 'Gaussian_sigma'
                 # 
                 # <20170224> added a check step to make sure we measure the FitGauss
                 if background_sigma is numpy.nan or background_sigma < 0:
@@ -680,13 +682,25 @@ class CrossMatch_Identifier(object):
                                 background_flux = float((lp.split('=')[1]).split('#')[0].replace(' ',''))
                             elif lp.startswith('Gaussian_sigma'):
                                 background_sigma = float((lp.split('=')[1]).split('#')[0].replace(' ',''))
+                                background_method = 'Gaussian_sigma'
+                # 
+                # <20170427> fall back to Inner_sigma
+                if background_sigma is numpy.nan or background_sigma < 0:
+                    #os.system('%s "%s"'%('caap_analyze_fits_image_pixel_histogram.py', self.FitsImageFile))
+                    with open(self.FitsImageFile+'.pixel.statistics.txt', 'r') as fp:
+                        for lp in fp:
+                            if lp.startswith('Inner_mu'):
+                                background_flux = float((lp.split('=')[1]).split('#')[0].replace(' ',''))
+                            elif lp.startswith('Inner_sigma'):
+                                background_sigma = float((lp.split('=')[1]).split('#')[0].replace(' ',''))
+                                background_method = 'Inner_sigma'
                 # 
                 # apply a factor of 2 to the background sigma because of the background variation <20170308><dzliu><plang>
                 background_sigma = background_sigma * 2.0
                 # 
                 # print background flux (sigma)
-                print("Median background flux is %g"%(background_flux))
-                print("StdDev of the background is %g"%(background_sigma))
+                print("Median background flux is %g (measuring method is %s)"%(background_flux, background_method))
+                print("StdDev of the background is %g (measuring method is %s)"%(background_sigma, background_method))
                 # 
                 # calc background-subtracted net flux
                 print("")

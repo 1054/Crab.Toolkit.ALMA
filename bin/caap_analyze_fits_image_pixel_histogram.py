@@ -134,11 +134,14 @@ with open('%s.pixel.statistics.txt'%(FitsFile), 'w') as fp:
 # 
 FitInnerSigma = 5.0
 InnerRange = np.where((BinVar>=(BinMean-FitInnerSigma*BinSigma)) & (BinVar<=(BinMean+FitInnerSigma*BinSigma))) # logical_and (() & ())
+InnerMean = np.mean(BinVar[InnerRange])
 InnerSigma = np.std(BinVar[InnerRange])
 # output to txt file
 with open('%s.pixel.statistics.txt'%(FitsFile), 'a') as fp:
-    print(   "InnerSigma  = %.10g  # FitInnerSigma = %.1f"  %(InnerSigma, FitInnerSigma))
-    fp.write("InnerSigma  = %.10g  # FitInnerSigma = %.1f\n"%(InnerSigma, FitInnerSigma))
+    print(   "Inner_mu    = %.10g   # FitInnerSigma = %.1f"  %(InnerMean, FitInnerSigma))
+    fp.write("Inner_mu    = %.10g   # FitInnerSigma = %.1f\n"%(InnerMean, FitInnerSigma))
+    print(   "Inner_sigma = %.10g   # FitInnerSigma = %.1f"  %(InnerSigma, FitInnerSigma))
+    fp.write("Inner_sigma = %.10g   # FitInnerSigma = %.1f\n"%(InnerSigma, FitInnerSigma))
     fp.close()
 
 
