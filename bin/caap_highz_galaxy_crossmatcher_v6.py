@@ -471,7 +471,8 @@ class CrossMatch_Identifier(object):
                     print("Zooming to FoV %.3f arcsec around source position %.3f %.3f with zoomrect %s"%(zoomFoV, posxy[0], posxy[1], zoomrect))
                     zoomimage, zoomwcs = crop(self.FitsImageData, zoomrect, imagewcs = self.FitsImageWCS)
                     zoomscale = numpy.divide(numpy.array(zoomimage.shape, dtype=float), numpy.array(self.FitsImageData.shape, dtype=float))
-                    zoomposxy = numpy.subtract(posxy, [zoomrect[0],zoomrect[2]])
+                    #zoomposxy = numpy.subtract(posxy, [zoomrect[0],zoomrect[2]])
+                    zoomposxy = zoomwcs.wcs_world2pix(self.Source.RA, self.Source.Dec, 1) # 3rd arg: origin is the coordinate in the upper left corner of the image. In FITS and Fortran standards, this is 1. In Numpy and C standards this is 0.
                     zoomellip = Ellipse(xy=zoomposxy, width=major, height=minor, angle=angle, edgecolor=hex2color('#00CC00'), facecolor="none", linewidth=2, zorder=10)
                 else:
                     zoomsize = numpy.array(self.FitsImageData.shape)
@@ -596,6 +597,8 @@ class CrossMatch_Identifier(object):
                 SepDist = math.sqrt( numpy.sum((SepXY)**2) ) # in arcsec
                 SepAngle = numpy.arctan2(SepXY[1], SepXY[0]) / math.pi * 180.0
                 PosAngle = self.Source.Morphology['Pos Angle']
+                print("Source position %.3f %.3f"%(zoomposxy[0], zoomposxy[1]))
+                print("RefSource position %.3f %.3f"%(refposxy[0], refposxy[1]))
                 print("RefSource to Source has a SepDist=%.3f [arcsec] and SepAngle=%.1f [degree], comparing to Source Morphology PosAngle=%.1f [degree]."%(SepDist,SepAngle,self.Source.Morphology['Pos Angle']))
                 # 
                 # add annotation
