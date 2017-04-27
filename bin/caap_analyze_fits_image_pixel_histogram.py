@@ -163,9 +163,9 @@ while BinLoop and BinNumb <= (len(BinVar)/1.75):
     if BinNumb<=BinStep*10:
         BinNumb = BinNumb + BinStep
     elif BinNumb<=BinStep*100:
-        BinNumb = BinNumb + BinStep*1.15
+        BinNumb = BinNumb + long(BinStep*1.15)
     elif BinNumb<=BinStep*1000:
-        BinNumb = long(BinNumb * 1.15)
+        BinNumb = long(BinNumb*1.15)
     else:
         BinNumb = len(BinVar)
         break
