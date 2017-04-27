@@ -181,7 +181,7 @@ while BinLoop and BinNumb <= (len(BinVar)/1.75):
     # 
     # Fit the histogram
     # 
-    FitInnerSigma = 5.0
+    FitInnerSigma = 3.0
     FitRange = []
     FitRange = np.where((BinCents>=(BinMean-FitInnerSigma*BinSigma)) & (BinCents<=(BinMean+FitInnerSigma*BinSigma))) # logical_and (() & ())
     if len(FitRange) == 0:
