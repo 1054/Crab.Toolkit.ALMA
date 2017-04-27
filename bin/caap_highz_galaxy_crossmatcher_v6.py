@@ -921,6 +921,7 @@ class CrossMatch_Identifier(object):
             # 
             # end Logger
             temp_Logger.close()
+            del temp_Logger
 
 
 
