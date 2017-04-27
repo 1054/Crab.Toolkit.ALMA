@@ -153,15 +153,17 @@ class Logger(object):
     # source: http://stackoverflow.com/q/616645
     # see -- http://stackoverflow.com/questions/616645/how-do-i-duplicate-sys-stdout-to-a-log-file-in-python/2216517#2216517
     # usage:
-    #    Log=Logger('Sleeps_all.night')
+    #    Output_Logger = Logger()
+    #    Output_Logger.begin_log_file()
     #    print('works all day')
-    #    Log.close()
+    #    Output_Logger.end_log_file()
+    #    Output_Logger.close()
     # 
-    def __init__(self, filename="Logger.log", mode="a", buff=0):
+    def __init__(self):
+        self.file = None
+        self.filename = ''
         self.stdout = sys.stdout
-        self.file = open(filename, mode, buff)
-        if self.stdout != None:
-            sys.stdout = self
+        sys.stdout = self
     
     def __del__(self):
         self.close()
@@ -172,14 +174,31 @@ class Logger(object):
     def __exit__(self, *args):
         self.close()
     
+    def begin_log_file(self, filename="Logger.log", mode="a", buff=0):
+        if self.file != None:
+            self.file.close()
+            self.file = None
+        if filename != '':
+            self.filename = filename
+            self.file = open(filename, mode, buff)
+            self.file.write("# %s\n\n"%(str(datetime.now()))) # write current time # datetime.isoformat(datetime.today())
+    
+    def end_log_file(self):
+        if self.file != None:
+            self.file.write("\n# %s\n"%(str(datetime.now()))) # write current time # datetime.isoformat(datetime.today())
+            self.file.close()
+            self.file = None
+    
     def write(self, message):
         self.stdout.write(message)
-        self.file.write(message)
+        if self.file != None:
+            self.file.write(message)
     
     def flush(self):
         self.stdout.flush()
-        self.file.flush()
-        os.fsync(self.file.fileno())
+        if self.file != None:
+            self.file.flush()
+            os.fsync(self.file.fileno())
     
     def close(self):
         if self.stdout != None:
@@ -387,7 +406,9 @@ class CrossMatch_Identifier(object):
             LockOutput = OutputDir+'/'+OutputName+'--'+StrTelescope+'--'+StrInstrument.replace(' ','-')+'.lock' #<TODO># 
             # 
             # begin Logger
-            temp_Logger = Logger(LoggOutput, mode='w')
+            #temp_Logger = Logger(LoggOutput, mode='w')
+            if 'Output_Logger' in globals():
+                Output_Logger.begin_log_file(filename=LoggOutput, mode='w')
             # 
             # check previous crossmatch results
             if os.path.isfile(TextOutput):
@@ -920,8 +941,10 @@ class CrossMatch_Identifier(object):
                 print("")
             # 
             # end Logger
-            temp_Logger.close()
-            del temp_Logger
+            if 'Output_Logger' in globals():
+                Output_Logger.end_log_file()
+            #temp_Logger.close()
+            #del temp_Logger
 
 
 
@@ -1045,6 +1068,9 @@ else:
 
 
 
+# 
+# Prepare Logger
+Output_Logger = Logger()
 
 
 
