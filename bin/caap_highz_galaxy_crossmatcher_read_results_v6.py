@@ -84,9 +84,9 @@ for band in list_band:
                     elif lp.startswith('Match.Morphology.SepAngle'):
                         temp_Ang_Counterpart = (lp.split('=')[1]).split('#')[0]
                     elif lp.startswith('Match.Photometry.Position'):
-                        temp_Position = numpy.array((lp.split('=')[1]).split('#')[0]) # should be the ALMA position
+                        temp_Position = eval((lp.split('=')[1]).split('#')[0]) # should be the ALMA position
                     elif lp.startswith('Match.Photometry.Centroid'):
-                        temp_Centroid = numpy.array((lp.split('=')[1]).split('#')[0]) # the light-weighted centroid of the image
+                        temp_Centroid = eval((lp.split('=')[1]).split('#')[0]) # the light-weighted centroid of the image
                 fp.close()
         else:
             print("Warning! \"%s\" was not found for source \"%s\"!"%(temp_Score_File, list_Obj[i]))
