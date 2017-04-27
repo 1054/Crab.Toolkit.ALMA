@@ -84,9 +84,15 @@ for band in list_band:
                     elif lp.startswith('Match.Morphology.SepAngle'):
                         temp_Ang_Counterpart = (lp.split('=')[1]).split('#')[0]
                     elif lp.startswith('Match.Photometry.Position'):
-                        temp_Position = eval((lp.split('=')[1]).split('#')[0]) # should be the ALMA position
+                        temp_String = (lp.split('=')[1]).split('#')[0]
+                        if temp_String.find('nan') < 0:
+                            temp_Position = eval(temp_String) # should be the ALMA position
+                        else:
+                            print('Found nan in "%s"!'%(temp_Score_File))
                     elif lp.startswith('Match.Photometry.Centroid'):
-                        temp_Centroid = eval((lp.split('=')[1]).split('#')[0]) # the light-weighted centroid of the image
+                        temp_String = (lp.split('=')[1]).split('#')[0]
+                        if temp_String.find('nan') < 0:
+                            temp_Centroid = eval(temp_String) # the light-weighted centroid of the image
                 fp.close()
         else:
             print("Warning! \"%s\" was not found for source \"%s\"!"%(temp_Score_File, list_Obj[i]))
