@@ -93,6 +93,8 @@ for band in list_band:
                         temp_String = (lp.split('=')[1]).split('#')[0]
                         if temp_String.find('nan') < 0:
                             temp_Centroid = eval(temp_String) # the light-weighted centroid of the image
+                        else:
+                            print('Found nan in "%s"!'%(temp_Score_File))
                 fp.close()
         else:
             print("Warning! \"%s\" was not found for source \"%s\"!"%(temp_Score_File, list_Obj[i]))
