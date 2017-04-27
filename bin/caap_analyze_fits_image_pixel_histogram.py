@@ -93,6 +93,7 @@ print('Input fits file: %s\n'%(FitsFile))
 # 
 FitsStruct = fits.open(FitsFile)
 FitsImage = FitsStruct[0].data
+FitsHeader = FitsStruct[0].header
 
 
 # 
@@ -152,21 +153,23 @@ with open('%s.pixel.statistics.txt'%(FitsFile), 'a') as fp:
 # 
 
 BinNumb = 0
+BinStep = long( float(FitsHeader['NAXIS1']) * float(FitsHeader['NAXIS2']) / 20.0 )
 BinLoop = True
 
 while BinLoop and BinNumb <= (len(BinVar)/1.75):
     # 
     # Bin pixel value histogram
     # 
-    if BinNumb<=10000:
-        BinNumb = BinNumb + 1000
+    if BinNumb<=BinStep*10:
+        BinNumb = BinNumb + BinStep
+    elif BinNumb<=BinStep*100:
+        BinNumb = BinNumb + BinStep*1.15
+    elif BinNumb<=BinStep*1000:
+        BinNumb = long(BinNumb * 1.15)
     else:
-        if BinNumb<=1000000:
-            BinNumb = long(BinNumb * 1.15)
-        else:
-            BinNumb = len(BinVar)
-            break
-            
+        BinNumb = len(BinVar)
+        break
+    
     
     BinHists, BinEdges, BinPatches = pl.hist(BinVar, BinNumb, histtype='stepfilled', color=hex2color('#0000FF'), linewidth=0.2) # histtype='bar', 'step', 'stepfilled'
     BinCents = (BinEdges[:-1] + BinEdges[1:]) / 2.0
