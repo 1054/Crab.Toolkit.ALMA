@@ -79,6 +79,8 @@ for band in list_band:
                         temp_Score_Exten = (lp.split('=')[1]).split('#')[0]
                     elif lp.startswith('Crowdedness'):
                         temp_Crowdedness = (lp.split('=')[1]).split('#')[0]
+                    elif lp.startswith('Clean_Index'):
+                        temp_Clean_Index = (lp.split('=')[1]).split('#')[0]
                     elif lp.startswith('Match.Morphology.SepDist'):
                         temp_Sep_Counterpart = (lp.split('=')[1]).split('#')[0]
                     elif lp.startswith('Match.Morphology.SepAngle'):
