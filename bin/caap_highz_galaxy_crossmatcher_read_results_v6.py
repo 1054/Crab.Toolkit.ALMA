@@ -29,8 +29,8 @@ else:
     list_z = list_SNR*0.0 -99.0
 
 
-#list_band = ['HST--ACS', 'Spitzer--IRAC-ch1', 'Spitzer--IRAC-ch2', 'Spitzer--IRAC-ch3', 'Spitzer--IRAC-ch4', 'UltraVISTA--J', 'UltraVISTA--H', 'UltraVISTA--Ks']
-list_band = ['HST--ACS', 'UltraVISTA--J', 'UltraVISTA--H', 'UltraVISTA--Ks']
+list_band = ['HST--ACS', 'Spitzer--IRAC-ch1', 'Spitzer--IRAC-ch2', 'Spitzer--IRAC-ch3', 'Spitzer--IRAC-ch4', 'UltraVISTA--J', 'UltraVISTA--H', 'UltraVISTA--Ks']
+#list_band = ['HST--ACS', 'UltraVISTA--J', 'UltraVISTA--H', 'UltraVISTA--Ks']
 
 for band in list_band: 
     
@@ -40,6 +40,10 @@ for band in list_band:
     list_Score_Exten = []
     list_Crowdedness = []
     list_Clean_Index = []
+    list_Sep_Counterpart = []
+    list_Ang_Counterpart = []
+    list_Sep_Centroid = []
+    list_Ang_Centroid = []
     
     for i in range(len(list_Obj)):
         # fix list_Obj empty
@@ -55,6 +59,12 @@ for band in list_band:
         temp_Score_Exten = numpy.nan
         temp_Crowdedness = numpy.nan
         temp_Clean_Index = numpy.nan
+        temp_Sep_Counterpart = numpy.nan
+        temp_Ang_Counterpart = numpy.nan
+        temp_Sep_Centroid = numpy.nan
+        temp_Ang_Centroid = numpy.nan
+        temp_Position = []
+        temp_Centroid = []
         temp_Score_File = 'results/%d--%s.txt'%(i, band) # file name starts with index i, i starts from 0. 
         if os.path.isfile(temp_Score_File):
             with open(temp_Score_File, 'r') as fp:
@@ -69,8 +79,14 @@ for band in list_band:
                         temp_Score_Exten = (lp.split('=')[1]).split('#')[0]
                     elif lp.startswith('Crowdedness'):
                         temp_Crowdedness = (lp.split('=')[1]).split('#')[0]
-                    elif lp.startswith('Clean_Index'):
-                        temp_Clean_Index = (lp.split('=')[1]).split('#')[0]
+                    elif lp.startswith('Match.Morphology.SepDist'):
+                        temp_Sep_Counterpart = (lp.split('=')[1]).split('#')[0]
+                    elif lp.startswith('Match.Morphology.SepAngle'):
+                        temp_Ang_Counterpart = (lp.split('=')[1]).split('#')[0]
+                    elif lp.startswith('Match.Photometry.Position'):
+                        temp_Position = numpy.array((lp.split('=')[1]).split('#')[0]) # should be the ALMA position
+                    elif lp.startswith('Match.Photometry.Centroid'):
+                        temp_Centroid = numpy.array((lp.split('=')[1]).split('#')[0]) # the light-weighted centroid of the image
                 fp.close()
         else:
             print("Warning! \"%s\" was not found for source \"%s\"!"%(temp_Score_File, list_Obj[i]))
@@ -80,6 +96,15 @@ for band in list_band:
         list_Score_Exten.append(temp_Score_Exten)
         list_Crowdedness.append(temp_Crowdedness)
         list_Clean_Index.append(temp_Clean_Index)
+        if len(temp_Position) > 0 and len(temp_Centroid) > 0:
+            temp_Sep_X = (temp_Centroid[0] - temp_Position[0]) * numpy.cos(temp_Position[1]/180.0*numpy.pi) * 3600.0
+            temp_Sep_Y = (temp_Centroid[1] - temp_Position[1]) * 3600.0
+            temp_Ang_Centroid = numpy.arctan2(temp_Sep_Y, temp_Sep_X) / numpy.pi * 180.0
+            temp_Sep_Centroid = numpy.sqrt( (temp_Sep_X)**2 + (temp_Sep_Y)**2 )
+        list_Sep_Counterpart.append(temp_Sep_Counterpart)
+        list_Ang_Counterpart.append(temp_Ang_Counterpart)
+        list_Sep_Centroid.append(temp_Sep_Centroid)
+        list_Ang_Centroid.append(temp_Ang_Centroid)
         
     
     

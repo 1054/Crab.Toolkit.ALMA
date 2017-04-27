@@ -927,6 +927,8 @@ class CrossMatch_Identifier(object):
                 TextFilePtr.write("Clean_Index = %d\n"%(self.Clean_Index))
                 TextFilePtr.write("Match.Score = %.1f\n"%(self.Match['Score']))
                 TextFilePtr.write("Match.Morphology.Score = %.1f\n"%(self.Match['Morphology']['Score']))
+                TextFilePtr.write("Match.Morphology.SepDist = %s\n"%(self.Match['Morphology']['SepDist']))
+                TextFilePtr.write("Match.Morphology.SepAngle = %s\n"%(self.Match['Morphology']['SepAngle']))
                 TextFilePtr.write("Match.Morphology.Extended = %.1f\n"%(self.Match['Morphology']['Extended']))
                 TextFilePtr.write("Match.Morphology.Polyfit = %s\n"%(self.Match['Morphology']['Polyfit']))
                 TextFilePtr.write("Match.Photometry.Score = %s\n"%(str(self.Match['Photometry']['Score'])))
@@ -1350,6 +1352,10 @@ for i in range(len(Cat.TableData)):
         for CutoutFilePath in CutoutFilePaths:
             CutoutFileName = os.path.basename(CutoutFilePath)
             if  ( 
+                  (CutoutFileName.find('_acs_I_mosaic_')>=0) or \
+                  (CutoutFileName.find('.J.original-psf.')>=0) or \
+                  (CutoutFileName.find('.H.original_psf.')>=0) or \
+                  (CutoutFileName.find('.Ks.original_psf.')>=0) or \
                   (CutoutFileName.find('_irac_ch')>=0) 
                 ) :
                 # 
