@@ -788,7 +788,7 @@ class CrossMatch_Identifier(object):
                 # 
                 # show the image
                 pyplot.draw()
-                pyplot.pause(2.20)
+                pyplot.pause(0.10)
                 #print("Click anywhere on the figure to continue")
                 # 
                 # save the image to disk / output the image to disk
