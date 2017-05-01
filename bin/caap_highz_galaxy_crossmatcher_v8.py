@@ -614,13 +614,14 @@ class CrossMatch_Identifier(object):
                 # 
                 # 
                 # 
-                # calculate source mophological extension parameter (only when source S/N >= 5.0)
+                # calculate source mophological extension parameter (only when source S/N >= 3.0)
+                source_extent_snr_limit = 3.0
                 source_extent = {}
                 source_extent['Inner slope'] = numpy.nan
                 source_extent['Outer slope'] = numpy.nan
                 source_extent['Middle slope'] = numpy.nan
                 source_extent['Overall slope'] = numpy.nan
-                if signal_to_noise_ratio_source >= 5.0:
+                if signal_to_noise_ratio_source >= source_extent_snr_limit:
                     # print info
                     print('Calculating source mophological extension parameter with surface brightness radial profile')
                     # linear regression
@@ -679,13 +680,13 @@ class CrossMatch_Identifier(object):
                     #        print('Source mophological extent profile S/N>=3.0 Outer/Inner Aperture list: ')
                     #        pprint(self.Photometry['GrowthCurve'])
                 else:
-                    print('The source S/N is lower than 5.0 (undetected)! Will not be able to calcuate the source mophological extent parameter!')
+                    print('The source S/N is lower than %0.1f (undetected)! Will not be able to calcuate the source mophological extent parameter!'%(source_extent_snr_limit))
                 # 
                 # 
                 #<20170304><dzliu><plang># down-weight the offset so as to improve the score
                 offset_down_weighting = 1.0
-                if self.Morphology['Extended'] > 0 and self.Morphology['Extended'] == self.Morphology['Extended']:
-                    if self.Photometry['S/N'] >= 5.0:
+                if signal_to_noise_ratio_source >= source_extent_snr_limit:
+                    if self.Morphology['Extended'] > 0 and self.Morphology['Extended'] == self.Morphology['Extended']:
                         # -- <20170308> only down-weight if source image S/N>5.0
                         # -- <20170430> down-weight extended source Separation, so that when source is fully extended (Outer/Inner=100%), M. Score = 100. 
                         offset_down_weighting = 1.0 - (self.Morphology['Extended']/100.0)
@@ -726,14 +727,14 @@ class CrossMatch_Identifier(object):
                 # 
                 # 
                 # 
-                self.Photometry['Score'] = ( 0.90 * numpy.min( [ self.Source.Photometry['ALMA Band 6 240 GHz S/N']/12.0, 1.0 ] )
+                self.Photometry['Score'] = ( 0.85 * numpy.min( [ self.Source.Photometry['ALMA Band 6 240 GHz S/N']/12.0, 1.0 ] )
                                            ) * 100.0
                 # 
                 # 
                 # also consider source image source position aperture photometry S/N
                 if self.Photometry['Source/RefSource'] > -99 + 1e-6:
                     self.Photometry['Score'] = self.Photometry['Score'] + \
-                                               ( 0.10 * numpy.min( [ self.Photometry['Source/RefSource'], 1.0 ] )
+                                               ( 0.15 * numpy.min( [ self.Photometry['Source/RefSource'], 1.0 ] )
                                                ) * 100.0
                 # 
                 # 
