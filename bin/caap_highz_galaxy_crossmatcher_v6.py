@@ -146,7 +146,6 @@ pyplot.style.use(astropy_mpl_style)
 
 
 
-
 # 
 class Logger(object):
     # "Lumberjack class - duplicates sys.stdout to a log file and it's okay"
@@ -216,6 +215,18 @@ class Logger(object):
 
 
 
+
+
+# 20170427
+# The idea of this code is to make an auto-identification 
+# of two sources being the same galaxy or not. 
+# So we will base on 
+#     (1) InputSource position
+
+
+
+
+
 # 
 class CrossMatch_Identifier(object):
     # 
@@ -223,6 +234,8 @@ class CrossMatch_Identifier(object):
                        Crowdedness = numpy.nan, Clean_Index = numpy.nan):
         self.Source = Source
         self.RefSource = RefSource
+        self.InputSource = Source
+        self.ReferSource = RefSource
         self.FitsImageFile = ""
         self.FitsImageWavelength = 0.0
         self.FitsImageFrequency = 0.0
@@ -471,7 +484,7 @@ class CrossMatch_Identifier(object):
                     print("Zooming to FoV %.3f arcsec around source position %.3f %.3f with zoomrect %s"%(zoomFoV, posxy[0], posxy[1], zoomrect))
                     zoomimage, zoomwcs = crop(self.FitsImageData, zoomrect, imagewcs = self.FitsImageWCS)
                     zoomscale = numpy.divide(numpy.array(zoomimage.shape, dtype=float), numpy.array(self.FitsImageData.shape, dtype=float))
-                    #zoomposxy = numpy.subtract(posxy, [zoomrect[0],zoomrect[2]])
+                    #zoomposxy = numpy.subtract(posxy, [zoomrect[0],zoomrect[2]]) #<BUG><FIXED><20170627><dzliu><plang># 
                     zoomposxy = zoomwcs.wcs_world2pix(self.Source.RA, self.Source.Dec, 1) # 3rd arg: origin is the coordinate in the upper left corner of the image. In FITS and Fortran standards, this is 1. In Numpy and C standards this is 0.
                     zoomellip = Ellipse(xy=zoomposxy, width=major, height=minor, angle=angle, edgecolor=hex2color('#00CC00'), facecolor="none", linewidth=2, zorder=10)
                 else:
@@ -577,7 +590,7 @@ class CrossMatch_Identifier(object):
                 # 
                 # draw the RefSource by a red cross symbol
                 refposxy = zoomwcs.wcs_world2pix(self.RefSource.RA, self.RefSource.Dec, 1)
-                #refposxy = numpy.subtract(refposxy, [zoomrect[0],zoomrect[2]])
+                #refposxy = numpy.subtract(refposxy, [zoomrect[0],zoomrect[2]]) #<BUGGY>#
                 refposxy = numpy.array(refposxy)
                 PlotPanel.autoscale(False)
                 PlotPanel.plot([refposxy[0]], [refposxy[1]], marker='+', markeredgewidth=1.85, 
@@ -660,6 +673,23 @@ class CrossMatch_Identifier(object):
                                             'S/N':numpy.nan, 'S/N Annulus':numpy.nan})
                     print("Integrated blank-position flux within %0.2fxFWHM is %g"%(BlankAper_Value, tempflux))
                 # 
+                # do another photometry at the counterpart position for comparison
+                print("")
+                RefAper_Range = PhotAper_Range
+                RefAper_Array = []
+                for RefAper_Value in RefAper_Range:
+                    tempellip = copy(blankellip)
+                    tempellip.width = tempellip.width*RefAper_Value
+                    tempellip.height = tempellip.height*RefAper_Value
+                    tempflux, tempnpix, tempcpix = elliptical_Photometry(zoomimage, tempellip)
+                    RefAper_Array.append({'Radius':RefAper_Value, 'Shape':tempellip, 
+                                            'Cpix':tempcpix, 
+                                            'Npix':tempnpix, 'Fint':tempflux, 'Fbkg':numpy.nan, 
+                                            'Flux':numpy.nan, 'Error':numpy.nan, 'S.B.':numpy.nan, 
+                                            'S.B. Annulus':numpy.nan, 'S.B. Growth':numpy.nan, 'Flux Growth':numpy.nan, 
+                                            'S/N':numpy.nan, 'S/N Annulus':numpy.nan})
+                    print("Integrated blank-position flux within %0.2fxFWHM is %g"%(RefAper_Value, tempflux))
+                # 
                 # calc background by "caap_analyze_fits_image_pixel_histogram.py"
                 print("")
                 print("Calculating background...")
@@ -699,7 +729,7 @@ class CrossMatch_Identifier(object):
                                 background_method = 'Inner_sigma'
                 # 
                 # apply a factor of 2 to the background sigma because of the background variation <20170308><dzliu><plang>
-                background_sigma = background_sigma * 2.0
+                #background_sigma = background_sigma * 2.0
                 # 
                 # print background flux (sigma)
                 print("Median background flux is %g (measuring method is %s)"%(background_flux, background_method))
@@ -881,7 +911,7 @@ class CrossMatch_Identifier(object):
                                    horizontalalignment='right', verticalalignment='center')
                 # 
                 # plot annotation
-                PlotPanel.annotate("Downweight = %.0f [%%]"%(offset_down_weighting*100), 
+                PlotPanel.annotate("Downweight = %.2f"%(offset_down_weighting), 
                                    xy=(0.97, 0.95-0.075-0.045*6), xycoords='axes fraction', color=hex2color('#00CC00'), fontsize=13, 
                                    bbox = dict(boxstyle="round,pad=0.1", alpha=0.6, facecolor=hex2color('#FFFFFF'), edgecolor=hex2color('#FFFFFF'), linewidth=2), 
                                    horizontalalignment='right', verticalalignment='center')
@@ -1278,7 +1308,7 @@ for i in range(len(Cat.TableData)):
     if source_RA and source_DEC and len(refcatalog_RA)>0 and len(refcatalog_DEC)>0:
         Separation_DEC = (numpy.array(refcatalog_DEC) - source_DEC) * 3600.0 # arcsec
         Separation_RA = (numpy.array(refcatalog_RA) - source_RA) * 3600.0 * numpy.cos(source_DEC / 180.0 * numpy.pi)
-        Crowdedness = numpy.sum(numpy.exp(-(Separation_RA**2 + Separation_DEC**2)/(1.5**2)))
+        Crowdedness = numpy.sum(numpy.exp(-(Separation_RA**2 + Separation_DEC**2)/((1.5*2.0)**2)))
         Clean_Index = numpy.sum((Separation_RA**2 + Separation_DEC**2) <= (1.5**2))
     else:
         Crowdedness = numpy.nan

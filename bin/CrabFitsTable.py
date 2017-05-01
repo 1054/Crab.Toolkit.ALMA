@@ -79,7 +79,7 @@ class CrabFitsTable(object):
         return self.TableHeaders
     # 
     def getColumn(self, ColNameOrNumb):
-        if type(ColNameOrNumb) is str:
+        if type(ColNameOrNumb) is str or type(ColNameOrNumb) is numpy.string_:
             if ColNameOrNumb in self.TableHeaders:
                 return self.TableData.field(ColNameOrNumb)
             else:
@@ -95,7 +95,7 @@ class CrabFitsTable(object):
                 return []
     # 
     def setColumn(self, ColNameOrNumb, DataArray):
-        if type(ColNameOrNumb) is str:
+        if type(ColNameOrNumb) is str or type(ColNameOrNumb) is numpy.string_:
             if ColNameOrNumb in self.TableHeaders:
                 self.TableData[ColNameOrNumb] = DataArray
             else:
