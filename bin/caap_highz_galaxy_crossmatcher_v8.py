@@ -689,7 +689,7 @@ class CrossMatch_Identifier(object):
                     if self.Morphology['Extended'] > 0 and self.Morphology['Extended'] == self.Morphology['Extended']:
                         # -- <20170308> only down-weight if source image S/N>5.0
                         # -- <20170430> down-weight extended source Separation, so that when source is fully extended (Outer/Inner=100%), M. Score = 100. 
-                        offset_down_weighting = 1.0 - (self.Morphology['Extended']/100.0)
+                        offset_down_weighting = 1.0 - (0.5 * self.Morphology['Extended']/100.0)
                         if offset_down_weighting < 0.0:
                             offset_down_weighting = 0.0
                         #if self.Morphology['Extended'] > 100.0:
