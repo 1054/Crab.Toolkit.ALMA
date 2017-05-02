@@ -609,7 +609,7 @@ class CrossMatch_Identifier(object):
                 #    print('Source image annulus with diameter %0.2fxFWHM has surface brightness = %0.6g +- %0.6g and S/N = %0.3f (area = %0.6g)'%(self.Photometry['GrowthCurve'][dia]['x'], self.Photometry['GrowthCurve'][dia]['y'], self.Photometry['GrowthCurve'][dia]['err'], self.Photometry['GrowthCurve'][dia]['y']/self.Photometry['GrowthCurve'][dia]['err'], self.Photometry['GrowthCurve'][dia]['area']))
                 # 
                 # print jiggle position photometry info
-                for dia in range(jiggle_number+1):
+                for dia in range(jiggle_number+2):
                     print('Source image jiggle position %0.2fxSep. aperture has flux = %0.6g +- %0.6g and S/N = %0.3f (area = %0.6g arcsec^2)'%(self.Photometry['GrowthCurve'][dia]['x'], self.Photometry['GrowthCurve'][dia]['y'], self.Photometry['GrowthCurve'][dia]['err'], self.Photometry['GrowthCurve'][dia]['y']/self.Photometry['GrowthCurve'][dia]['err'], self.Photometry['GrowthCurve'][dia]['area']))
                 # 
                 # 
@@ -659,7 +659,8 @@ class CrossMatch_Identifier(object):
                     print('Source mophological extent profile Overall slope = %0.3f, intercept = %0.6g'%(source_extent['Overall slope'],fitting_coeff_overall[0]))
                     # 
                     if fitting_poly_deg == 1:
-                        self.Morphology['Extended'] = (fitting_coeff_overall[0]+fitting_coeff_overall[1])/(fitting_coeff_overall[0]) * 100.0 # y[x=1]/y[x=0]
+                        #self.Morphology['Extended'] = (fitting_coeff_overall[0]+fitting_coeff_overall[1])/(fitting_coeff_overall[0]) * 100.0 # y[x=1]/y[x=0]
+                        self.Morphology['Extended'] = (fitting_coeff_overall[0]+fitting_coeff_overall[1]) * 100.0 # y[x=1]/y[x=0] #<TODO># (fitting_coeff_overall[0]) sometimes is negative!
                     # 
                     print('Source mophological extent profile Aperture list: ')
                     pprint(self.Photometry['GrowthCurve'])
@@ -951,6 +952,7 @@ else:
     print("")
     print("Warning! No reference catalog 'ref_catalog.fits' was found under current directory! Will not calculate 'Crowdedness' and 'Clean_Index'!")
     print("")
+    RefCat = None
 
 
 
@@ -1228,6 +1230,7 @@ for i in range(len(Cat.TableData)):
             Source = Source, 
             RefSource = RefSource, 
             RefImage = Highz_Image(CutoutFileName), 
+            RefCatalog = RefCat, 
             Separation = source_separation, 
         )
         IDX.about()
