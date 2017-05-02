@@ -159,7 +159,7 @@ BinNumb = 0
 BinStep = long( float(FitsHeader['NAXIS1']) * float(FitsHeader['NAXIS2']) / 100.0 )
 BinLoop = True
 
-while BinLoop and BinNumb <= (len(BinVar)/1.75):
+while BinLoop and BinNumb <= (len(BinVar)/17.5):
     # 
     # Bin pixel value histogram
     # 
