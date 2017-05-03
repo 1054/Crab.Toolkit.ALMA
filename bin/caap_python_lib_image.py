@@ -15,10 +15,12 @@ except ImportError:
 pkg_resources.require("numpy")
 pkg_resources.require("astropy")
 pkg_resources.require("matplotlib")
+pkg_resources.require("scipy")
 
 import os, sys, math, numpy, matplotlib
 from matplotlib.patches import Ellipse, Circle, Rectangle
 from astropy.wcs import WCS
+from scipy import ndimage
 import copy
 
 
@@ -150,13 +152,18 @@ def elliptical_Photometry(image, ellipse=Ellipse([0,0],0,0,0), imagewcs=[], verb
     #print(numpy.sum(mask_x*image*mask, axis=1) / numpy.sum(image*mask, axis=1))
     #print(numpy.sum(mask_y*image*mask, axis=0) / numpy.sum(image*mask, axis=0))
     # compute weighted center with image*mask_negative
+    #mask_negative = copy.copy(mask)
+    #m_negative = (image<=0.0)
+    #mask_negative[m_negative] = 0.0
+    #print(numpy.sum(mask_negative))
+    #cpix_x = numpy.nanmean(numpy.sum(mask_x*image*mask_negative, axis=1) / numpy.sum(image*mask_negative, axis=1)) # sum(axis=1) should be summing image X rows for each Y
+    #cpix_y = numpy.nanmean(numpy.sum(mask_y*image*mask_negative, axis=0) / numpy.sum(image*mask_negative, axis=0)) # sum(axis=0) should be summing image Y cols for each X
+    #cpix = (cpix_x, cpix_y)
+    # compute weighted center with image*mask_negative with scipy
     mask_negative = copy.copy(mask)
     m_negative = (image<=0.0)
     mask_negative[m_negative] = 0.0
-    print(numpy.sum(mask_negative))
-    cpix_x = numpy.nanmean(numpy.sum(mask_x*image*mask_negative, axis=1) / numpy.sum(image*mask_negative, axis=1)) # sum(axis=1) should be summing image X rows for each Y
-    cpix_y = numpy.nanmean(numpy.sum(mask_y*image*mask_negative, axis=0) / numpy.sum(image*mask_negative, axis=0)) # sum(axis=0) should be summing image Y cols for each X
-    cpix = (cpix_x, cpix_y)
+    cpix = ndimage.measurements.center_of_mass(image*mask_negative)
     # 
     # compute image ra dec if imagewcs
     #if imagewcs:
