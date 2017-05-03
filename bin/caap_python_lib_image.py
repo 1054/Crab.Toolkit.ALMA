@@ -163,9 +163,10 @@ def elliptical_Photometry(image, ellipse=Ellipse([0,0],0,0,0), imagewcs=[], verb
     mask_negative = copy.copy(mask)
     m_negative = (image<=0.0)
     mask_negative[m_negative] = 0.0
-    print(image[190:220,190:220]*mask[190:220,190:220])
-    cpix = ndimage.measurements.center_of_mass(image*mask)
-    cpix_x, cpix_y = cpix
+    #print(image[190:220,190:220]*mask[190:220,190:220])
+    cpix_y, cpix_x = ndimage.measurements.center_of_mass(image*mask) # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.ndimage.measurements.center_of_mass.html
+                                                                     # AND note that the returned tuple order is cpix_y, cpix_x
+    cpix = (cpix_x, cpix_y)
     # 
     # compute image ra dec if imagewcs
     #if imagewcs:
