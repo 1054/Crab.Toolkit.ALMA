@@ -169,11 +169,13 @@ def elliptical_Photometry(image, ellipse=Ellipse([0,0],0,0,0), imagewcs=[], verb
     #print(image[190:220,190:220]*mask[190:220,190:220])
     image_for_centroid = copy.copy(image)
     image_for_centroid = (image_for_centroid - numpy.nanmin(image)) / (numpy.nanmax(image) - numpy.nanmin(image)) * mask_pix
-    if image_for_centroid.shape[0] > 220 and image_for_centroid.shape[1] > 200:
-        image_for_centroid = image_for_centroid * 0.0
-        image_for_centroid[220, 200] = 1.0
-    cpix_y, cpix_x = ndimage.measurements.center_of_mass(image_for_centroid) # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.ndimage.measurements.center_of_mass.html
+    #<DEBUG>#if image_for_centroid.shape[0] > 220 and image_for_centroid.shape[1] > 200:
+    #<DEBUG>#    image_for_centroid = image_for_centroid * 0.0
+    #<DEBUG>#    image_for_centroid[220, 200] = 1.0 #<DEBUG># checked OK, 20170503
+    cpix_j, cpix_i = ndimage.measurements.center_of_mass(image_for_centroid) # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.ndimage.measurements.center_of_mass.html
                                                                              # AND note that the returned tuple order is cpix_y, cpix_x
+    cpix_y = cpix_j + 1
+    cpix_x = cpix_i + 1
     cpix = (cpix_x, cpix_y)
     # 
     # compute image ra dec if imagewcs
