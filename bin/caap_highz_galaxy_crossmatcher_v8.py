@@ -864,7 +864,7 @@ class CrossMatch_Identifier(object):
 #Source.about()
 
 if len(sys.argv) <= 1:
-    print("Usage: caap_highz_galaxy_crossmatcher_v5.py \"Match_cycle2_new_detections_1.5arcsec.fits\"")
+    print("Usage: caap_highz_galaxy_crossmatcher_v8.py \"Match_cycle2_new_detections_1.5arcsec.fits\"")
     sys.exit()
 
 # 

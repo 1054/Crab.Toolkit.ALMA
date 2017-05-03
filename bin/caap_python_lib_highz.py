@@ -471,41 +471,41 @@ class Highz_Catalogue(object):
         # return
         return ColOutput
     # 
-    def object(self, InputIndex=-1):
+    def object(self, InputIndex=[]):
         ColList = ['OBJECT','Object','object','NAME','SOURCE','Name','Source','name','source']
         return self.col(ColName=ColList, ColSelect=1, RowSelect=InputIndex)
     # 
-    def id(self, InputIndex=-1):
+    def id(self, InputIndex=[]):
         ColList = ['ID','INDEX','id','_id','index','NUMBER','ID_1','id_1','ID_2','id_2']
         return self.col(ColName=ColList, ColSelect=1, RowSelect=InputIndex)
     # 
-    def id_2(self, InputIndex=-1):
+    def id_2(self, InputIndex=[]):
         ColList = ['ID','INDEX','id','_id','index','NUMBER','ID_1','id_1','ID_2','id_2']
         return self.col(ColName=ColList, ColSelect=2, RowSelect=InputIndex)
     # 
-    def ra(self, InputIndex=-1):
+    def ra(self, InputIndex=[]):
         ColList = ['RA','ra','ALPHA_J2000','_ra','RA_1','ra_1','RA_2','ra_2']
         return self.col(ColName=ColList, ColSelect=1, RowSelect=InputIndex)
     # 
     # read a second RA/Dec column in the catalog
-    def ra_2(self, InputIndex=-1):
+    def ra_2(self, InputIndex=[]):
         ColList = ['RA','ra','ALPHA_J2000','_ra','RA_1','ra_1','RA_2','ra_2']
         return self.col(ColName=ColList, ColSelect=2, RowSelect=InputIndex)
     # 
-    def dec(self, InputIndex=-1):
+    def dec(self, InputIndex=[]):
         ColList = ['DEC','Dec','dec','DELTA_J2000','_dec','DEC_1','Dec_1','dec_1','DEC_2','Dec_2','dec_2']
         return self.col(ColName=ColList, ColSelect=1, RowSelect=InputIndex)
     # 
     # read a second RA/Dec column in the catalog
-    def dec_2(self, InputIndex=-1):
+    def dec_2(self, InputIndex=[]):
         ColList = ['DEC','Dec','dec','DELTA_J2000','_dec','DEC_1','Dec_1','dec_1','DEC_2','Dec_2','dec_2']
         return self.col(ColName=ColList, ColSelect=2, RowSelect=InputIndex)
     # 
-    def zphot(self, InputIndex=-1):
+    def zphot(self, InputIndex=[]):
         ColList = ['PHOTOZ','zphot','photo-z','z_phot','zPDF','ZPDF','ZML','z']
         return self.col(ColName=ColList, ColSelect=1, RowSelect=InputIndex)
     # 
-    def zspec(self, InputIndex=-1):
+    def zspec(self, InputIndex=[]):
         ColList = ['SPECZ','zspec','spec-z','z_spec']
         return self.col(ColName=ColList, ColSelect=1, RowSelect=InputIndex)
     # 
@@ -543,11 +543,14 @@ class Highz_Catalogue(object):
             return RecognizedInfo['Selection']
         return ''
     # 
-    def calc_crowdedness(self, input_ra, input_dec, input_fwhm):
+    def calc_crowdedness(self, input_ra, input_dec, input_fwhm, verbose=False):
         if self.RA is not None and self.Dec is not None:
             sep_dec = (numpy.array(self.Dec) - input_dec) * 3600.0 # arcsec
             sep_ra = (numpy.array(self.RA) - input_ra) * 3600.0 * numpy.cos(input_dec / 180.0 * numpy.pi)
             Crowdedness = numpy.sum(numpy.exp(-(sep_ra**2 + sep_dec**2)/(input_fwhm**2)))
+            if verbose:
+                print('Highz_catalogue::calc_crowdedness() len(self.RA) = %d'%(len(self.RA)))
+                print('Highz_catalogue::calc_crowdedness() Crowdedness = %g'%(Crowdedness))
             return Crowdedness
         return numpy.nan
     # 
