@@ -168,9 +168,9 @@ def elliptical_Photometry(image, ellipse=Ellipse([0,0],0,0,0), imagewcs=[], verb
     # compute weighted center with scipy
     #print(image[190:220,190:220]*mask[190:220,190:220])
     image_for_centroid = copy.copy(image)
-    image_for_centroid = (image_for_centroid - numpy.nanmin(image)) / (numpy.nanmax(image) - numpy.nanmin(image))
-    cpix_y, cpix_x = ndimage.measurements.center_of_mass(image_for_centroid*mask_pix) # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.ndimage.measurements.center_of_mass.html
-                                                                                      # AND note that the returned tuple order is cpix_y, cpix_x
+    image_for_centroid = (image_for_centroid - numpy.nanmin(image)) / (numpy.nanmax(image) - numpy.nanmin(image)) * mask_pix
+    cpix_y, cpix_x = ndimage.measurements.center_of_mass(image_for_centroid) # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.ndimage.measurements.center_of_mass.html
+                                                                             # AND note that the returned tuple order is cpix_y, cpix_x
     cpix = (cpix_x, cpix_y)
     # 
     # compute image ra dec if imagewcs
