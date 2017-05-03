@@ -151,8 +151,9 @@ def elliptical_Photometry(image, ellipse=Ellipse([0,0],0,0,0), imagewcs=[], verb
     #print(numpy.sum(mask_y*image*mask, axis=0) / numpy.sum(image*mask, axis=0))
     # compute weighted center with image*mask_negative
     mask_negative = copy.copy(mask)
-    m_negative = (image<0.0)
+    m_negative = (image<=0.0)
     mask_negative[m_negative] = 0.0
+    print(numpy.sum(mask_negative))
     cpix_x = numpy.nanmean(numpy.sum(mask_x*image*mask_negative, axis=1) / numpy.sum(image*mask_negative, axis=1)) # sum(axis=1) should be summing image X rows for each Y
     cpix_y = numpy.nanmean(numpy.sum(mask_y*image*mask_negative, axis=0) / numpy.sum(image*mask_negative, axis=0)) # sum(axis=0) should be summing image Y cols for each X
     cpix = (cpix_x, cpix_y)
