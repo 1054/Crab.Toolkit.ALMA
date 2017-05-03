@@ -163,7 +163,7 @@ def elliptical_Photometry(image, ellipse=Ellipse([0,0],0,0,0), imagewcs=[], verb
     mask_negative = copy.copy(mask)
     m_negative = (image<=0.0)
     mask_negative[m_negative] = 0.0
-    print(image*mask)
+    print(image[30:50,30:50]*mask[30:50,30:50])
     cpix = ndimage.measurements.center_of_mass(image*mask)
     cpix_x, cpix_y = cpix
     # 
