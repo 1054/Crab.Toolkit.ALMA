@@ -790,7 +790,8 @@ class Highz_Image(object):
         #PlotDevice.colorbar(PlotImage)
         # 
         # show
-        self.PlotDevice.show()
+        self.PlotDevice.canvas.draw()
+        #self.PlotDevice.show()
         #self.PlotDevice.waitforbuttonpress()
     # 
     def aper(self, label='no name', radec=[], position=[], major=numpy.nan, minor=numpy.nan, angle=numpy.nan, 
