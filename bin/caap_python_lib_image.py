@@ -146,10 +146,11 @@ def elliptical_Photometry(image, ellipse=Ellipse([0,0],0,0,0), imagewcs=[], verb
     #cpix_y = numpy.mean(numpy.sum(mask_y*image*mask)/numpy.sum(image*mask))
     #cpix_x = numpy.mean(numpy.sum(mask_x*image*mask_pix)/numpy.sum(image*mask_pix))
     #cpix_y = numpy.mean(numpy.sum(mask_y*image*mask_pix)/numpy.sum(image*mask_pix))
-    print(numpy.sum(mask_x*image*mask, axis=1), numpy.sum(image*mask, axis=1))
-    print(numpy.sum(mask_y*image*mask, axis=0), numpy.sum(image*mask, axis=0))
-    cpix_x = numpy.mean(numpy.sum(mask_x*image*mask, axis=1) / numpy.sum(image*mask, axis=1)) # axis=1 should be image X rows
-    cpix_y = numpy.mean(numpy.sum(mask_y*image*mask, axis=0) / numpy.sum(image*mask, axis=0)) # axis=0 should be image Y columns
+    # compute weighted center <bug><fixed><20170503><dzliu>
+    #print(numpy.sum(mask_x*image*mask, axis=1) / numpy.sum(image*mask, axis=1))
+    #print(numpy.sum(mask_y*image*mask, axis=0) / numpy.sum(image*mask, axis=0))
+    cpix_x = numpy.nanmean(numpy.sum(mask_x*image*mask, axis=1) / numpy.sum(image*mask, axis=1)) # axis=1 should be image X rows
+    cpix_y = numpy.nanmean(numpy.sum(mask_y*image*mask, axis=0) / numpy.sum(image*mask, axis=0)) # axis=0 should be image Y columns
     cpix = (cpix_x, cpix_y)
     # 
     # compute image ra dec if imagewcs
