@@ -159,13 +159,10 @@ def elliptical_Photometry(image, ellipse=Ellipse([0,0],0,0,0), imagewcs=[], verb
     #cpix_x = numpy.nanmean(numpy.sum(mask_x*image*mask_negative, axis=1) / numpy.sum(image*mask_negative, axis=1)) # sum(axis=1) should be summing image X rows for each Y
     #cpix_y = numpy.nanmean(numpy.sum(mask_y*image*mask_negative, axis=0) / numpy.sum(image*mask_negative, axis=0)) # sum(axis=0) should be summing image Y cols for each X
     #cpix = (cpix_x, cpix_y)
-    # compute weighted center with image*mask_negative with scipy
-    mask_negative = copy.copy(mask)
-    m_negative = (image<=0.0)
-    mask_negative[m_negative] = 0.0
+    # compute weighted center with scipy
     #print(image[190:220,190:220]*mask[190:220,190:220])
-    cpix_y, cpix_x = ndimage.measurements.center_of_mass(image*mask) # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.ndimage.measurements.center_of_mass.html
-                                                                     # AND note that the returned tuple order is cpix_y, cpix_x
+    cpix_y, cpix_x = ndimage.measurements.center_of_mass(image*mask_pix) # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.ndimage.measurements.center_of_mass.html
+                                                                         # AND note that the returned tuple order is cpix_y, cpix_x
     cpix = (cpix_x, cpix_y)
     # 
     # compute image ra dec if imagewcs
