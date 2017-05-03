@@ -61,14 +61,17 @@ def crop(image, zoomrect, imagewcs=[]):
         j0 = 0
     if i1 == -1 or i1 >= image.shape[1]-1:
         i1 = image.shape[1]-1
+        # note that numpy image.shape[1] is NAXIS1
     if j1 == -1 or j1 >= image.shape[1]-1:
         j1 = image.shape[0]-1
+        # note that numpy image.shape[0] is NAXIS2
     mask = numpy.zeros(image.shape)
     mask[j0:j1+1,i0:i1+1] = 1
     m = (mask>0)
     if imagewcs:
         zoomwcs = copy.copy(imagewcs)
         zoomwcs.wcs.crpix = imagewcs.wcs.crpix - numpy.array([i0, j0])
+        #zoomwcs.wcs.cdelt does not change # = zoomwcs.wcs.cdelt / numpy.array((image.shape[1],image.shape[0])) / numpy.array((j1+1-j0, i1+1-i0))
         return image[m].reshape((j1+1-j0, i1+1-i0)), zoomwcs
     return image[m].reshape((j1+1-j0, i1+1-i0))
 
