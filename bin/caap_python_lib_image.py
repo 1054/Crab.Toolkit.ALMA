@@ -147,10 +147,10 @@ def elliptical_Photometry(image, ellipse=Ellipse([0,0],0,0,0), imagewcs=[], verb
     if imagewcs:
         radec_c = imagewcs.wcs_pix2world(xc, yc, 1) # 3rd arg: origin is the coordinate in the upper left corner of the image. In FITS and Fortran standards, this is 1. In Numpy and C standards this is 0.
         if(verbose):
-            print("elliptical_Photometry: xc=%.2f yc=%.2f ra=%.7f dec=%.7f amaj/2=%.2f amin/2=%.2f aang=%.2f npix=%.2f fpix=%g f=%g"%(xc, yc, radec_c[0], radec_c[1], amaj/2.0, amin/2.0, aang/math.pi*180.0, numpy.sum(mask), f_pix, f))
+            print("elliptical_Photometry: xc=%.2f yc=%.2f ra=%.7f dec=%.7f amaj/2=%.2f amin/2=%.2f aang=%.2f npix=%.2f cpix=[%.2f,%.2f] fpix=%g f=%g"%(xc, yc, radec_c[0], radec_c[1], amaj/2.0, amin/2.0, aang/math.pi*180.0, numpy.sum(mask), cpix_x, cpix_y, f_pix, f))
     else:
         if(verbose):
-            print("elliptical_Photometry: xc=%.2f yc=%.2f amaj/2=%.2f amin/2=%.2f aang=%.2f npix=%.2f fpix=%g f=%g"%(xc, yc, amaj/2.0, amin/2.0, aang/math.pi*180.0, numpy.sum(mask), f_pix, f))
+            print("elliptical_Photometry: xc=%.2f yc=%.2f amaj/2=%.2f amin/2=%.2f aang=%.2f npix=%.2f cpix=[%.2f,%.2f] fpix=%g f=%g"%(xc, yc, amaj/2.0, amin/2.0, aang/math.pi*180.0, numpy.sum(mask), cpix_x, cpix_y, f_pix, f))
     #print(image[0,0])
     return f, npix, cpix
 
