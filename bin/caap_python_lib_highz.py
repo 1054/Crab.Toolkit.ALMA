@@ -654,7 +654,7 @@ class Highz_Image(object):
     def sky2xy(self, input_ra, input_dec):
         if self.ZoomWCS is not None:
             internal_wcs = self.ZoomWCS
-            print('internal_wcs = self.ZoomWCS')
+            #print('internal_wcs = self.ZoomWCS')
         else:
             internal_wcs = self.WCS
         output_x, output_y = internal_wcs.wcs_world2pix(input_ra, input_dec, 1) # 3rd arg: origin is the coordinate in the upper left corner of the image. In FITS and Fortran standards, this is 1. In Numpy and C standards this is 0.
@@ -667,7 +667,7 @@ class Highz_Image(object):
     def xy2sky(self, input_x, input_y):
         if self.ZoomWCS is not None:
             internal_wcs = self.ZoomWCS
-            print('internal_wcs = self.ZoomWCS')
+            #print('internal_wcs = self.ZoomWCS')
         else:
             internal_wcs = self.WCS
         output_ra, output_dec = internal_wcs.wcs_pix2world(input_x, input_y, 1) # 3rd arg: origin is the coordinate in the upper left corner of the image. In FITS and Fortran standards, this is 1. In Numpy and C standards this is 0.
