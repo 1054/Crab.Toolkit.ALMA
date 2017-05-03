@@ -904,7 +904,7 @@ class Highz_Image(object):
             # 
         # 
         # show
-        self.PlotDevice.show()
+        #self.PlotDevice.show()
         #self.PlotDevice.waitforbuttonpress()
     # 
     def get_aperture_by_label(self, label):
