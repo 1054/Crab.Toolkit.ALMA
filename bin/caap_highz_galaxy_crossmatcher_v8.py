@@ -330,7 +330,7 @@ class CrossMatch_Identifier(object):
         print("")
     # 
     # 
-    def match_morphology(self, OutputDir='results', OutputName='', Overwrite=False, FoV=15.0):
+    def match_morphology(self, OutputDir='results', OutputName='', Overwrite=False, FoV=12.0):
         # 
         if self.Source and self.RefSource and self.RefImage:
             # 
