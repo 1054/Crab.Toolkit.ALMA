@@ -151,7 +151,12 @@ def elliptical_Photometry(image, ellipse=Ellipse([0,0],0,0,0), imagewcs=[], verb
     #print(numpy.sum(mask_y*image*mask, axis=0) / numpy.sum(image*mask, axis=0))
     cpix_x = numpy.nanmean(numpy.sum(mask_x*image*mask, axis=1) / numpy.sum(image*mask, axis=1)) # axis=1 should be image X rows
     cpix_y = numpy.nanmean(numpy.sum(mask_y*image*mask, axis=0) / numpy.sum(image*mask, axis=0)) # axis=0 should be image Y columns
+    cpix_buggy = (cpix_x, cpix_y)
+    cpix_x = (numpy.sum(mask_x[m]*image[m]*mask[m]) / numpy.sum(image[m]*mask[m])) # axis=1 should be image X rows
+    cpix_y = (numpy.sum(mask_y[m]*image[m]*mask[m]) / numpy.sum(image[m]*mask[m])) # axis=0 should be image Y columns
     cpix = (cpix_x, cpix_y)
+    print(cpix_buggy)
+    print(cpix)
     # 
     # compute image ra dec if imagewcs
     if imagewcs:
