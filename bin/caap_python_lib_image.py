@@ -155,9 +155,8 @@ def elliptical_Photometry(image, ellipse=Ellipse([0,0],0,0,0), imagewcs=[], verb
     #cpix_y = numpy.nanmean(numpy.sum(mask_y*image*mask_pix, axis=0) / numpy.sum(image*mask_pix, axis=0)) # sum(axis=0) should be summing image Y cols for each X
     # compute weighted center <bug><fixed><20170503b><dzliu>
     print((mask_x*image*mask_pix) / (image*mask_pix))
-    #cpix_x = numpy.nanmean(numpy.sum(mask_x*image*mask_pix, axis=1) / numpy.sum(image*mask_pix, axis=1)) # sum(axis=1) should be summing image X rows for each Y
-    #cpix_y = numpy.nanmean(numpy.sum(mask_y*image*mask_pix, axis=0) / numpy.sum(image*mask_pix, axis=0)) # sum(axis=0) should be summing image Y cols for each X
-    cpix_x, cpix_y = numpy.nanmean( (mask_x*image*mask_pix) / (image*mask_pix), axis=(0,1) )
+    cpix_x = numpy.nanmean(numpy.sum(mask_x*image*mask_pix, axis=1) / numpy.sum(image*mask_pix, axis=1)) # sum(axis=1) should be summing image X rows for each Y
+    cpix_y = numpy.nanmean(numpy.sum(mask_y*image*mask_pix, axis=0) / numpy.sum(image*mask_pix, axis=0)) # sum(axis=0) should be summing image Y cols for each X
     # compute weighted center with image*mask_negative
     #mask_negative = copy.copy(mask)
     #m_negative = (image<=0.0)
