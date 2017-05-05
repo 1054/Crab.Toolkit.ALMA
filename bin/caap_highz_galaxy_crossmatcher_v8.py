@@ -1153,13 +1153,13 @@ for i in range(len(Cat.TableData)):
                         [Cutouts_Lookmap_Rectangle[0],Cutouts_Lookmap_Rectangle[2]] \
                         ])
                     #print(Cutouts_Lookmap_Polygon)
-                    if Cutouts_Lookmap_Polygon.contains_point((source_RA,source_DEC)):
-                        print("Found cutouts in cutouts lookmap file for object RA Dec %.7f %.7f"%(source_RA, source_DEC))
+                    if Cutouts_Lookmap_Polygon.contains_point((source.RA,source.Dec)):
+                        print("Found cutouts in cutouts lookmap file for object RA Dec %.7f %.7f"%(source.RA, source.Dec))
                         if len(Cutouts_Lookmap_Polygon_Center_Selected) == 0:
                             Cutouts_Lookmap_Polygon_Center_Selected = Cutouts_Lookmap_Polygon_Center
                             CutoutFileFindingStr = Cutouts_Lookmap[Cutouts_Lookmap_Key]
                         else:
-                            if ((source_RA-Cutouts_Lookmap_Polygon_Center[0])**2 + (source_DEC-Cutouts_Lookmap_Polygon_Center[1])**2) < ((source_RA-Cutouts_Lookmap_Polygon_Center_Selected[0])**2 + (source_DEC-Cutouts_Lookmap_Polygon_Center_Selected[1])**2):
+                            if ((source.RA-Cutouts_Lookmap_Polygon_Center[0])**2 + (source.Dec-Cutouts_Lookmap_Polygon_Center[1])**2) < ((source.RA-Cutouts_Lookmap_Polygon_Center_Selected[0])**2 + (source.Dec-Cutouts_Lookmap_Polygon_Center_Selected[1])**2):
                                 Cutouts_Lookmap_Polygon_Center_Selected = Cutouts_Lookmap_Polygon_Center
                                 CutoutFileFindingStr = Cutouts_Lookmap[Cutouts_Lookmap_Key]
     if len(CutoutFileFindingStrs) == 0:
