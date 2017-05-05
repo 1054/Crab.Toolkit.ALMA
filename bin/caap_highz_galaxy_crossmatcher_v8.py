@@ -724,7 +724,7 @@ class CrossMatch_Identifier(object):
                                                     # Separation projected relative to a*cos(theta) + b*sin(theta)
                                                     # 50% means that the SepDist equals the diameter of the ellipse at that SepAngle. 
                                                     # 
-                print('Separation = %.3f, projected source radius at  = %.3f'%(self.Morphology['Separation'], self.Morphology['Projected_Source_Radius']))
+                print('Separation = %.3f, projected_source_radius = %.3f, offset_down_weighting = %.3f'%(self.Morphology['Separation'], self.Morphology['Projected_Source_Radius'], offset_down_weighting))
                 self.Morphology['Score'] = numpy.max([self.Morphology['Score'], 0])
                 self.Morphology['Score'] = numpy.min([self.Morphology['Score'], 100])
                 # 
