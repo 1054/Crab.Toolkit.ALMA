@@ -1130,8 +1130,9 @@ for i in range(len(Cat.TableData)):
     #    and Cutouts_Lookmap is using Object Name to look for cutouts image file
     if len(CutoutFileFindingStrs) == 0:
         if source_Name in Cutouts_Lookmap.keys():
-            CutoutFileFindingStrs = Cutouts_Lookmap[source_Name] # "%s"%(Cutouts_Lookmap[source_Name])
-            print("Found cutouts in cutouts lookmap file for object name \"%s\": %s"%(source_Name, CutoutFileFindingStrs))
+            CutoutFileFindingStr = Cutouts_Lookmap[source_Name] # "%s"%(Cutouts_Lookmap[source_Name])
+            CutoutFileFindingStrs.append(CutoutFileFindingStr)
+            print("Found cutouts in cutouts lookmap file for object name \"%s\": %s"%(source_Name, CutoutFileFindingStr))
     # -- use Cutouts_Lookmap
     #    and Cutouts_Lookmap is using Object RA Dec to look for cutouts image file
     if len(CutoutFileFindingStrs) == 0:
@@ -1161,8 +1162,12 @@ for i in range(len(Cat.TableData)):
                             if ((Source.RA-Cutouts_Lookmap_Polygon_Center[0])**2 + (Source.Dec-Cutouts_Lookmap_Polygon_Center[1])**2) < ((Source.RA-Cutouts_Lookmap_Polygon_Center_Selected[0])**2 + (Source.Dec-Cutouts_Lookmap_Polygon_Center_Selected[1])**2):
                                 Cutouts_Lookmap_Polygon_Center_Selected = Cutouts_Lookmap_Polygon_Center
                                 CutoutFileFindingStr = Cutouts_Lookmap[Cutouts_Lookmap_Key]
+                        if type(CutoutFileFindingStr) is list:
+                            CutoutFileFindingStrs.extend(CutoutFileFindingStr)
+                        else:
+                            CutoutFileFindingStrs.append(CutoutFileFindingStr)
                         print("Found cutouts in cutouts lookmap file for object RA Dec %.10f %.10f: %s"%(Source.RA, Source.Dec, CutoutFileFindingStr))
-    print(type(CutoutFileFindingStr), len(CutoutFileFindingStrs))
+    print(type(CutoutFileFindingStrs), len(CutoutFileFindingStrs))
     if len(CutoutFileFindingStrs) == 0:
         CutoutFileFindingStrs = [ "%s/*/%s[._]*.fits"%(Input_Cut, Source.Name) ]
     # 
