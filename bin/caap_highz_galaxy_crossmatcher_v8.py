@@ -382,10 +382,6 @@ class CrossMatch_Identifier(object):
             LoggOutput = OutputDir+'/'+OutputName+'--'+StrTelescope+'--'+StrInstrument.replace(' ','-')+'.log'
             LockOutput = OutputDir+'/'+OutputName+'--'+StrTelescope+'--'+StrInstrument.replace(' ','-')+'.lock' #<TODO># 
             # 
-            # begin Logger
-            if 'Output_Logger' in globals():
-                Output_Logger.begin_log_file(filename=LoggOutput, mode='w')
-            # 
             # check previous crossmatch results
             if os.path.isfile(TextOutput):
                 # 
@@ -416,7 +412,13 @@ class CrossMatch_Identifier(object):
                 #    pyplot.pause(2.0)
                 if not Overwrite:
                     print("Found previous crossmatching result: \"%s\"! Will not redo the crossmatching unless the \"overwrite\" option are input!"%(TextOutput))
+                    if 'Output_Logger' in globals():
+                        Output_Logger.end_log_file()
                     return
+            # 
+            # begin Logger
+            if 'Output_Logger' in globals():
+                Output_Logger.begin_log_file(filename=LoggOutput, mode='w')
             # 
             # do morphology check
             # -- we will create a series of ellipse from Source position to RefSource position
@@ -1169,7 +1171,7 @@ for i in range(len(Cat.TableData)):
                         else:
                             CutoutFileFindingStrs.append(CutoutFileFindingStr)
                         print("Found cutouts in cutouts lookmap file for object RA Dec %.10f %.10f: %s"%(Source.RA, Source.Dec, CutoutFileFindingStr))
-    print(type(CutoutFileFindingStrs), len(CutoutFileFindingStrs))
+    #print(type(CutoutFileFindingStrs), len(CutoutFileFindingStrs))
     if len(CutoutFileFindingStrs) == 0:
         CutoutFileFindingStrs = [ "%s/*/%s[._]*.fits"%(Input_Cut, Source.Name) ]
     # 
