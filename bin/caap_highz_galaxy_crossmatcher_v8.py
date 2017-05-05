@@ -1055,7 +1055,7 @@ for i in range(len(Cat.TableData)):
     
     
     # 
-    # Read Source info
+    # Read Source info from Alex Karim's Blind Extraction Catalog
     # 
     if 'OBJECT' in Cat.TableHeaders:
         source_Name = Cat.TableData[i].field('OBJECT').strip()
@@ -1130,8 +1130,8 @@ for i in range(len(Cat.TableData)):
     #    and Cutouts_Lookmap is using Object Name to look for cutouts image file
     if len(CutoutFileFindingStrs) == 0:
         if source_Name in Cutouts_Lookmap.keys():
-            print("Found cutouts in cutouts lookmap file for object name \"%s\""%(source_Name))
             CutoutFileFindingStrs = Cutouts_Lookmap[source_Name] # "%s"%(Cutouts_Lookmap[source_Name])
+            print("Found cutouts in cutouts lookmap file for object name \"%s\": %s"%(source_Name, CutoutFileFindingStrs))
     # -- use Cutouts_Lookmap
     #    and Cutouts_Lookmap is using Object RA Dec to look for cutouts image file
     if len(CutoutFileFindingStrs) == 0:
@@ -1154,7 +1154,6 @@ for i in range(len(Cat.TableData)):
                         ])
                     #print(Cutouts_Lookmap_Polygon)
                     if Cutouts_Lookmap_Polygon.contains_point((Source.RA,Source.Dec)):
-                        print("Found cutouts in cutouts lookmap file for object RA Dec %.7f %.7f"%(Source.RA, Source.Dec))
                         if len(Cutouts_Lookmap_Polygon_Center_Selected) == 0:
                             Cutouts_Lookmap_Polygon_Center_Selected = Cutouts_Lookmap_Polygon_Center
                             CutoutFileFindingStr = Cutouts_Lookmap[Cutouts_Lookmap_Key]
@@ -1162,6 +1161,7 @@ for i in range(len(Cat.TableData)):
                             if ((Source.RA-Cutouts_Lookmap_Polygon_Center[0])**2 + (Source.Dec-Cutouts_Lookmap_Polygon_Center[1])**2) < ((Source.RA-Cutouts_Lookmap_Polygon_Center_Selected[0])**2 + (Source.Dec-Cutouts_Lookmap_Polygon_Center_Selected[1])**2):
                                 Cutouts_Lookmap_Polygon_Center_Selected = Cutouts_Lookmap_Polygon_Center
                                 CutoutFileFindingStr = Cutouts_Lookmap[Cutouts_Lookmap_Key]
+                        print("Found cutouts in cutouts lookmap file for object RA Dec %.10f %.10f: %s"%(Source.RA, Source.Dec, CutoutFileFindingStr))
     if len(CutoutFileFindingStrs) == 0:
         CutoutFileFindingStrs = [ "%s/*/%s[._]*.fits"%(Input_Cut, Source.Name) ]
     # 
