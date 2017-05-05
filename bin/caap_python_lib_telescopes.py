@@ -42,18 +42,7 @@ def recognize_Instrument(FitsFileName):
         elif FitsFileName.lower().find('_mips_24_')>=0:
             rec_Telescope = "Spitzer"
             rec_Instrument = "MIPS 24um"
-        elif FitsFileName.lower().find(('.J.original').lower())>=0:
-            rec_Telescope = "UltraVISTA"
-            rec_Instrument = "J"
-        elif FitsFileName.lower().find(('.H.original').lower())>=0:
-            rec_Telescope = "UltraVISTA"
-            rec_Instrument = "H"
-        elif FitsFileName.lower().find(('.Ks.original').lower())>=0:
-            rec_Telescope = "UltraVISTA"
-            rec_Instrument = "Ks"
-        elif FitsFileName.lower().find(('.Ks.matched').lower())>=0:
-            rec_Telescope = "UltraVISTA"
-            rec_Instrument = "Ks"
+        # 
         elif FitsFileName.find(('.J.fits'))>=0:
             #<TODO># and FitsFileName.find('ir_bb')>=0
             rec_Telescope = "UltraVISTA"
@@ -66,6 +55,20 @@ def recognize_Instrument(FitsFileName):
             #<TODO># and FitsFileName.find('ir_bb')>=0
             rec_Telescope = "UltraVISTA"
             rec_Instrument = "Ks"
+        # 
+        elif FitsFileName.lower().find(('.J.original').lower())>=0:
+            rec_Telescope = "UltraVISTA"
+            rec_Instrument = "J"
+        elif FitsFileName.lower().find(('.H.original').lower())>=0:
+            rec_Telescope = "UltraVISTA"
+            rec_Instrument = "H"
+        elif FitsFileName.lower().find(('.Ks.original').lower())>=0:
+            rec_Telescope = "UltraVISTA"
+            rec_Instrument = "Ks"
+        elif FitsFileName.lower().find(('.Ks.matched').lower())>=0:
+            rec_Telescope = "UltraVISTA"
+            rec_Instrument = "Ks"
+        # 
         elif FitsFileName.lower().find(('_image_250_SMAP_').lower())>=0:
             rec_Telescope = "Herschel"
             rec_Instrument = "SPIRE 250um"
