@@ -1098,12 +1098,12 @@ for i in range(len(Cat.TableData)):
     # 
     RefSource = Highz_Galaxy(
         Field = 'COSMOS', 
-        Name  = Cat.object(i).astype(str).strip(), 
-        ID    = Cat.id(i).astype(long), 
-        RA    = Cat.ra_2(i).astype(float), 
-        Dec   = Cat.dec_2(i).astype(float), 
+        Name  = str(Cat.object(i)).strip(), 
+        ID    = long(Cat.id(i)), 
+        RA    = float(Cat.ra_2(i)), 
+        Dec   = float(Cat.dec_2(i)), 
         Names = {
-            Cat.catalog_name(): Cat.object(i).astype(str).strip()
+            Cat.catalog_name(): str(Cat.object(i)).strip()
         }
     )
     

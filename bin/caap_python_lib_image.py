@@ -165,18 +165,19 @@ def elliptical_Photometry(image, ellipse=Ellipse([0,0],0,0,0), imagewcs=[], verb
     #cpix_x = numpy.nanmean(numpy.sum(mask_x*image*mask_negative, axis=1) / numpy.sum(image*mask_negative, axis=1)) # sum(axis=1) should be summing image X rows for each Y
     #cpix_y = numpy.nanmean(numpy.sum(mask_y*image*mask_negative, axis=0) / numpy.sum(image*mask_negative, axis=0)) # sum(axis=0) should be summing image Y cols for each X
     #cpix = (cpix_x, cpix_y)
-    # compute weighted center with scipy
-    #print(image[190:220,190:220]*mask[190:220,190:220])
+    # compute weighted center with scipy (TODO: use only pixels with >1% flux)
     image_for_centroid = copy.copy(image)
     image_for_centroid = (image_for_centroid - numpy.nanmin(image)) / (numpy.nanmax(image) - numpy.nanmin(image)) * mask_pix
     #<DEBUG>#if image_for_centroid.shape[0] > 220 and image_for_centroid.shape[1] > 200:
     #<DEBUG>#    image_for_centroid = image_for_centroid * 0.0
     #<DEBUG>#    image_for_centroid[220, 200] = 1.0 #<DEBUG># checked OK, 20170503
     cpix_j, cpix_i = ndimage.measurements.center_of_mass(image_for_centroid) # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.ndimage.measurements.center_of_mass.html
-                                                                             # AND note that the returned tuple order is cpix_y, cpix_x
+    #                                                                         # AND note that the returned tuple order is cpix_y, cpix_x
     cpix_y = cpix_j + 1
     cpix_x = cpix_i + 1
     cpix = (cpix_x, cpix_y)
+    # <TODO>
+    #cpix = (numpy.nan, numpy.nan)
     # 
     # compute image ra dec if imagewcs
     #if imagewcs:

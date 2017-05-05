@@ -502,7 +502,7 @@ class Highz_Catalogue(object):
         return self.col(ColName=ColList, ColSelect=2, RowSelect=InputIndex)
     # 
     def zphot(self, InputIndex=[]):
-        ColList = ['PHOTOZ','zphot','photo-z','z_phot','zPDF','ZPDF','ZML','z']
+        ColList = ['PHOTOZ','zphot','photo-z','z_phot','zPDF','ZPDF','ZML','z','Laigle_Z_MED']
         return self.col(ColName=ColList, ColSelect=1, RowSelect=InputIndex)
     # 
     def zspec(self, InputIndex=[]):
