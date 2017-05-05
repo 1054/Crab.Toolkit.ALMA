@@ -209,13 +209,12 @@ class Logger(object):
             os.fsync(self.file.fileno())
     
     def close(self):
-        if self:
-            if self.stdout != None:
-                sys.stdout = self.stdout
-                self.stdout = None
-            if self.file != None:
-                self.file.close()
-                self.file = None
+        if self.stdout != None:
+            sys.stdout = self.stdout
+            self.stdout = None
+        if self.file != None:
+            self.file.close()
+            self.file = None
 
 
 
