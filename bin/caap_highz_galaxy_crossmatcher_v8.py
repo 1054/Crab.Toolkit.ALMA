@@ -1162,7 +1162,7 @@ for i in range(len(Cat.TableData)):
                                 Cutouts_Lookmap_Polygon_Center_Selected = Cutouts_Lookmap_Polygon_Center
                                 CutoutFileFindingStr = Cutouts_Lookmap[Cutouts_Lookmap_Key]
                         print("Found cutouts in cutouts lookmap file for object RA Dec %.10f %.10f: %s"%(Source.RA, Source.Dec, CutoutFileFindingStr))
-    print(len(CutoutFileFindingStrs))
+    print(type(CutoutFileFindingStr), len(CutoutFileFindingStrs))
     if len(CutoutFileFindingStrs) == 0:
         CutoutFileFindingStrs = [ "%s/*/%s[._]*.fits"%(Input_Cut, Source.Name) ]
     # 
