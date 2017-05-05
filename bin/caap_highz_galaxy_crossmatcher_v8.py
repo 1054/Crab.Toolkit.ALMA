@@ -713,7 +713,7 @@ class CrossMatch_Identifier(object):
                 self.Morphology['Angle'] = numpy.min( [ numpy.abs(SepAngle-PosAngle),numpy.abs(SepAngle-PosAngle-360), numpy.abs(SepAngle-PosAngle+360) ] ) # value ranges from 0 to 180.0
                 #<DEBUG>#self.Morphology['Separation'] = self.Source.Morphology['Major Axis'] / 2.0
                 #<DEBUG>#self.Morphology['Angle'] = 0.0
-                self.Morphology['Projected_Source_Radius'] = numpy.abs( self.Source.Morphology['Major Axis'] * numpy.cos(numpy.deg2rad(self.Morphology['Angle'])) ) + 
+                self.Morphology['Projected_Source_Radius'] = numpy.abs( self.Source.Morphology['Major Axis'] * numpy.cos(numpy.deg2rad(self.Morphology['Angle'])) ) + \
                                                              numpy.abs( self.Source.Morphology['Minor Axis'] * numpy.sin(numpy.deg2rad(self.Morphology['Angle'])) )
                 self.Morphology['Score'] = 100.0 * \
                                                     ( 1.0 - 
