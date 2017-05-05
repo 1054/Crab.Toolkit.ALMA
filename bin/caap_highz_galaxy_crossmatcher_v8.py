@@ -273,6 +273,7 @@ class CrossMatch_Identifier(object):
                 'Angle': numpy.nan, 
                 'SepDist': numpy.nan, 
                 'SepAngle': numpy.nan, 
+                'Projected_Source_Radius': numpy.nan, 
                 'PosAngle': numpy.nan, 
                 'Extended': 0.0, 
                 'Crowdedness': self.Crowdedness, 
@@ -712,18 +713,18 @@ class CrossMatch_Identifier(object):
                 self.Morphology['Angle'] = numpy.min( [ numpy.abs(SepAngle-PosAngle),numpy.abs(SepAngle-PosAngle-360), numpy.abs(SepAngle-PosAngle+360) ] ) # value ranges from 0 to 180.0
                 #<DEBUG>#self.Morphology['Separation'] = self.Source.Morphology['Major Axis'] / 2.0
                 #<DEBUG>#self.Morphology['Angle'] = 0.0
+                self.Morphology['Projected_Source_Radius'] = numpy.abs( self.Source.Morphology['Major Axis'] * numpy.cos(numpy.deg2rad(self.Morphology['Angle'])) ) + 
+                                                             numpy.abs( self.Source.Morphology['Minor Axis'] * numpy.sin(numpy.deg2rad(self.Morphology['Angle'])) )
                 self.Morphology['Score'] = 100.0 * \
                                                     ( 1.0 - 
                                                       offset_down_weighting * (
-                                                        self.Morphology['Separation'] / (
-                                                          numpy.abs( self.Source.Morphology['Major Axis'] * numpy.cos(numpy.deg2rad(self.Morphology['Angle'])) ) + 
-                                                          numpy.abs( self.Source.Morphology['Minor Axis'] * numpy.sin(numpy.deg2rad(self.Morphology['Angle'])) )
-                                                        )
+                                                        self.Morphology['Separation'] / self.Morphology['Projected_Source_Radius']
                                                       )
                                                     )
                                                     # Separation projected relative to a*cos(theta) + b*sin(theta)
                                                     # 50% means that the SepDist equals the diameter of the ellipse at that SepAngle. 
                                                     # 
+                print('Separation = %.3f, projected source radius at  = %.3f'%(self.Morphology['Separation'], self.Morphology['Projected_Source_Radius']))
                 self.Morphology['Score'] = numpy.max([self.Morphology['Score'], 0])
                 self.Morphology['Score'] = numpy.min([self.Morphology['Score'], 100])
                 # 
@@ -816,6 +817,7 @@ class CrossMatch_Identifier(object):
                 TextFilePtr.write("Match.Morphology.Score = %.1f\n"%(self.Morphology['Score']))
                 TextFilePtr.write("Match.Morphology.Separation = %s # Source to RefSource Separation in arcsec\n"%(self.Morphology['Separation']))
                 TextFilePtr.write("Match.Morphology.Angle = %s # Source to RefSource (PosAngle - SepAngle) in degree\n"%(self.Morphology['Angle']))
+                TextFilePtr.write("Match.Morphology.Projected_Source_Radius = %s # Projected Source Radius at (PosAngle - SepAngle) direction in arcsec\n"%(self.Morphology['Projected_Source_Radius']))
                 TextFilePtr.write("Match.Morphology.Extended = %.1f # Source morphological extent slope\n"%(self.Morphology['Extended']))
                 TextFilePtr.write("Match.Photometry.Score = %s\n"%(str(self.Photometry['Score'])))
                 TextFilePtr.write("Match.Photometry.Position = [%.10f, %.10f]\n"%(self.Photometry['Position'][0], self.Photometry['Position'][1]))
