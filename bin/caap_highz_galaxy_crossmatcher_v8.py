@@ -1192,24 +1192,30 @@ for i in range(len(Cat.TableData)):
     else:
         # Copy Cutouts fits files and store file names
         for CutoutFilePath in CutoutFilePaths:
+            StrInstrument, StrTelescope = recognize_Instrument(CutoutFilePath)
             CutoutFileName = os.path.basename(CutoutFilePath)
-            if  ( 
-                  (CutoutFileName.find('_acs_I_mosaic_')>=0) or \
-                  (CutoutFileName.find('.J.original-psf.')>=0) or \
-                  (CutoutFileName.find('.H.original_psf.')>=0) or \
-                  (CutoutFileName.find('.Ks.original_psf.')>=0) or \
-                  (CutoutFileName.find('_irac_ch')>=0) 
-                ) :
-                # 
-                # (CutoutFileName.find('_acs_I_mosaic_')>=0)
-                # (CutoutFileName.find('.J.original-psf.')>=0)
-                # (CutoutFileName.find('.H.original_psf.')>=0)
-                # (CutoutFileName.find('.Ks.original_psf.')>=0)
-                # (CutoutFileName.find('_vla_20cm_dp')>=0)
-                # (CutoutFileName.find('_vla_3ghz')>=0)
-                # (CutoutFileName.find('_irac_ch')>=0)
-                # (CutoutFileName.find('_mips_24_GO3_')>=0)
-                # 
+            #if  ( 
+            #      (CutoutFileName.find('_acs_I_mosaic_')>=0) or \
+            #      (CutoutFileName.find('.J.original-psf.')>=0) or \
+            #      (CutoutFileName.find('.H.original_psf.')>=0) or \
+            #      (CutoutFileName.find('.Ks.original_psf.')>=0) or \
+            #      (CutoutFileName.find('_irac_ch')>=0) 
+            #    ) 
+            #    # 
+            #    # (CutoutFileName.find('_acs_I_mosaic_')>=0)
+            #    # (CutoutFileName.find('.J.original-psf.')>=0)
+            #    # (CutoutFileName.find('.H.original_psf.')>=0)
+            #    # (CutoutFileName.find('.Ks.original_psf.')>=0)
+            #    # (CutoutFileName.find('_vla_20cm_dp')>=0)
+            #    # (CutoutFileName.find('_vla_3ghz')>=0)
+            #    # (CutoutFileName.find('_irac_ch')>=0)
+            #    # (CutoutFileName.find('_mips_24_GO3_')>=0)
+            #    # 
+            if (
+                 (StrInstrument.find('ACS')>=0) or \
+                 (StrInstrument.find('UltraVISTA')>=0) or \
+                 (StrInstrument.find('IRAC')>=0) 
+               ) :
                 # 
                 CutoutFileNames.append("%s/%s/%s"%(CutoutOutputDir, CutoutOutputName, CutoutFileName))
                 # 
