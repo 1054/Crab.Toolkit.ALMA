@@ -1217,7 +1217,7 @@ for i in range(len(Cat.TableData)):
                  (StrInstrument.find('ACS')>=0) or \
                  (StrTelescope.find('UltraVISTA')>=0) or \
                  (StrInstrument.find('IRAC')>=0) or \
-                 (StrInstrument.find('VLA')>=0) 
+                 (StrTelescope.find('VLA')>=0) 
                ) :
                 # 
                 CutoutFileNames.append("%s/%s/%s"%(CutoutOutputDir, CutoutOutputName, CutoutFileName))
