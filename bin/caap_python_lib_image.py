@@ -68,7 +68,8 @@ def crop(image, zoomrect, imagewcs=[]):
         j1 = image.shape[0]-1
         # note that numpy image.shape[0] is NAXIS2
     # check if no pixel to crop
-    if i1 == i0 or j1 == j0:
+    if i1 <= i0 or j1 <= j0:
+        print('No zoomed image to cut from the input image, according to the input zoomrect = %s!'%(zoomrect))
         if imagewcs:
             return image, imagewcs
         else:
