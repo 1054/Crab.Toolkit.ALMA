@@ -35,7 +35,7 @@ from pprint import pprint
 
 
 from caap_python_lib_galaxy_SMF import *
-from caap_python_lib_galaxy_SFR import *
+from caap_python_lib_galaxy_MS import *
 from caap_python_lib_highz import *
 from caap_python_lib_image import *
 from caap_python_lib_telescopes import *
@@ -168,27 +168,16 @@ pyplot.style.use(astropy_mpl_style)
 # 
 # Usage
 # 
-if len(sys.argv) <= 3:
-    print("Usage: caap_highz_galaxy_simulator_v1.py, '[pos_xlower,pos_xupper,pos_ylower,pos_yupper]', '[flux_lower,flux_upper,distrib]', '[size_lower,size_upper,distrib]'")
+if len(sys.argv) <= 0:
+    print("Usage: caap_highz_galaxy_simulator_v1.py")
     sys.exit()
 
 # 
-# Read arguments
+# Test
 # 
-Input_Pos = sys.argv[1]
-if type(Input_Pos) is str:
-    Simulator_Pos = numpy.array(Input_Pos.replace('[','').replace(']','').split(',')).astype(numpy.float)
-    print(Simulator_Pos, type(Simulator_Pos))
-# 
-Input_Flux = sys.argv[2]
-if type(Input_Flux) is str:
-    Simulator_Flux = numpy.array(Input_Flux.replace('[','').replace(']','').split(',')).astype(numpy.float)
-    print(Simulator_Flux, type(Simulator_Flux))
-# 
-Input_Size = sys.argv[3]
-if type(Input_Size) is str:
-    Simulator_Size = numpy.array(Input_Size.replace('[','').replace(']','').split(',')).astype(numpy.float)
-    print(Simulator_Size, type(Simulator_Size))
+print('calc_SMF')
+calc_SMF(do_Plot=True)
+
 
 # 
 # Generate simulated galaxies

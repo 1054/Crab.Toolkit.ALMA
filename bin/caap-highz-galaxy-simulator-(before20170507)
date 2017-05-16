@@ -10,7 +10,12 @@ if [[ $# -eq 0 ]]; then
     echo ""
     echo "Usage: "
     echo "  caap-highz-galaxy-simulator "
-    echo "  caap-highz-galaxy-simulator "
+    echo "  caap-highz-galaxy-simulator -numb 1000 -pos 1 1000 1 1000 -flux 1.0 18.0 real -size 0.0 1.0 powerlaw -out simulated_galaxies.txt"
+    echo "             [default values] -numb 1000"
+    echo "                              -pos 0.0 1.0 0.0 1.0"
+    echo "                              -flux 0.0 1.0"
+    echo "                              -size real"
+    echo "                              -out simulated_galaxies.txt"
     echo "  "
     echo "Aim: "
     echo "  This code aims at simulating a series of high-z galaxies that follow the real observed intrinsic flux and size distributions. "
@@ -71,7 +76,21 @@ while [[ $# -gt 0 ]]; do
 done
 
 # call main python code
-echo caap_highz_galaxy_simulator_v2.py
-caap_highz_galaxy_simulator_v2.py
+# -- input arguments are: 
+#    -- CAAP_SIM_POSITION
+CAAP_SIM_POSITION="[${CAAP_INP_POSITION[0]}"
+for (( i=1; i<${#CAAP_INP_POSITION[@]}; i++ )); do CAAP_SIM_POSITION="$CAAP_SIM_POSITION,${CAAP_INP_POSITION[i]}"; done
+CAAP_SIM_POSITION="$CAAP_SIM_POSITION]"
+#    -- CAAP_SIM_FLUX
+CAAP_SIM_FLUX="[${CAAP_INP_FLUX[0]}"
+for (( i=1; i<${#CAAP_INP_FLUX[@]}; i++ )); do CAAP_SIM_FLUX="$CAAP_SIM_FLUX,${CAAP_INP_FLUX[i]}"; done
+CAAP_SIM_FLUX="$CAAP_SIM_FLUX]"
+#    -- CAAP_SIM_SIZE
+CAAP_SIM_SIZE="[${CAAP_INP_SIZE[0]}"
+for (( i=1; i<${#CAAP_INP_SIZE[@]}; i++ )); do CAAP_SIM_SIZE="$CAAP_SIM_SIZE,${CAAP_INP_SIZE[i]}"; done
+CAAP_SIM_SIZE="$CAAP_SIM_SIZE]"
+# -- call caap_highz_galaxy_simulator_v1.py
+echo caap_highz_galaxy_simulator_v1.py "${CAAP_SIM_POSITION[@]}" "${CAAP_SIM_FLUX[@]}" "${CAAP_SIM_SIZE[@]}"
+caap_highz_galaxy_simulator_v1.py ${CAAP_SIM_POSITION[@]} "${CAAP_SIM_FLUX[@]}" "${CAAP_SIM_SIZE[@]}"
 
 
