@@ -29,7 +29,7 @@ else:
     list_z = list_SNR*0.0 -99.0
 
 
-list_band = ['HST--ACS', 'Spitzer--IRAC-ch1', 'Spitzer--IRAC-ch2', 'Spitzer--IRAC-ch3', 'Spitzer--IRAC-ch4', 'UltraVISTA--J', 'UltraVISTA--H', 'UltraVISTA--Ks']
+list_band = ['HST--ACS', 'Spitzer--IRAC-ch1', 'Spitzer--IRAC-ch2', 'Spitzer--IRAC-ch3', 'Spitzer--IRAC-ch4', 'UltraVISTA--J', 'UltraVISTA--H', 'UltraVISTA--Ks', 'VLA--3GHz']
 #list_band = ['HST--ACS', 'UltraVISTA--J', 'UltraVISTA--H', 'UltraVISTA--Ks']
 
 for band in list_band: 
