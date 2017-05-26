@@ -31,6 +31,7 @@ else:
 
 list_band = ['HST--ACS', 'Spitzer--IRAC-ch1', 'Spitzer--IRAC-ch2', 'Spitzer--IRAC-ch3', 'Spitzer--IRAC-ch4', 'UltraVISTA--J', 'UltraVISTA--H', 'UltraVISTA--Ks', 'VLA--3GHz']
 #list_band = ['HST--ACS', 'UltraVISTA--J', 'UltraVISTA--H', 'UltraVISTA--Ks']
+list_band = ['VLA--3GHz']
 
 for band in list_band: 
     
