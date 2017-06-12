@@ -206,7 +206,8 @@ while BinLoop and BinNumb <= (len(BinVar)/17.5):
             FitParam = {'A': np.nan, 'mu': np.nan, 'sigma': np.nan}
     # 
     # <20170228> added another trial fitting
-    if FitParam['sigma'] == np.nan or FitParam['sigma'] <= 0.0:
+    # <20170612> <= 0.0 changed to <= InnerSigma * 0.2
+    if FitParam['sigma'] == np.nan or FitParam['sigma'] <= InnerSigma * 0.2:
         try:
             FitGauss, FitParam = fit_Gaussian_1D(BinCents[FitRange], BinHists[FitRange], np.max(BinHists[FitRange]), np.min([BinMode,BinMedian]), BinSigma/2.0)
             #print(FitParam)
@@ -217,7 +218,8 @@ while BinLoop and BinNumb <= (len(BinVar)/17.5):
             FitParam = {'A': np.nan, 'mu': np.nan, 'sigma': np.nan}
     # 
     # <20170228> added another trial fitting
-    if FitParam['sigma'] == np.nan or FitParam['sigma'] <= 0.0:
+    # <20170612> <= 0.0 changed to <= InnerSigma * 0.2
+    if FitParam['sigma'] == np.nan or FitParam['sigma'] <= InnerSigma * 0.2:
         try:
             FitGauss, FitParam = fit_Gaussian_1D(BinCents[FitRange], BinHists[FitRange], np.max(BinHists[FitRange]), np.min([BinMode,BinMedian]), BinSigma*2.0)
             #print(FitParam)
