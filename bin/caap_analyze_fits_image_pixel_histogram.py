@@ -230,7 +230,8 @@ while BinLoop and BinNumb <= (len(BinVar)/17.5):
             FitParam = {'A': np.nan, 'mu': np.nan, 'sigma': np.nan}
     # 
     # <20170224> added a check step to make sure we measure the FitGauss
-    if FitParam['sigma'] != np.nan and FitParam['sigma'] > 0.0:
+    # <20170612> <= 0.0 changed to <= InnerSigma * 0.2
+    if FitParam['sigma'] != np.nan and FitParam['sigma'] > InnerSigma * 0.2:
         # 
         pl.plot(BinCents[FitRange], FitGauss, color=hex2color('#FF0000'), linewidth=3, linestyle='solid') # marker='o', markerfacecolor='blue', markersize=12)
         pl.text(FitParam['mu']+1.0*FitParam['sigma'], FitParam['A'], 'sigma = %.10g'%(FitParam['sigma']), color=hex2color('#FF0000'), fontsize=18)
