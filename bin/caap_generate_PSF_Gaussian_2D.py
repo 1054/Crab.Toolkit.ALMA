@@ -37,7 +37,8 @@ if 'BMAJ' in hdulist[0].header and 'BMIN' in hdulist[0].header and 'BPA' in hdul
     pixscale_array = astropy.wcs.utils.proj_plane_pixel_scales(fitswcs)
     pixscale_ra = pixscale_array[0] * 3600.0 # arcsec
     pixscale_dec = pixscale_array[0] * 3600.0 # arcsec
-    pixscale = numpy.sqrt(pixscale_ra**2 + pixscale_dec**2) # arcsec
+    #<BUG><20170718><plang><dzliu># pixscale = numpy.sqrt(pixscale_ra**2 + pixscale_dec**2) # arcsec
+    pixscale = pixscale_dec
     print('psf pixscale in arcsec %.4f %.4f'%(pixscale_ra, pixscale_dec))
     
     stddev_major = float(hdulist[0].header['BMAJ']) * 3600.0 / (2.0*numpy.sqrt(2.0*numpy.log(2.0))) # arcsec
