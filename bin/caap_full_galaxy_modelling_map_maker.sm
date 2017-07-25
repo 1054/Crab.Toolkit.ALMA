@@ -1,0 +1,222 @@
+run_map_maker 04
+    # 
+    # Aim:
+    #   Simulate a map based on Full Galaxy Modelling Simulation (FGMOD)
+    # 
+    # Inputs:
+    #   $1: wavelength in um
+    #   $2: z
+    #   $3: lgMstar
+    #   $4: Type_SED: 'MS' or 'SB'
+    # 
+    # Usage:
+    #   source ~/Cloud/Github/DeepFields.SuperDeblending/Softwares/SETUP
+    #   echo "macro read caap_full_galaxy_modelling_map_maker.sm run_map_maker" | sm
+    # 
+    # Check input
+    if($?1) { set sel_w = $1 } else { print 'Please input wavelength!\n' {} return}
+    # 
+    # Check files
+    if(!is_file("galaxy_model_dirpath.txt")) {print 'Error! \"galaxy_model_dirpath.txt\" was not found under current directory!\n' {} return}
+    if(!is_file("image_center_radec.txt")) {print 'Error! \"image_center_radec.txt\" was not found under current directory!\n' {} return}#
+    # 
+    # Read image center radec
+    echo "Reading \"image_center_radec.txt\""
+    verbose 0
+    data "image_center_radec.txt" read row image_center_radec 1.f
+    verbose 1
+    if(!is_vector(image_center_radec)) {
+        print 'Error! Failed to read the ascii file \"image_center_radec.txt\" in run_map_maker!\n' {} exit
+    }
+    if(dimen(image_center_radec)!=2) {
+        print 'Error! Failed to read RA and Dec from the ascii file \"image_center_radec.txt\" in run_map_maker!\n' {} exit
+    }
+    # 
+    # Set Full Galaxy Modelling Simulation DirPathVector
+    load crabDir.sm
+    echo "Reading \"galaxy_model_dirpath.txt\""
+    set MOD_dirpath = ReadDirPathVectorFromFile("galaxy_model_dirpath.txt")
+    set PWD_dirpath = GetCurrentPath()
+    VisitDirPathVector MOD_dirpath
+    # 
+    # read 
+    load rfile.sm
+    rfile "result_simu_galaxies_z_Mstar_SFR.txt"
+    rfile "result_simu_galaxies_radec.txt"
+    rfile "result_simu_galaxies_Morph.txt"
+    # 
+    # cd back
+    VisitDirPathVector PWD_dirpath
+    # 
+    # select one modelled galaxy by z, Mstar and Type_SED
+    if($?2) { set sel_z = $2 } else { set sel_z = random(1)*(6.0-0.1)+0.1 } #<TODO># generate z range 0.1 - 6.0
+    if($?3) { set sel_lgMstar = $3 } else { set sel_lgMstar = random(1)*(12.0-9.5)+9.5 } #<TODO># generate lgMstar range 9.5 - 12.0
+    if($?4) { set sel_Type_SED = $4 } else { set sel_Type_SED = (random(1)>0.2) ? 'MS' : 'SB' }
+    set gal_index = 0,dimen(gal_id)-1
+    set sort_index = 0,dimen(gal_id)-1
+    set sort_z = abs(gal_z-sel_z)
+    set sort_lgMstar = abs(gal_lgMstar-sel_lgMstar)
+    set sort_Type_SED = gal_Type_SED
+    set sort_value = sort_z + sort_lgMstar
+    sort {sort_value sort_index sort_Type_SED sort_lgMstar sort_z}
+    set sel_index = sort_index if(sort_Type_SED==sel_Type_SED)
+    set sel_index = sel_index[0]
+    # 
+    # shift galaxy model catalog RA Dec so that the selected modelled galaxy is at the center of current image
+    set ra_current = image_center_radec[0] # 150.24815
+    set dec_current = image_center_radec[1] # 1.5569
+    set ra_center = gal_ra[sel_index] # 150.8572564958
+    set dec_center = gal_dec[sel_index] # 2.1994265757
+    set ra_shift = (ra_center - ra_current) * cos(dec_center/180*pi)
+    set dec_shift = (dec_center - dec_current)
+    set ra_shift = ra_shift + ((random(1)-0.5)*2.0*(6.5-1.5)+1.5)/3600.0 * cos(dec_center/180*pi)   #<TODO># apply a random shift (1.5 to 6.5 arcsec) to avoid the central galfit residual
+    set dec_shift = dec_shift + ((random(1)-0.5)*2.0*(6.5-1.5)+1.5)/3600.0                          #<TODO># apply a random shift (1.5 to 6.5 arcsec) to avoid the central galfit residual
+    set out_index = gal_index
+    set out_ra = gal_ra - ra_shift / cos(gal_dec/180*pi) # + 0.33 / cos(dec/180*pi)
+    set out_dec = gal_dec - dec_shift
+    set out_id = gal_id
+    set out_z = gal_z
+    set out_lgMstar = gal_lgMstar
+    set out_lgSFR = gal_lgSFR
+    set out_Type_SED = gal_Type_SED
+    set out_Maj = gal_Maj
+    set out_Min = gal_Min
+    set out_PA = gal_PA
+    !echo '******'                                                      >  "galaxy_model_selected_parameter.txt"
+    !echo '*' "Selecting w = "$(sel_w)" um"                             >> "galaxy_model_selected_parameter.txt"
+    !echo '*' "Selecting z = "$(sel_z)                                  >> "galaxy_model_selected_parameter.txt"
+    !echo '*' "Selecting lgMstar = "$(sel_lgMstar)                      >> "galaxy_model_selected_parameter.txt"
+    !echo '*' "Selecting Type_SED = "$(sel_Type_SED)                    >> "galaxy_model_selected_parameter.txt"
+    !echo '*' "Selected  id = "$(gal_id[sel_index])                     >> "galaxy_model_selected_parameter.txt"
+    !echo '*' "Selected  z = "$(gal_z[sel_index])                       >> "galaxy_model_selected_parameter.txt"
+    !echo '*' "Selected  lgMstar = "$(gal_lgMstar[sel_index])           >> "galaxy_model_selected_parameter.txt"
+    !echo '*' "Selected  lgSFR = "$(gal_lgSFR[sel_index])               >> "galaxy_model_selected_parameter.txt"
+    !echo '*' "Selected  lgsSFR = "$(gal_lgsSFR[sel_index])             >> "galaxy_model_selected_parameter.txt"
+    !echo '*' "Selected  Type_SED = "$(gal_Type_SED[sel_index])         >> "galaxy_model_selected_parameter.txt"
+    !echo '*' "Selected  Maj = "$(gal_Maj[sel_index])" arcsec"          >> "galaxy_model_selected_parameter.txt"
+    !echo '*' "Selected  Min = "$(gal_Min[sel_index])" arcsec"          >> "galaxy_model_selected_parameter.txt"
+    !echo '*' "Selected  PA = "$(gal_PA[sel_index]/pi*180.0)" degree"   >> "galaxy_model_selected_parameter.txt"
+    !echo '******'                                                      >> "galaxy_model_selected_parameter.txt"
+    !cat "galaxy_model_selected_parameter.txt"
+    # 
+    # sky2xy
+    define print_noheader 1
+    print "aaa_sky2xy_input" '%15.10f %15.10f\n' {out_ra out_dec}
+    define print_noheader 0
+    !sky2xy "image_sci.fits" @"aaa_sky2xy_input" > "aaa_sky2xy_output"
+    !cat "aaa_sky2xy_output" | perl -p -e 's/(.*)[ ]+[0-9.+-]+[ ]+[0-9.+-]+[ ]+\\(off image\\)/\1 -99 -99/g' > "aaa_sky2xy_output2"
+    verbose 0 
+    data "aaa_sky2xy_output2" read {out_px 5 out_py 6}
+    verbose 1
+    # 
+    # select modelled galaxies by px py (within image area)
+    set coo = (out_px>0 && out_py>0)
+    foreach var {index id ra dec px py z lgMstar lgSFR Type_SED Maj Min PA} {
+        set out_$var = out_$var if(coo)
+    }
+    echo "Selected "$(dimen(out_id))" modelled galaxies within the input image area"
+    !echo '*' "Selected "$(dimen(out_id))" modelled galaxies within the input image area" >> "galaxy_model_selected_parameter.txt"
+    !echo '******'                                                                        >> "galaxy_model_selected_parameter.txt"
+    # 
+    # read galaxy model flux in the Full Galaxy Modelling Simulation directory
+    verbose 0
+    declare out_flux 0.f
+    VisitDirPathVector MOD_dirpath
+    do i=0,dimen(out_id)-1 {
+        echo "Reading \"result_simu_galaxies_list.txt\"" row $(out_index[$i]+1).s
+        data "result_simu_galaxies_list.txt"
+        read row MOD_galaxy_dat $(out_index[$i]+1).s
+        echo "Reading modelled galaxy data "$(MOD_galaxy_dat)
+        define j $(strlen(MOD_galaxy_dat)-1)
+        while { (substr(MOD_galaxy_dat,$j,1)!='/' && $j>=0) } {
+            define j $($j-1)
+        }
+        #if($j>0)
+        set MOD_galaxy_dir = substr(MOD_galaxy_dat,0,$j)
+        set MOD_galaxy_sed = {"} + 'result_simu_galaxies/' + MOD_galaxy_dir + '/SED.dat' + {"}
+        echo "Reading modelled galaxy SED " $(MOD_galaxy_sed)
+        if(is_vector(lg_f)) {unset lg_f}
+        data $(MOD_galaxy_sed) read {lg_w 1 lg_f 2}
+        if(!is_vector(lg_f)) {print 'Error! Failed to read $(MOD_galaxy_sed)!\n' {} exit}
+        set tmp_w = lg(sel_w)
+        spline lg_w lg_f tmp_w tmp_f
+        echo "Splined at wavelength "$(10**tmp_w)"um flux "$(10**tmp_f)" mJy"
+        set out_flux = out_flux concat tmp_f
+        unset tmp_f
+    }
+    set out_flux = 10**out_flux
+    # 
+    # cd back
+    VisitDirPathVector PWD_dirpath
+    # 
+    verbose 1
+    # 
+    # print 
+    foreach var {id ra dec px py flux z lgMstar lgSFR Type_SED Maj Min PA} {
+        set $var = out_$var
+    }
+    print "galaxy_model_id_ra_dec.txt" '%15.0f %15.10f %15.10f\n' {id ra dec}
+    #stats flux flux_mean flux_sigma flux_kurt
+    #set radius = flux * 0.0 + 0.35
+    #define print_noheader 1
+    #print "galaxy_model.ds9.reg" 'circle(%0.10f,%0.10f,%0.3f\") \# text={%0.0f}\n' {ra dec radius id}
+    #define print_noheader 0
+    # 
+    # 
+    # 
+    # 
+    # 
+    # 
+    # prepare image and psf info
+    data "image_sci_pixscale.txt" read {pix_scale 1}
+    data "image_psf_stats.txt" read {psf_peak 5 psf_total 6}
+    # 
+    # convert flux to mag
+    set mag = -2.5*lg(flux/1e3*psf_total/psf_peak)
+    echo "Converted flux to mag"
+    # 
+    # convert Maj Min to pix
+    set Maj_pix = Maj/pix_scale
+    set Min_pix = Min/pix_scale
+    # 
+    # print 
+    print "galaxy_model_id_ra_dec_flux.txt" \
+        '%15.0f %15.10f %15.10f %12.5f %12.5f %15g %12g %12g %12g %12s %12g %12g %12g %12g %12g\n' \
+        {    id      ra     dec    px    py  flux  z lgMstar lgSFR Type_SED Maj Min Maj_pix Min_pix PA}
+    # 
+    # prepare galfit input file
+    load astroGalfit.sm
+    verbose 0
+    initGalfitParam px py 0 0 0
+    verbose 1
+    set Mags = mag
+    set Note = id
+    set Type = (px>=0) ? 'gaussian' : 'gaussian'
+    set Rads = px*0.0 + Maj/pix_scale
+    set Elli = px*0.0 + Min/Maj
+    set Roti = px*0.0 + PA/pi*180.0
+    set ParamFitPosX = px*0.0 + 0
+    set ParamFitPosY = px*0.0 + 0
+    set ParamFitMags = px*0.0 + 0
+    set ParamFitRads = px*0.0 + 0
+    set ParamFitElli = px*0.0 + 0
+    set ParamFitRoti = px*0.0 + 0
+    #foreach var {id ra dec px py flux mag} {
+    #    echo dimen($var) = $(dimen($var))
+    #}
+    writeGalfitParam fit.param
+    writeGalfitInput fit.input image_res.fits image_mod.fits image_rms.fits image_psf.fits
+    echo ""
+    # 
+    # run galfit to make the image!
+    !perl -i -p -e 's/A\\) image_res.fits/A\\) none/g' fit.input
+    echo "Running galfit"
+    !galfit fit.input > fit.stdout
+
+
+
+
+
+
+
+

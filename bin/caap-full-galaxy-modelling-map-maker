@@ -1,0 +1,289 @@
+#!/bin/bash
+# 
+# 
+# This code aims at coadding galaxy models to real observation residual images. 
+# 
+# Usage: 
+#   source ~/Cloud/Github/Crab.Toolkit.PdBI/SETUP.bash
+#   source ~/Cloud/Github/DeepFields.SuperDeblending/Softwares/SETUP
+# 
+
+
+# 
+# Usage
+# 
+function Usage() {
+    echo "Usage: "
+    echo "    caap-full-galaxy-modelling-map-maker -galaxy-model-flux COSMOS_Full_Galaxy_Modelling_simu_galaxies_flux_at_1250.txt \\"
+    echo "                                         -sci XXX.fits \\"
+    echo "                                         -psf XXX.fits \\"
+    echo "                                         -res XXX.fits \\"
+    echo "                                         -out sim_image_at_1250.fits"
+    echo ""
+}
+
+if [[ $# -eq 0 ]]; then
+    Usage; exit
+fi
+
+
+# 
+# Source necessary software dependency
+# 
+if [[ -f "$HOME/Cloud/Github/Crab.Toolkit.PdBI/SETUP.bash" ]]; then
+    source "$HOME/Cloud/Github/Crab.Toolkit.PdBI/SETUP.bash"
+else
+    echo "Error! \"$HOME/Cloud/Github/Crab.Toolkit.PdBI/SETUP.bash\" was not found!"
+    exit 1
+fi
+
+if [[ -f "$HOME/Cloud/Github/DeepFields.SuperDeblending/Softwares/SETUP" ]]; then
+    source "$HOME/Cloud/Github/DeepFields.SuperDeblending/Softwares/SETUP"
+else
+    echo "Error! \"source $HOME/Cloud/Github/DeepFields.SuperDeblending/Softwares/SETUP\" was not found!"
+    exit 1
+fi
+
+
+# 
+# Read input arguments
+# 
+# Obs_res_image - 
+# Obs_sci_image - 
+# Obs_psf_image - 
+# Sim_gal_model - The real observation residual image and galaxy model id ra dec flux file. It should contain 4 columns: id, ra, dec and flux. 
+# Sim_gal_image - The output coadded image. 
+# 
+Obs_res_image=() # "../Source_Extraction_by_Daizhong_Liu/Read_Residual_Images_of_Prior_Extraction_with_Master_Catalog_v20170609/2011.0.00097.S_SB1_GB1_MB5_COSMOS_field10_sci.spw0_1_2_3.cont.I.image.residual.fits"
+Obs_sci_image=() # "../ALMA_Calibrated_Images_by_Magnelli/v20170604/fits/2011.0.00097.S_SB1_GB1_MB5_COSMOS_field10_sci.spw0_1_2_3.cont.I.image.fits"
+Obs_psf_image=() # "../ALMA_Calibrated_Images_by_Magnelli/v20170604/fits/2011.0.00097.S_SB1_GB1_MB5_COSMOS_field10_sci.spw0_1_2_3.cont.I.clean-beam.fits"
+Sim_gal_model=() # "Cosmological_Galaxy_Modelling_for_COSMOS/result_simu_galaxies_flux_at_1250.txt"
+Sim_gal_image=() # "coadded_image_at_1250.fits"
+Sim_gal_id=() # model galaxy id
+Sim_gal_w=() # model galaxy wavelength in um
+Sim_gal_z=() # model galaxy z
+Sim_gal_lgMstar=() # model galaxy z
+Sim_gal_Type_SED=() # model galaxy Type_SED
+
+while [[ $# -gt 0 ]]; do
+    #echo $1
+    TempStr=$(echo "$1" | tr '[:upper:]' '[:lower:]')
+    #echo $TempStr
+    case "$TempStr" in
+               "-res") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="image-res";;
+               "-sci") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="image-sci";;
+               "-psf") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="image-psf";;
+               "-rms") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="image-rms";;
+               "-gal") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="galaxy-model";;
+               "-fgm") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="galaxy-model";;
+      "-galaxy-model") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="galaxy-model";;
+ "-galaxy-model-flux") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="galaxy-model";;
+                 "-w") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="galaxy-w";;
+        "-wavelength") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="galaxy-w";;
+     "-wavelength-um") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="galaxy-w";;
+          "-galaxy-w") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="galaxy-w";;
+ "-galaxy-wavelength") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="galaxy-w";;
+         "-galaxy-id") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="galaxy-id";;
+                 "-z") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="galaxy-z";;
+          "-galaxy-z") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="galaxy-z";;
+           "-lgmstar") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="galaxy-lgmstar";;
+    "-galaxy-lgmstar") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="galaxy-lgmstar";;
+          "-type-sed") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="galaxy-type-sed";;
+   "-galaxy-type-sed") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="galaxy-type-sed";;
+       "-galaxy-type") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="galaxy-type-sed";;
+               "-out") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output-name";;
+            "-output") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output-name";;
+    esac
+    # echo "$CAAP_CMD_TYPE"
+    case "$CAAP_CMD_TYPE" in 
+                    "image-res") if [[ $# -gt 0 ]]; then Obs_res_image+=("$1"); fi;;
+                    "image-sci") if [[ $# -gt 0 ]]; then Obs_sci_image+=("$1"); fi;;
+                    "image-psf") if [[ $# -gt 0 ]]; then Obs_psf_image+=("$1"); fi;;
+                    "image-rms") if [[ $# -gt 0 ]]; then Obs_rms_image+=("$1"); fi;;
+                 "galaxy-model") if [[ $# -gt 0 ]]; then Sim_gal_model+=("$1"); fi;;
+                    "galaxy-id") if [[ $# -gt 0 ]]; then Sim_gal_id+=("$1"); fi;;
+                     "galaxy-w") if [[ $# -gt 0 ]]; then Sim_gal_w+=("$1"); fi;;
+                     "galaxy-z") if [[ $# -gt 0 ]]; then Sim_gal_z+=("$1"); fi;;
+               "galaxy-lgmstar") if [[ $# -gt 0 ]]; then Sim_gal_lgMstar+=("$1"); fi;;
+              "galaxy-type-sed") if [[ $# -gt 0 ]]; then Sim_gal_Type_SED+=("$1"); fi;;
+                  "output-name") if [[ $# -gt 0 ]]; then Sim_gal_image+=("$1"); fi;;
+    esac
+    
+    #if [[ "$CAAP_CMD_TYPE" == "n/a" ]];  then 
+    #    CAAP_INP_MISC+=("$1")
+    #fi
+    
+    if [[ $# -gt 0 ]]; then shift; fi
+    
+done
+
+
+# 
+# Check real observation residual image
+# 
+
+if [[ -z "$Obs_res_image" ]]; then
+    echo "Error! The real observation residual image \"-res XXX.fits\" was not given!"; echo ""; Usage
+    exit 1
+fi
+
+if [[ -z "$Obs_sci_image" ]]; then
+    echo "Error! The real observation sci image \"-sci XXX.fits\" was not given!"; echo ""; Usage
+    exit 1
+fi
+
+if [[ -z "$Obs_psf_image" ]]; then
+    echo "Error! The real observation psf image \"-psf XXX.fits\" was not given!"; echo ""; Usage
+    exit 1
+fi
+
+if [[ -z "$Sim_gal_model" ]]; then
+    echo "Error! The galaxy model directory \"-galaxy-model XXX\" was not given!"; echo ""; Usage
+    exit 1
+fi
+
+if [[ -z "$Sim_gal_image" ]]; then
+    echo "Error! The output coadded image name \"-out XXX.fits\" was not given!"; echo ""; Usage
+    exit 1
+fi
+
+if [[ ${#Sim_gal_w[@]} -eq 0 ]]; then
+    echo "Error! Please input \"-wavelength-um XXX\" or \"-w XXX\"!"; echo ""; Usage
+    exit 1
+fi
+if [[ ${#Sim_gal_z[@]} -eq 0 ]]; then
+    echo "Error! Please input \"-z XXX\"!"; echo ""; Usage
+    exit 1
+fi
+if [[ ${#Sim_gal_lgMstar[@]} -eq 0 ]]; then
+    echo "Error! Please input \"-lgMstar XXX\"!"; echo ""; Usage
+    exit 1
+fi
+
+if [[ ! -f "$Obs_res_image" ]]; then
+    echo "Error! The real observation residual image \"$Obs_res_image\" was not found!"
+    exit 1
+fi
+
+if [[ ! -f "$Obs_sci_image" ]]; then
+    echo "Error! The real observation sci image \"$Obs_sci_image\" was not found!"
+    exit 1
+fi
+
+if [[ ! -f "$Obs_psf_image" ]]; then
+    echo "Error! The real observation psf image \"$Obs_psf_image\" was not found!"
+    exit 1
+fi
+
+if [[ ! -d "$Sim_gal_model" ]]; then
+    echo "Error! The galaxy model directory \"$Sim_gal_model\" was not found!"
+    exit 1
+fi
+
+for check_file_name in "result_simu_galaxies_list.txt" "result_simu_galaxies_radec.txt" "result_simu_galaxies_z_Mstar_SFR.txt" "result_simu_galaxies_Morph.txt"; do
+    if [[ ! -f "$Sim_gal_model/$check_file_name" ]]; then
+        echo "Error! The galaxy model file \"$Sim_gal_model/$check_file_name\" was not found!"
+        exit 1
+    fi
+done
+
+# check output Sim_gal_image, if it is not a fits file then assume the same file name as the input sci fits image
+if [[ "$Sim_gal_image" != *".fits" ]]; then
+    Sim_gal_image="$Sim_gal_image/"$(basename "$Obs_sci_image")
+fi
+
+if [[ -f "$Sim_gal_image" ]]; then
+    echo "Warning! Found existing \"$Sim_gal_image\"! Backing-up as \"$Sim_gal_image.backup\""
+    mv "$Sim_gal_image" "$Sim_gal_image.backup"
+fi
+
+#if [[ ! -d "../ALMA_Calibrated_Images_by_Magnelli/" ]]; then
+#    echo "Error! \"../ALMA_Calibrated_Images_by_Magnelli/\" was not found!"
+#    exit 1
+#fi
+
+
+# 
+# Make temporary galfit directory
+# 
+if [[ "$Sim_gal_image" == *"/"* ]]; then
+    Sim_gal_dir=$(dirname $Sim_gal_image)"/"$(basename $Sim_gal_image | sed -e 's/\.fits$//g')
+else
+    Sim_gal_dir=$(basename $Sim_gal_image | sed -e 's/\.fits$//g')
+fi
+
+if [[ ! -d "$Sim_gal_dir" ]]; then
+    mkdir -p "$Sim_gal_dir"
+fi
+
+
+# 
+# Copy images, make empty rms image (1.0)
+# 
+cp "$Obs_sci_image" "$Sim_gal_dir/image_sci.fits"
+cp "$Obs_res_image" "$Sim_gal_dir/image_res.fits"
+cp "$Obs_psf_image" "$Sim_gal_dir/image_psf.fits"
+CrabFitsImageArithmetic "$Sim_gal_dir/image_res.fits" "*" "0.0" "$Sim_gal_dir/image_tmp.fits" > "$Sim_gal_dir/image_tmp.log"
+CrabFitsImageArithmetic "$Sim_gal_dir/image_tmp.fits" "+" "1.0" "$Sim_gal_dir/image_rms.fits" > "$Sim_gal_dir/image_rms.log"
+CrabPhotImageStatistics "$Sim_gal_dir/image_psf.fits" > "$Sim_gal_dir/image_psf_stats.txt"
+pixscale "$Sim_gal_dir/image_sci.fits" > "$Sim_gal_dir/image_sci_pixscale.txt"
+
+
+# 
+# Read sci image center RA Dec
+# 
+if [[ ! -f "$Sim_gal_dir/image_center_radec.txt" || 1 == 1 ]]; then
+    image_NAXIS1=$(gethead "$Sim_gal_dir/image_sci.fits" NAXIS1)
+    image_NAXIS2=$(gethead "$Sim_gal_dir/image_sci.fits" NAXIS2)
+    echo xy2sky -d -n 10 "$Sim_gal_dir/image_sci.fits" $(awk "BEGIN {print ($image_NAXIS1+1)/2.0;}") $(awk "BEGIN {print ($image_NAXIS2+1)/2.0;}")
+    xy2sky -d -n 10 "$Sim_gal_dir/image_sci.fits" $(awk "BEGIN {print ($image_NAXIS1+1)/2.0;}") $(awk "BEGIN {print ($image_NAXIS2+1)/2.0;}") | tr -s ' ' | cut -d ' ' -f 1,2 > "$Sim_gal_dir/image_center_radec.txt"
+fi
+
+
+# 
+# Check supermongo code (TODO: check Supermongo load crabDir.sm)
+# 
+Sim_gal_script=$(dirname $(perl -MCwd -e 'print Cwd::abs_path shift' "${BASH_SOURCE[0]}"))"/caap_full_galaxy_modelling_map_maker.sm"
+if [[ ! -f "$Sim_gal_script" ]]; then
+    echo "Error! The code \"$Sim_gal_script/caap_full_galaxy_modelling_map_maker.sm\" was not found! Maybe the code is incomplete? Please re-download from https://github.com/1054/"; echo ""
+    exit 1
+fi
+
+
+# 
+# Get galaxy model directory full path
+# 
+Sim_gal_pwd=$(pwd)
+perl -MCwd -e 'print Cwd::abs_path shift' "$Sim_gal_model" | tr -s '/' '\n' | sed -e 's%^$%/%g' > "$Sim_gal_dir/galaxy_model_dirpath.txt" # id ra dec flux
+cd "$Sim_gal_dir"
+cp "$Sim_gal_script" .
+echo "macro read caap_full_galaxy_modelling_map_maker.sm run_map_maker ${Sim_gal_w[0]} ${Sim_gal_z[0]} ${Sim_gal_lgMstar[0]} '${Sim_gal_Type_SED[0]}'" | sm | tee run_map_maker.log
+
+
+# 
+# Coadding model
+# 
+echo "Coadding model"
+CrabFitsImageArithmetic "image_res.fits" "+" "image_mod.fits" "image_sim.fits" > "image_sim.log"
+
+echo "Please run ds9 to check: "
+echo "cd \"$Sim_gal_dir\""
+echo "ds9 -title \"sim\" -tile mode column -lock frame image -lock scale yes -lock colorbar yes \"image_sci.fits\" \"image_res.fits\" \"image_mod.fits\" \"image_sim.fits\" &"
+
+ds9 -title "sim" -tile mode column -lock frame image -lock scale yes -lock colorbar yes "image_sci.fits" "image_res.fits" "image_mod.fits" "image_sim.fits" -scale limits -0.000147434 0.00150244 &
+
+
+# 
+# cd back
+# 
+cd "$Sim_gal_pwd"
+echo "Output simulated image as \"$Sim_gal_dir.fits\"!"
+cp "$Sim_gal_dir/image_sim.fits" "$Sim_gal_dir.fits"
+
+echo "Done!"
+
+
+
+
+
+

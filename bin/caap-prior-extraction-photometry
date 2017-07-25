@@ -1,0 +1,675 @@
+#!/bin/bash
+# 
+
+
+
+# 
+# Print Usage
+# 
+if [[ $# -eq 0 ]]; then
+    echo "Usage: "
+    echo "    caap-prior-extraction-photometry -catalog Catalog.fits"
+    exit
+fi
+
+
+
+# 
+# Check software dependancies
+# 
+if [[ -f "$HOME/Cloud/Github/Crab.Toolkit.CAAP/SETUP.bash" ]]; then
+    source "$HOME/Cloud/Github/Crab.Toolkit.CAAP/SETUP.bash"
+else
+    echo "Error! \"$HOME/Cloud/Github/Crab.Toolkit.CAAP/SETUP.bash\" was not found! Please download from \"https://github.com/1054/Crab.Toolkit.CAAP\"!"
+    exit 1
+fi
+
+if [[ -f "$HOME/Cloud/Github/DeepFields.SuperDeblending/Softwares/SETUP" ]]; then
+    source "$HOME/Cloud/Github/DeepFields.SuperDeblending/Softwares/SETUP"
+else
+    echo "Error! \"$HOME/Cloud/Github/DeepFields.SuperDeblending/Softwares/SETUP\" was not found! Please download from \"https://github.com/1054/DeepFields.SuperDeblending\"!"
+    exit 1
+fi
+
+
+
+# 
+# Check software dependancies
+# 
+if [[ $(type sky2xy 2>/dev/null | wc -l) -eq 0 ]]; then
+    echo "Error! \"sky2xy\" is not in the \$PATH! Please add its path to the \$PATH then re-run this code!"
+fi
+if [[ $(type galfit 2>/dev/null | wc -l) -eq 0 ]]; then
+    echo "Error! \"galfit\" is not in the \$PATH! Please add its path to the \$PATH then re-run this code!"
+fi
+if [[ $(type astrodepth_prior_extraction_photometry 2>/dev/null | wc -l) -eq 0 ]]; then
+    echo "Error! \"astrodepth_prior_extraction_photometry\" is not in the \$PATH! Please add its path to the \$PATH then re-run this code!"
+fi
+
+
+
+# 
+# Read user input
+# 
+UserFitStart=""
+UserFitEnd=""
+UserYes=0
+UserOverwrite=""
+InputCat=""
+InputSci=()
+InputPsf=()
+InputRms=()
+OutputDir="Prior_Extraction_Photometry_v"$(date +"%Y%m%d")
+OutputSubDir="astrodepth_prior_extraction_photometry"
+while [[ "$#" -gt 0 ]]; do
+    #echo $1
+    TempStr=$(echo "$1" | tr '[:upper:]' '[:lower:]')
+    #echo $TempStr
+    case $1 in
+         "-start") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="start";;
+           "-end") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="end";;
+           "-cat") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="catalog";;
+       "-catalog") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="catalog";;
+           "-inp") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-sci";;
+           "-sci") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-sci";;
+          "-fits") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-sci";;
+         "-image") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-sci";;
+     "-image-sci") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-sci";;
+     "-image-psf") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-psf";;
+     "-image-rms") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-rms";;
+     "-overwrite") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="overwrite";;
+          "-step") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="overwrite";;
+         "-steps") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="overwrite";;
+        "-unlock") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="overwrite";;
+           "-out") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output-dir";;
+        "-output") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output-dir";;
+     "-outputdir") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output-dir";;
+    "-output-dir") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output-dir";;
+   "-output-name") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output-name";;
+ "-output-subdir") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output-name";;
+"-output-sub-dir") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output-name";;
+           "-yes") CAAP_CMD_TEXT="$1";        CAAP_CMD_TYPE="yes";;
+    esac
+    #echo "$CAAP_CMD_TYPE"
+    case "$CAAP_CMD_TYPE" in
+          "start") if [[ $# -gt 0 ]]; then UserFitStart="$1"; fi;;
+            "end") if [[ $# -gt 0 ]]; then UserFitEnd="$1"; fi;;
+        "catalog") if [[ $# -gt 0 ]]; then InputCat="$1"; fi;;
+ "list-image-sci") if [[ $# -gt 0 ]]; then InputSci+=("$1"); fi;;
+ "list-image-psf") if [[ $# -gt 0 ]]; then InputPsf+=("$1"); fi;;
+ "list-image-rms") if [[ $# -gt 0 ]]; then InputRms+=("$1"); fi;;
+     "output-dir") if [[ $# -gt 0 ]]; then OutputDir="$1"; fi;;
+    "output-name") if [[ $# -gt 0 ]]; then OutputSubDir="$1"; fi;;
+      "overwrite") if [[ $# -gt 0 ]]; then UserOverwrite+=("$1"); fi;;
+            "yes")                         UserYes=1;;
+    esac
+    #
+    if [[ $# -gt 0 ]]; then shift; fi
+done
+
+echo "UserFitStart = $UserFitStart"
+echo "UserFitEnd = $UserFitEnd"
+echo "UserOverwrite = ${UserOverwrite[@]}"
+
+
+
+# 
+# Check Input Catalog
+# 
+if [[ ! -f "$InputCat" ]]; then
+    echo "Error! The input catalog \"$InputCat\" does not exist!"; exit 1
+fi
+#if [[ "$InputCat" != *".fits" ]]; then
+#    echo "Error! The input catalog \"$InputCat\" is not a FITS format data table!"; exit 1
+#fi
+InputCat=$(perl -MCwd -e 'print Cwd::abs_path shift' "$InputCat")
+
+
+
+# 
+# Check output dir
+# 
+if [[ ! -d "$OutputDir" ]]; then
+    mkdir -p "$OutputDir"
+fi
+if [[ ! -d "$OutputDir" ]]; then
+    echo "Error! Failed to create output directory \"$OutputDir\"! Abort!"; exit 1
+fi
+if [[ ! -d "$OutputDir/$OutputSubDir" ]]; then
+    mkdir -p "$OutputDir/$OutputSubDir"
+fi
+
+
+
+# 
+# Check Input Sci Fits Image List
+# 
+if [[ ${#InputSci[@]} -gt 0 ]]; then
+    if [[ -f "$OutputDir/List_of_Input_Sci_Images.txt" ]]; then
+        mv "$OutputDir/List_of_Input_Sci_Images.txt" "$OutputDir/List_of_Input_Sci_Images.txt.backup"
+    fi
+    if [[ -f "$OutputDir/List_of_Input_Psf_Images.txt" ]]; then
+        mv "$OutputDir/List_of_Input_Psf_Images.txt" "$OutputDir/List_of_Input_Psf_Images.txt.backup"
+    fi
+    SciImages=()
+    for (( i=0; i<${#InputSci[@]}; i++ )); do
+        # if the input is a "txt" file, then read in as a list
+        if [[ "${InputSci[i]}" == *".txt" ]]; then
+            Old_IFS=$IFS
+            IFS=$'\n' read -d '' -r -a SciImage1 < "${InputSci[i]}"
+            IFS="$Old_IFS"
+            for (( j=0; j<${#SciImage1[@]}; j++ )); do
+                if [[ -f "${SciImage1[j]}" ]]; then
+                    SciImages+=($(perl -MCwd -e 'print Cwd::abs_path shift' "${SciImage1[j]}"))
+                else
+                    echo "Error! InputSci \"${SciImage1[j]}\" does not exist!"; exit 1
+                fi
+            done
+        elif [[ "${InputSci[i]}" == *".fits" ]]; then
+            if [[ -f "${InputSci[i]}" ]]; then
+                SciImages+=($(perl -MCwd -e 'print Cwd::abs_path shift' "${InputSci[i]}"))
+            else
+                echo "Error! InputSci \"${InputSci[i]}\" does not exist!"; exit 1
+            fi
+        fi
+    done
+fi
+
+
+
+# 
+# Check Input Psf Fits Image List
+# 
+if [[ ${#InputPsf[@]} -gt 0 ]]; then
+    if [[ -f "$OutputDir/List_of_Input_Psf_Images.txt" ]]; then
+        mv "$OutputDir/List_of_Input_Psf_Images.txt" "$OutputDir/List_of_Input_Psf_Images.txt.backup"
+    fi
+    PsfImages=()
+    for (( i=0; i<${#InputPsf[@]}; i++ )); do
+        # if the input is a "txt" file, then read in as a list
+        if [[ "${InputPsf[i]}" == *".txt" ]]; then
+            Old_IFS=$IFS
+            IFS=$'\n' read -d '' -r -a PsfImage1 < "${InputPsf[i]}"
+            IFS="$Old_IFS"
+            for (( j=0; j<${#PsfImage1[@]}; j++ )); do
+                if [[ -f "${PsfImage1[j]}" ]]; then
+                    PsfImages+=($(perl -MCwd -e 'print Cwd::abs_path shift' "${PsfImage1[j]}"))
+                else
+                    echo "Error! InputPsf \"${PsfImage1[j]}\" does not exist!"; exit 1
+                fi
+            done
+        elif [[ "${InputPsf[i]}" == *".fits" ]]; then
+            if [[ -f "${InputPsf[i]}" ]]; then
+                PsfImages+=($(perl -MCwd -e 'print Cwd::abs_path shift' "${InputPsf[i]}"))
+            else
+                echo "Error! InputPsf \"${InputPsf[i]}\" does not exist!"; exit 1
+            fi
+        fi
+    done
+fi
+
+
+
+# 
+# Check Input Rms Fits Image List
+# 
+if [[ ${#InputRms[@]} -gt 0 ]]; then
+    if [[ -f "$OutputDir/List_of_Input_Rms_Images.txt" ]]; then
+        mv "$OutputDir/List_of_Input_Rms_Images.txt" "$OutputDir/List_of_Input_Rms_Images.txt.backup"
+    fi
+    RmsImages=()
+    for (( i=0; i<${#InputRms[@]}; i++ )); do
+        # if the input is a "txt" file, then read in as a list
+        if [[ "${InputRms[i]}" == *".txt" ]]; then
+            Old_IFS=$IFS
+            IFS=$'\n' read -d '' -r -a RmsImage1 < "${InputRms[i]}"
+            IFS="$Old_IFS"
+            for (( j=0; j<${#RmsImage1[@]}; j++ )); do
+                if [[ -f "${RmsImage1[j]}" ]]; then
+                    RmsImages+=($(perl -MCwd -e 'print Cwd::abs_path shift' "${RmsImage1[j]}"))
+                else
+                    echo "Error! InputRms \"${RmsImage1[j]}\" does not exist!"; exit 1
+                fi
+            done
+        elif [[ "${InputRms[i]}" == *".fits" ]]; then
+            if [[ -f "${InputRms[i]}" ]]; then
+                RmsImages+=($(perl -MCwd -e 'print Cwd::abs_path shift' "${InputRms[i]}"))
+            else
+                echo "Error! InputRms \"${InputRms[i]}\" does not exist!"; exit 1
+            fi
+        fi
+    done
+fi
+
+
+
+# 
+# Load sci and psf fits file list
+# 
+echo "Loading SciImages and PsfImages ... "
+if [[ ! -f "$OutputDir/List_of_Input_Sci_Images.txt" || ! -f "$OutputDir/List_of_Input_Psf_Images.txt" ]]; then
+    # 
+    # Check SciImages
+    if [[ ${#SciImages[@]} -eq 0 ]]; then
+        echo "Error! No Sci Fits Image was given! Please input the list of Sci Fits Image by \"-image\" or \"-image-sci\" argument!"; exit 1
+    fi
+    # 
+    # Loop SciImages
+    for (( i=0; i<${#SciImages[@]}; i++ )); do
+        # 
+        # print progress
+        if [[ ${#SciImages[@]} -ge 10 ]]; then
+            if [[ $(awk "BEGIN {print (($i)%(int(${#SciImages[@]}/10)))}") -eq 0 ]]; then
+                echo -n $(awk "BEGIN {print (100.0*($i)/(${#SciImages[@]}))}")"% "
+            elif [[ $(($i+1)) -eq ${#SciImages[@]} ]]; then
+                echo "100%"
+            fi
+        fi
+        # 
+        # check SciImage
+        SciImage="${SciImages[i]}"
+        # 
+        # check PsfImage, generate one if not given
+        if [[ ${#PsfImages[@]} -gt $i ]]; then
+            PsfImage="${PsfImages[i]}"
+        else
+            PsfImage=$(echo "$SciImage" | sed -e 's/\.image\.fits$/.clean-beam/g')
+            if [[ ! -f "$PsfImage.fits" ]]; then
+                echo "# "$(date +'%Y%m%d %Hh%Mm%Ss %Z') > "$PsfImage.log"
+                echo "caap-generate-PSF-Gaussian-2D \"$SciImage\" \"$PsfImage.fits\"" >> "$PsfImage.log"
+                caap-generate-PSF-Gaussian-2D "$SciImage" "$PsfImage.fits" >> "$PsfImage.log" 2>&1
+            fi
+            if [[ ! -f "$PsfImage.fits" ]]; then
+                echo "Error! Failed to run \"caap-generate-PSF-Gaussian-2D\" to create the PsfImage \"$PsfImage.fits\"!"; exit 1
+            fi
+            PsfImage="$PsfImage.fits"
+            PsfImages+=("$PsfImage")
+        fi
+        # 
+        # check RmsImage, generate a text file if not given
+        if [[ ${#RmsImages[@]} -gt $i ]]; then
+            RmsImage="${RmsImages[i]}"
+        else
+            RmsStats=$(echo "$SciImage" | sed -e 's/\.fits$/.fits.pixel.statistics/g')
+            if [[ ! -f "$RmsStats.txt" ]]; then
+                echo "# "$(date +'%Y%m%d %Hh%Mm%Ss %Z') > "$RmsStats.log"
+                echo "caap-analyze-fits-image-pixel-histogram \"$SciImage\"" >> "$RmsStats.log"
+                caap-analyze-fits-image-pixel-histogram "$SciImage" >> "$RmsStats.log" 2>&1
+            fi
+            if [[ ! -f "$RmsStats.txt" ]]; then
+                echo "Error! Failed to run \"caap-analyze-fits-image-pixel-histogram\" to create the RmsStats \"$RmsStats.txt\"!"; exit 1
+            fi
+            # create an rms image from the RmsStats
+            RmsValue=$(cat $RmsStats.txt | grep "^Gaussian_sigma *=" | perl -p -e 's/Gaussian_sigma *= *([0-9.+-eE]+) *.*/\1/g')
+            if [[ "$RmsValue"x == ""x ]]; then
+                echo "Error! Failed to get Gaussian_sigma from \"$RmsStats.txt\"! Please check \"$RmsStats.log\"!"; exit 1
+            fi
+            RmsValue2=$(cat $RmsStats.txt | grep "^Inner_sigma *=" | perl -p -e 's/Inner_sigma *= *([0-9.+-eE]+) *.*/\1/g')
+            if [[ "$RmsValue2"x == ""x ]]; then
+                echo "Error! Failed to get Inner_sigma from \"$RmsStats.txt\"! Please check \"$RmsStats.log\"!"; exit 1
+            fi
+            if [[ $(awk "BEGIN {if( sqrt((($RmsValue)-($RmsValue2))**2) / ((($RmsValue)+($RmsValue2))/2.0) > 2.0 ) print 1; else print 0;}") -eq 1 ]]; then
+                echo "Error! The Gaussian_sigma and Inner_sigma do not agree within 200% in \"$RmsStats.txt\"! Please check \"$RmsStats.log\"!"; exit 1
+            fi
+            # create an rms image from the RmsStats
+            RmsImage=$(echo "$SciImage" | sed -e 's/\.image\.fits$/.rms/g')
+            if [[ ! -f "$RmsImage.fits" ]]; then
+                echo "# "$(date +'%Y%m%d %Hh%Mm%Ss %Z') > "$RmsImage.log"
+                echo "CrabFitsImageArithmetic \"$SciImage\" times 0.0 \"$RmsImage.tmp.fits\"" >> "$RmsImage.log"
+                      CrabFitsImageArithmetic  "$SciImage"  times 0.0  "$RmsImage.tmp.fits"   >> "$RmsImage.log"
+                echo "CrabFitsImageArithmetic \"$RmsImage.tmp.fits\" adds \"$RmsValue\" \"$RmsImage.fits\"" >> "$RmsImage.log"
+                      CrabFitsImageArithmetic  "$RmsImage.tmp.fits"  adds  "$RmsValue"   "$RmsImage.fits"   >> "$RmsImage.log"
+                rm "$RmsImage.tmp.fits"
+            fi
+            if [[ ! -f "$RmsImage.fits" ]]; then
+                echo "Error! Failed to run \"CrabFitsImageArithmetic\" to create the RmsImage \"$RmsImage.fits\"! Please check \"$RmsImage.log\"!"; exit 1
+            fi
+            RmsImage="$RmsImage.fits"
+            RmsImages+=("$RmsImage")
+        fi
+        # 
+        # check SciImage and PsfImage name consistency
+        SciImage_check=$(echo "$SciImage" | sed -e 's%\.image\.fits%%g')   #<TODO># file name
+        PsfImage_check=$(echo "$PsfImage" | sed -e 's%\.clean-beam\.fits%%g')     #<TODO># file name
+        RmsImage_check=$(echo "$RmsImage" | sed -e 's%\.rms\.fits%%g')     #<TODO># file name
+        if [[ "$SciImage_check" != "$PsfImage_check" ]]; then 
+            echo ""; echo "Error! The input SciImage \"$SciImage\" and PsfImage \"$PsfImage\" do not match!"; exit 1
+        fi
+        if [[ "$SciImage_check" != "$RmsImage_check" ]]; then 
+            echo ""; echo "Error! The input SciImage \"$SciImage\" and RmsImage \"$RmsImage\" do not match!"; exit 1
+        fi
+        # 
+        # check PsfImage dimension, make sure the psf has positive sum and has a size of below 300 pixel. 
+        PsfImage_fullpath="$PsfImage"
+        PsfNAXIS1=$(gethead "$PsfImage_fullpath" NAXIS1)
+        PsfNAXIS2=$(gethead "$PsfImage_fullpath" NAXIS2)
+        PsfImage_sumpix=$(sumpix "$PsfImage_fullpath")
+        if [[ $(awk "BEGIN {if(($PsfNAXIS1>300)||($PsfNAXIS2>300)||($PsfImage_sumpix<0)) print 1; else print 0;}") -eq 1 ]]; then
+            PsfImage_cut_rect=$(echo "$PsfImage_fullpath" | sed -e "s/\.fits$/.cut.rect.txt/g")
+            if [[ ! -f "$PsfImage_cut_rect" ]]; then
+                # cut psf image, make sure the sum is positive, and size below 300 pixel.
+                CutBuffer=(0 0)
+                if [[ $(awk "BEGIN {if($PsfNAXIS1>300) print 1; else print 0;}") -eq 1 ]]; then CutBuffer[0]=$(awk "BEGIN {print int(($PsfNAXIS1-300)/2.0);}"); fi
+                if [[ $(awk "BEGIN {if($PsfNAXIS2>300) print 1; else print 0;}") -eq 1 ]]; then CutBuffer[1]=$(awk "BEGIN {print int(($PsfNAXIS2-300)/2.0);}"); fi
+                while [[ $(awk "BEGIN {if(($PsfNAXIS1>2*${CutBuffer[0]})&&($PsfNAXIS2>2*${CutBuffer[1]})) print 1; else print 0;}") -eq 1 ]]; do
+                    CutBuffer[0]=$((${CutBuffer[0]}+1))
+                    CutBuffer[1]=$((${CutBuffer[1]}+1))
+                    CutPos1X=$(awk "BEGIN {print int(($PsfNAXIS1-1.0)/2.0)+(${CutBuffer[0]})}") #<TODO># +1 accounts for the small shift of the ALMA psf fits image produced by Benjamin
+                    CutPos1Y=$(awk "BEGIN {print int(($PsfNAXIS2-1.0)/2.0)+(${CutBuffer[1]})}") #<TODO># +1 accounts for the small shift of the ALMA psf fits image produced by Benjamin
+                    CutPos2X=$(awk "BEGIN {print int(($PsfNAXIS1-1.0)/2.0)-(${CutBuffer[0]})}") #<TODO># +1 accounts for the small shift of the ALMA psf fits image produced by Benjamin
+                    CutPos2Y=$(awk "BEGIN {print int(($PsfNAXIS2-1.0)/2.0)-(${CutBuffer[1]})}") #<TODO># +1 accounts for the small shift of the ALMA psf fits image produced by Benjamin
+                    CutImage_fullpath=$(echo "$PsfImage_fullpath" | sed -e "s/\.fits$/.cut_${CutPos1X}_${CutPos1Y}_${CutPos2X}_${CutPos2Y}.fits/g")
+                    CutScript_fullpath=$(echo "$PsfImage_fullpath" | sed -e "s/\.fits$/.cut_${CutPos1X}_${CutPos1Y}_${CutPos2X}_${CutPos2Y}.sh/g")
+                    CutScriptLog_fullpath=$(echo "$PsfImage_fullpath" | sed -e "s/\.fits$/.cut_${CutPos1X}_${CutPos1Y}_${CutPos2X}_${CutPos2Y}.sh.log/g")
+                    echo "#!/bin/bash" > "$CutScript_fullpath"
+                    echo "CrabFitsImageCrop \"$PsfImage_fullpath\" -rect $CutPos1X $CutPos1Y $CutPos2X $CutPos2Y -out \"$CutImage_fullpath\"" >> "$CutScript_fullpath"
+                    echo "$CutPos1X $CutPos1Y $CutPos2X $CutPos2Y" > "$PsfImage_cut_rect"
+                    chmod +x "$CutScript_fullpath"
+                    "$CutScript_fullpath" > "$CutScriptLog_fullpath"
+                    if [[ ! -f "$CutImage_fullpath" ]]; then
+                        echo ""; echo "Error! Failed to run \"$CutScript_fullpath\" and create \"$CutImage_fullpath\"!"
+                        echo ""; cat "$CutScriptLog_fullpath"
+                        exit 1
+                    fi
+                    CutImage_sumpix=$(sumpix "$CutImage_fullpath")
+                    if [[ "$CutImage_sumpix" != "-"* ]]; then
+                        PsfImage_fullpath="$CutImage_fullpath"
+                        break
+                    else
+                        rm "$CutScriptLog_fullpath"
+                        rm "$CutScript_fullpath"
+                        rm "$CutImage_fullpath"
+                        rm "$PsfImage_cut_rect"
+                    fi
+                done
+                CutImage_sumpix=$(sumpix "$CutImage_fullpath")
+                if [[ "$CutImage_sumpix" == "-"* ]]; then
+                    echo ""; echo "Error! Could not cut the PSF image to make the sum positive! Please check the PSF image \"$PsfImage_fullpath\"!"; exit 1
+                fi
+            else
+                CutRect=($(cat "$PsfImage_cut_rect"))
+                CutImage_fullpath=$(echo "$PsfImage_fullpath" | sed -e "s/\.fits$/.cut_${CutRect[0]}_${CutRect[1]}_${CutRect[2]}_${CutRect[3]}.fits/g")
+                if [[ ! -f "$CutImage_fullpath" ]]; then 
+                    echo ""; echo "Error! Failed to find the cut PSF image \"$CutImage_fullpath\"!"; exit 1
+                fi
+                PsfImage_fullpath="$CutImage_fullpath"
+            fi
+        fi
+        # 
+        # check PsfImage sumpix
+        PsfImage_sumpix=$(sumpix "$PsfImage_fullpath")
+        if [[ "$PsfImage_sumpix" == "-"* ]]; then
+            echo ""; echo "Error! The PSF image \"$PsfImage_fullpath\" has a negative total pixel value!"; exit 1
+        fi
+        # 
+        # check SciImage and RmsImage dimension, make sure they have a size of about 300 pixel (below 450 pixel). 
+        SciImage_fullpath="$SciImage"
+        RmsImage_fullpath="$RmsImage"
+        SciNAXIS1=$(gethead "$SciImage_fullpath" NAXIS1)
+        SciNAXIS2=$(gethead "$SciImage_fullpath" NAXIS2)
+        if [[ $(awk "BEGIN {if(($SciNAXIS1>450)||($SciNAXIS2>450)) print 1; else print 0;}") -eq 1 ]]; then
+            SciImage_cut_rect=$(echo "$SciImage_fullpath" | sed -e "s/\.fits$/.cut.rect.txt/g")
+            RmsImage_cut_rect=$(echo "$RmsImage_fullpath" | sed -e "s/\.fits$/.cut.rect.txt/g")
+            if [[ ! -f "$SciImage_cut_rect" ]]; then
+                CutNumbX=$(awk "BEGIN {print int(($SciNAXIS1)/300/2.0)*2+1}") # ~3
+                CutNumbY=$(awk "BEGIN {print int(($SciNAXIS2)/300/2.0)*2+1}") # ~3
+                CutSizeX=$(awk "BEGIN {print int(($SciNAXIS1)/$CutNumbX)}") # ~301
+                CutSizeY=$(awk "BEGIN {print int(($SciNAXIS2)/$CutNumbY)}") # ~301
+                CutBuffer=20
+                for (( icut_y=0; icut_y<$CutNumbY; icut_y++ )); do
+                    for (( icut_x=0; icut_x<$CutNumbX; icut_x++ )); do
+                        # define cut x1,y1 x2,y2
+                        CutPos1X=$(awk "BEGIN {print ($CutSizeX)*($icut_x)-($CutBuffer)}")
+                        CutPos1Y=$(awk "BEGIN {print ($CutSizeY)*($icut_y)-($CutBuffer)}")
+                        CutPos2X=$(awk "BEGIN {print ($CutSizeX)*($icut_x+1)+($CutBuffer)}")
+                        CutPos2Y=$(awk "BEGIN {print ($CutSizeY)*($icut_y+1)+($CutBuffer)}")
+                        
+                        # cut SciImage
+                        CutImage_fullpath=$(echo "$SciImage_fullpath" | sed -e "s/\.fits$/.cut_${CutPos1X}_${CutPos1Y}_${CutPos2X}_${CutPos2Y}.fits/g")
+                        CutScript_fullpath=$(echo "$SciImage_fullpath" | sed -e "s/\.fits$/.cut_${CutPos1X}_${CutPos1Y}_${CutPos2X}_${CutPos2Y}.sh/g")
+                        CutScriptLog_fullpath=$(echo "$SciImage_fullpath" | sed -e "s/\.fits$/.cut_${CutPos1X}_${CutPos1Y}_${CutPos2X}_${CutPos2Y}.sh.log/g")
+                        echo "#!/bin/bash" > "$CutScript_fullpath"
+                        echo "CrabFitsImageCrop \"$SciImage_fullpath\" -rect $CutPos1X $CutPos1Y $CutPos2X $CutPos2Y -out \"$CutImage_fullpath\"" >> "$CutScript_fullpath"
+                        echo "$CutPos1X $CutPos1Y $CutPos2X $CutPos2Y" >> "$SciImage_cut_rect"
+                        chmod +x "$CutScript_fullpath"
+                        "$CutScript_fullpath" > "$CutScriptLog_fullpath"
+                        if [[ ! -f "$CutImage_fullpath" ]]; then
+                            echo ""; echo "Error! Failed to run \"$CutScript_fullpath\" and create \"$CutImage_fullpath\"!"
+                            echo ""; cat "$CutScriptLog_fullpath"
+                            exit 1
+                        fi
+                        # write to OutputDir/List_of_Input_*_Images.txt
+                        echo "$CutImage_fullpath" >> "$OutputDir/List_of_Input_Sci_Images.txt"
+                        
+                        # cut RmsImage
+                        CutImage_fullpath=$(echo "$RmsImage_fullpath" | sed -e "s/\.fits$/.cut_${CutPos1X}_${CutPos1Y}_${CutPos2X}_${CutPos2Y}.fits/g")
+                        CutScript_fullpath=$(echo "$RmsImage_fullpath" | sed -e "s/\.fits$/.cut_${CutPos1X}_${CutPos1Y}_${CutPos2X}_${CutPos2Y}.sh/g")
+                        CutScriptLog_fullpath=$(echo "$RmsImage_fullpath" | sed -e "s/\.fits$/.cut_${CutPos1X}_${CutPos1Y}_${CutPos2X}_${CutPos2Y}.sh.log/g")
+                        echo "#!/bin/bash" > "$CutScript_fullpath"
+                        echo "CrabFitsImageCrop \"$RmsImage_fullpath\" -rect $CutPos1X $CutPos1Y $CutPos2X $CutPos2Y -out \"$CutImage_fullpath\"" >> "$CutScript_fullpath"
+                        echo "$CutPos1X $CutPos1Y $CutPos2X $CutPos2Y" >> "$RmsImage_cut_rect"
+                        chmod +x "$CutScript_fullpath"
+                        "$CutScript_fullpath" > "$CutScriptLog_fullpath"
+                        if [[ ! -f "$CutImage_fullpath" ]]; then
+                            echo ""; echo "Error! Failed to run \"$CutScript_fullpath\" and create \"$CutImage_fullpath\"!"
+                            echo ""; cat "$CutScriptLog_fullpath"
+                            exit 1
+                        fi
+                        # write to OutputDir/List_of_Input_*_Images.txt
+                        echo "$CutImage_fullpath" >> "$OutputDir/List_of_Input_Rms_Images.txt"
+                        echo "$PsfImage_fullpath" >> "$OutputDir/List_of_Input_Psf_Images.txt"
+                    done
+                done
+            else
+                # if we found "$SciImage_cut_rect", then we read the cut rect rather than redo the cut rect computation. 
+                IFS=$'\n' CutRect_list=($(<"$SciImage_cut_rect"))
+                for (( icut=0; icut<${#CutRect_list[@]}; icut++ )); do
+                    IFS=' ' CutRect=( $(echo ${CutRect_list[$icut]}) )
+                    
+                    # check CutImage_fullpath for SciImage
+                    CutImage_fullpath=$(echo "$SciImage_fullpath" | sed -e "s/\.fits$/.cut_${CutRect[0]}_${CutRect[1]}_${CutRect[2]}_${CutRect[3]}.fits/g")
+                    if [[ ! -f "$CutImage_fullpath" ]]; then 
+                        echo ""; echo "Error! Failed to find the cut SCI image \"$CutImage_fullpath\"!"; exit 1
+                    fi
+                    # write to OutputDir/List_of_Input_*_Images.txt
+                    echo "$CutImage_fullpath" >> "$OutputDir/List_of_Input_Sci_Images.txt"
+                    
+                    # check CutImage_fullpath for RmsImage
+                    CutImage_fullpath=$(echo "$RmsImage_fullpath" | sed -e "s/\.fits$/.cut_${CutRect[0]}_${CutRect[1]}_${CutRect[2]}_${CutRect[3]}.fits/g")
+                    if [[ ! -f "$CutImage_fullpath" ]]; then 
+                        echo ""; echo "Error! Failed to find the cut SCI image \"$CutImage_fullpath\"!"; exit 1
+                    fi
+                    # write to OutputDir/List_of_Input_*_Images.txt
+                    echo "$CutImage_fullpath" >> "$OutputDir/List_of_Input_Rms_Images.txt"
+                    echo "$PsfImage_fullpath" >> "$OutputDir/List_of_Input_Psf_Images.txt"
+                done
+            fi
+            #break
+        else
+            echo "$SciImage_fullpath" >> "$OutputDir/List_of_Input_Sci_Images.txt"
+            echo "$RmsImage_fullpath" >> "$OutputDir/List_of_Input_Rms_Images.txt"
+            echo "$PsfImage_fullpath" >> "$OutputDir/List_of_Input_Psf_Images.txt"
+        fi
+    done
+fi
+# 
+# Load SciImages and PsfImages from Output/List_of_Input_*_Images.txt
+IFS=$'\n' SciImages=($(<"$OutputDir/List_of_Input_Sci_Images.txt"))
+IFS=$'\n' PsfImages=($(<"$OutputDir/List_of_Input_Psf_Images.txt"))
+IFS=$'\n' RmsImages=($(<"$OutputDir/List_of_Input_Rms_Images.txt"))
+if [[ ${#SciImages[@]} -eq 0 || ${#PsfImages[@]} -eq 0 ]]; then
+    echo "Error! Failed to read \"$OutputDir/List_of_Input_Sci_Images.txt\" and \"$OutputDir/List_of_Input_Psf_Images.txt\"!"
+    exit 1
+fi
+if [[ ${#SciImages[@]} -eq 0 || ${#RmsImages[@]} -eq 0 ]]; then
+    echo "Error! Failed to read \"$OutputDir/List_of_Input_Sci_Images.txt\" and \"$OutputDir/List_of_Input_Rms_Images.txt\"!"
+    exit 1
+fi
+#echo ${SciImages[0]}
+#echo ${PsfImages[0]}
+#echo ${RmsImages[0]}
+#exit
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# 
+# fit ALMA calibrated images
+# 
+
+echo "Running astrodepth_prior_extraction_photometry ..."
+#astrodepth_prior_extraction_photometry -cat "$InputCat" -sci "${SciImages[0]}" -psf "${PsfImages[0]}"
+#astrodepth_prior_extraction_photometry -cat "$InputCat" -sci "${SciImages[@]}" -psf "${PsfImages[@]}"
+
+for (( i=0; i<${#SciImages[@]}; i++ )); do
+    # 
+    # Control Start End
+    if [[ x"$UserFitStart" != x ]]; then
+        if [[ $(($i+1)) -lt $UserFitStart ]]; then 
+            continue
+        fi
+    fi
+    if [[ x"$UserFitEnd" != x ]]; then
+        if [[ $(($i+1)) -gt $UserFitEnd ]]; then 
+            continue
+        fi
+    fi
+    # 
+    # Get SourceName
+    SciImage="${SciImages[i]}"
+    PsfImage="${PsfImages[i]}"
+    RmsImage="${RmsImages[i]}"
+    SourceDir="$OutputSubDir"
+    SourceName=$(basename "$SciImage" | sed -e 's%\.fits%%g')   #<TODO># file name
+    # 
+    # cd OutputDir
+    CurrentDir=$(pwd -P)
+    cd "$OutputDir/"
+    # 
+    # print
+    echo ""
+    echo ""
+    echo "************"
+    echo "SourceName = $SourceName   ($(($i+1))/${#SciImages[@]})   ($(date +'%Y%m%d %Hh%Mm%Ss %Z'))"
+    echo "SciImage = \"$SciImage\""
+    echo "PsfImage = \"$PsfImage\""
+    echo "RmsImage = \"$RmsImage\""
+    echo "OutputDir = \"$(pwd -P)/$SourceDir/$SourceName\""
+    echo "***********"
+    echo "Running astrodepth_prior_extraction_photometry"
+    echo  "#!/bin/bash"                                                                                             >  "$SourceDir/$SourceName.run.bash"
+    echo  "source ~/Cloud/Github/DeepFields.SuperDeblending/Softwares/SETUP"                                        >> "$SourceDir/$SourceName.run.bash"
+    echo  "cd \"$(pwd -P)\""                                                                                        >> "$SourceDir/$SourceName.run.bash"
+    # 
+    #<20170612> fix pb_corr array mask problem
+    #<20170626> fix cat_index fit_X.param Note problem
+    #echo  "cd \"$SourceDir/$SourceName/\""                                                                                                      >> "$SourceDir/$SourceName.run.bash"
+    ##echo  "if [[ ! -f astrodepth_go_galfit.sm.backup.20170611 ]]; then cp astrodepth_go_galfit.sm astrodepth_go_galfit.sm.backup.20170611; fi" >> "$SourceDir/$SourceName.run.bash"
+    #echo  "if [[ ! -f astrodepth_go_galfit.sm.backup.20170626 ]]; then cp astrodepth_go_galfit.sm astrodepth_go_galfit.sm.backup.20170626; fi" >> "$SourceDir/$SourceName.run.bash"
+    #echo  "cp ~/Cloud/Github/DeepFields.SuperDeblending/Softwares/astrodepth_prior_extraction_photometry_go_galfit.sm astrodepth_go_galfit.sm" >> "$SourceDir/$SourceName.run.bash"
+    #echo  "echo \"macro read astrodepth_go_galfit.sm print_result_fit_2\" | sm"                                                                >> "$SourceDir/$SourceName.run.bash"
+    #echo  "cd ../../"                                                                                                                          >> "$SourceDir/$SourceName.run.bash"
+    #
+    echo  "astrodepth_prior_extraction_photometry -cat \"$InputCat\" \\"                                            >> "$SourceDir/$SourceName.run.bash"
+    echo  "                                       -sci \"$SciImage\" \\"                                            >> "$SourceDir/$SourceName.run.bash"
+    echo  "                                       -psf \"$PsfImage\" \\"                                            >> "$SourceDir/$SourceName.run.bash"
+    echo  "                                       -rms \"$RmsImage\" \\"                                            >> "$SourceDir/$SourceName.run.bash"
+    echo  "                                       -output-dir \"$SourceDir\" \\"                                    >> "$SourceDir/$SourceName.run.bash"
+    echo  "                                       -output-name \"$SourceName\" \\"                                  >> "$SourceDir/$SourceName.run.bash"
+    echo  "                                       -steps \"getpix\" \"galfit\" \"gaussian\" \"final\" \\"           >> "$SourceDir/$SourceName.run.bash"
+    echo  "                                       ${UserOverwrite[@]}"                                              >> "$SourceDir/$SourceName.run.bash"
+    echo  ""                                                                                                        >> "$SourceDir/$SourceName.run.bash"
+    # 
+    #<20170612># check image with problematic "image_sci_pixnoise.txt"
+    ##if [[ "$SourceName" == "2011.0.00097.S_SB1_GB1_MB2_COSMOS8_field9_sci"* || \
+    ##      "$SourceName" == "2012.1.00523.S_SB9_GB1_MB1_hz1_sci"* || \
+    ##      "$SourceName" == "2013.1.00034.S_SB1_GB2_MB1_midz_cell3_277716_sci"* || \
+    ##      "$SourceName" == "2013.1.00034.S_SB1_GB3_MB1_midz_cell4_170263_sci"* || \
+    ##      "$SourceName" == "2013.1.00034.S_SB1_GB3_MB1_midz_cell9_116351_sci"* || \
+    ##      "$SourceName" == "2013.1.00034.S_SB3_GB1_MB1_highz_cell7_58334_sci"* || \
+    ##      "$SourceName" == "2013.1.00034.S_SB3_GB2_MB1_highz_cell8_189852_sci"* || \
+    ##      "$SourceName" == "2013.1.00034.S_SB3_GB3_MB1_highz_cell7_219362_sci"* || \
+    ##      "$SourceName" == "2013.1.00118.S_SB1_GB1_MB1_AzTECC29_sci"* || \
+    ##      "$SourceName" == "2013.1.00151.S_SB1_GB1_MB1__511043167__sci"* || \
+    ##      "$SourceName" == "2013.1.00884.S_SB1_GB1_MB1_CS_AGN2_sci"* || \
+    ##      "$SourceName" == "2015.1.00137.S_SB3_GB1_MB1_z12_73_sci"* || \
+    ##      "$SourceName" == "2015.1.00137.S_SB3_GB1_MB1_z12_85_sci"* || \
+    ##      "$SourceName" == "2015.1.00137.S_SB4_GB1_MB1_z12_137_sci"* || \
+    ##      "$SourceName" == "2015.1.00379.S_SB2_GB1_MB1_VUDS0511234877_sci"* || \
+    ##      "$SourceName" == "2015.1.00861.S_SB1_GB1_MB1_PACS_787_sci"* ]]; then
+    ####echo  "cd \"$SourceDir/$SourceName/\""                                                                        >> "$SourceDir/$SourceName.run.bash"
+    ####echo  "echo \"macro read astrodepth_go_getpix.sm print_result\" | sm"                                         >> "$SourceDir/$SourceName.run.bash"
+    ####echo  "echo \"macro read astrodepth_go_galfit.sm print_result_fit_2\" | sm"                                   >> "$SourceDir/$SourceName.run.bash"
+    ####echo  "echo \"macro read astrodepth_go_galfit.sm print_result_final\" | sm"                                   >> "$SourceDir/$SourceName.run.bash"
+    ####echo  "cd ../../"                                                                                             >> "$SourceDir/$SourceName.run.bash"
+    ##echo  "astrodepth_prior_extraction_photometry -cat \"$InputCat\" \\"                                            >> "$SourceDir/$SourceName.run.bash"
+    ##echo  "                                       -sci \"$SciImage\" \\"                                            >> "$SourceDir/$SourceName.run.bash"
+    ##echo  "                                       -psf \"$PsfImage\" \\"                                            >> "$SourceDir/$SourceName.run.bash"
+    ##echo  "                                       -output-name \"$SourceName\" \\"                                  >> "$SourceDir/$SourceName.run.bash"
+    ##echo  "                                       -steps \"getpix\" \"galfit\" \"gaussian\" \"final\" \\"           >> "$SourceDir/$SourceName.run.bash"
+    ##echo  "                                       -overwrite getpix galfit gaussian final"                          >> "$SourceDir/$SourceName.run.bash"
+    ##echo  ""                                                                                                        >> "$SourceDir/$SourceName.run.bash"
+    ##fi
+    # 
+    #<20170613># check whether "fit_2.log" contains "nan"
+    ##if grep -i -w -q "nan" "$SourceDir/$SourceName/fit_2.log"; then
+    ###if [[ "$SourceName" == "2011.0.00064.S_SB1_GB1_MB1_AzTEC-3_sci.spw0_1_2_3.cont.I.image"* ]]; then
+    ##echo  "astrodepth_prior_extraction_photometry -cat \"$InputCat\" \\"                                            >> "$SourceDir/$SourceName.run.bash"
+    ##echo  "                                       -sci \"$SciImage\" \\"                                            >> "$SourceDir/$SourceName.run.bash"
+    ##echo  "                                       -psf \"$PsfImage\" \\"                                            >> "$SourceDir/$SourceName.run.bash"
+    ##echo  "                                       -output-name \"$SourceName\" \\"                                  >> "$SourceDir/$SourceName.run.bash"
+    ##echo  "                                       -steps getpix galfit gaussian final \\"                           >> "$SourceDir/$SourceName.run.bash"
+    ##echo  "                                       -overwrite getpix galfit gaussian final"                          >> "$SourceDir/$SourceName.run.bash"
+    ##fi
+    # 
+    #<20170613> fix "getpix.result" (pb_corr), "fit_2.result" (pb_corr and getpix.mask), "fit_2.log" (nan)
+    ##echo  "cd \"$SourceDir/$SourceName/\""                                                                          >> "$SourceDir/$SourceName.run.bash"
+    ##echo  "echo \"macro read astrodepth_go_galfit.sm print_result_fit_2\" | sm"                                     >> "$SourceDir/$SourceName.run.bash"
+    ##echo  "cd ../../"                                                                                               >> "$SourceDir/$SourceName.run.bash"
+    echo  "" >> "$SourceDir/$SourceName.run.bash"
+    echo  "# do cleaning" >> "$SourceDir/$SourceName.run.bash"
+    echo  "if [[ -d \"$SourceDir/$SourceName/\" ]]; then" >> "$SourceDir/$SourceName.run.bash"
+    echo  "cd \"$SourceDir/$SourceName/\"" >> "$SourceDir/$SourceName.run.bash"
+    echo  "rm galfit.* getpix.radius.* aaa_* aaa.* *.sky2xy.* *.tmp *.backup 2>/dev/null" >> "$SourceDir/$SourceName.run.bash"
+    echo  "rm prior_id.txt prior_x_y.txt 2>/dev/null" >> "$SourceDir/$SourceName.run.bash"
+    echo  "fi" >> "$SourceDir/$SourceName.run.bash"
+    echo  "" >> "$SourceDir/$SourceName.run.bash"
+    echo  "" >> "$SourceDir/$SourceName.run.bash"
+    # 
+    chmod +x "$SourceDir/$SourceName.run.bash"
+    ./$SourceDir/$SourceName.run.bash
+    rm "$SourceDir/astrodepth_image_0_catalog_0_sky2xy.txt" 2>/dev/null
+    rm "$SourceDir/astrodepth_image_0_catalog_0_x_y.txt"    2>/dev/null
+    cd "$CurrentDir"
+    #break
+done
+
+
+
+echo ""
+echo ""
+echo ""
+echo "Great! Finally! All done!"
+
+
+
+
+
+
+
+
+
+
