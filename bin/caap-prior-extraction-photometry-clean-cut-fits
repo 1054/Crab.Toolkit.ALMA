@@ -5,9 +5,9 @@ mkdir aaa_delete 2>/dev/null
 
 echo "Cleaning \"*.cont.I.*.cut_*.*\" \"*.cont.I.*.cut.rect.txt\" \"*.cont.I.clean-beam.*\" \"*.backup\" into \"aaa_delete\" folder ..."
 
-find . -name "*.cont.I.*.cut_*.*"      -maxdepth 1 -print0 | xargs -0 -I % mv % aaa_delete/
-find . -name "*.cont.I.*.cut.rect.txt" -maxdepth 1 -print0 | xargs -0 -I % mv % aaa_delete/
-find . -name "*.cont.I.clean-beam.*"   -maxdepth 1 -print0 | xargs -0 -I % mv % aaa_delete/
-find . -name "*.backup"                -maxdepth 1 -print0 | xargs -0 -I % mv % aaa_delete/
+find . -maxdepth 1 -name "*.cont.I.*.cut_*.*"      -print0 | xargs -0 -I % mv % aaa_delete/
+find . -maxdepth 1 -name "*.cont.I.*.cut.rect.txt" -print0 | xargs -0 -I % mv % aaa_delete/
+find . -maxdepth 1 -name "*.cont.I.clean-beam.*"   -print0 | xargs -0 -I % mv % aaa_delete/
+find . -maxdepth 1 -name "*.backup"                -print0 | xargs -0 -I % mv % aaa_delete/
 
 echo "Done!"
