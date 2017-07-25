@@ -1,0 +1,34 @@
+#!/bin/bash
+# 
+
+Usage() {
+    echo "caap-list-fits-file-sorted \"fits/\" \"*.cont.I.image.fits\""
+}
+
+if [[ $# -lt 2 ]]; then
+    Usage
+    exit
+fi
+
+if [[ -d "$1" ]]; then
+
+    find $(echo "$1" | sed -e 's%/$%%g') -name "$2" -maxdepth 1 > "temp_list_fits_file_unsorted"
+    # echo "$1" | sed --- need to remove the trailing '/'
+    
+    if [[ $(uname) == "Darwin" ]]; then
+        gsort -V "temp_list_fits_file_unsorted" > "temp_list_fits_file_sorted"
+    else
+        sort -V "temp_list_fits_file_unsorted" > "temp_list_fits_file_sorted"
+    fi
+    
+    rm "temp_list_fits_file_unsorted"
+    
+    echo "# "$(date +"%Y-%m-%d %H:%M:%S %Z")
+    echo "# Input directory \""$(perl -MCwd -e 'print Cwd::abs_path shift' "$1")"\""
+    echo "# Output to \"temp_list_fits_file_sorted\"!"
+    
+    cat "temp_list_fits_file_sorted"
+
+fi
+
+

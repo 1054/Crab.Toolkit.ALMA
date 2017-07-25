@@ -55,7 +55,7 @@ UserFitStart=""
 UserFitEnd=""
 UserYes=0
 UserOverwrite=""
-InputCat=""
+InputCat=()
 InputSci=()
 InputPsf=()
 InputRms=()
@@ -94,7 +94,7 @@ while [[ "$#" -gt 0 ]]; do
     case "$CAAP_CMD_TYPE" in
           "start") if [[ $# -gt 0 ]]; then UserFitStart="$1"; fi;;
             "end") if [[ $# -gt 0 ]]; then UserFitEnd="$1"; fi;;
-        "catalog") if [[ $# -gt 0 ]]; then InputCat="$1"; fi;;
+        "catalog") if [[ $# -gt 0 ]]; then InputCat+=("$1"); fi;;
  "list-image-sci") if [[ $# -gt 0 ]]; then InputSci+=("$1"); fi;;
  "list-image-psf") if [[ $# -gt 0 ]]; then InputPsf+=("$1"); fi;;
  "list-image-rms") if [[ $# -gt 0 ]]; then InputRms+=("$1"); fi;;
@@ -110,19 +110,10 @@ done
 echo "UserFitStart = $UserFitStart"
 echo "UserFitEnd = $UserFitEnd"
 echo "UserOverwrite = ${UserOverwrite[@]}"
-
-
-
-# 
-# Check Input Catalog
-# 
-if [[ ! -f "$InputCat" ]]; then
-    echo "Error! The input catalog \"$InputCat\" does not exist!"; exit 1
-fi
-#if [[ "$InputCat" != *".fits" ]]; then
-#    echo "Error! The input catalog \"$InputCat\" is not a FITS format data table!"; exit 1
-#fi
-InputCat=$(perl -MCwd -e 'print Cwd::abs_path shift' "$InputCat")
+echo "InputCat = ${InputCat[@]} (${#InputCat[@]})"
+echo "InputSci = ${InputSci[@]} (${#InputSci[@]})"
+echo "InputPsf = ${InputPsf[@]} (${#InputPsf[@]})"
+echo "InputRms = ${InputRms[@]} (${#InputRms[@]})"
 
 
 
@@ -137,6 +128,29 @@ if [[ ! -d "$OutputDir" ]]; then
 fi
 if [[ ! -d "$OutputDir/$OutputSubDir" ]]; then
     mkdir -p "$OutputDir/$OutputSubDir"
+fi
+
+
+
+# 
+# Check Input Catalog
+# 
+if [[ ${#InputCat[@]} -gt 0 ]]; then
+    if [[ -f "$OutputDir/List_of_Input_Catalog.txt" ]]; then
+        mv "$OutputDir/List_of_Input_Catalog.txt" "$OutputDir/List_of_Input_Catalog.txt.backup"
+    fi
+    InputCats=()
+    for (( i=0; i<${#InputCat[@]}; i++ )); do
+        if [[ ! -f "${InputCat[i]}" ]]; then
+            echo "Error! The input catalog \"${InputCat[i]}\" does not exist!"; exit 1
+        fi
+        #if [[ "${InputCat[i]}" != *".fits" ]]; then
+        #    echo "Error! The input catalog \"${InputCat[i]}\" is not a FITS format data table!"; exit 1
+        #fi
+        InputCat1=$(perl -MCwd -e 'print Cwd::abs_path shift' "${InputCat[i]}") # get full path
+        InputCats+=("$InputCat1")
+        echo "$InputCat1" > "$OutputDir/List_of_Input_Catalog.txt"
+    done
 fi
 
 
@@ -159,6 +173,9 @@ if [[ ${#InputSci[@]} -gt 0 ]]; then
             IFS=$'\n' read -d '' -r -a SciImage1 < "${InputSci[i]}"
             IFS="$Old_IFS"
             for (( j=0; j<${#SciImage1[@]}; j++ )); do
+                if [[ "${SciImage1[j]}" != "/"* ]]; then
+                    SciImage1[j]=$(dirname "${InputSci[i]}")"/${SciImage1[j]}"
+                fi
                 if [[ -f "${SciImage1[j]}" ]]; then
                     SciImages+=($(perl -MCwd -e 'print Cwd::abs_path shift' "${SciImage1[j]}"))
                 else
@@ -192,6 +209,9 @@ if [[ ${#InputPsf[@]} -gt 0 ]]; then
             IFS=$'\n' read -d '' -r -a PsfImage1 < "${InputPsf[i]}"
             IFS="$Old_IFS"
             for (( j=0; j<${#PsfImage1[@]}; j++ )); do
+                if [[ "${PsfImage1[j]}" != "/"* ]]; then
+                    PsfImage1[j]=$(dirname "${InputPsf[i]}")"/${PsfImage1[j]}"
+                fi
                 if [[ -f "${PsfImage1[j]}" ]]; then
                     PsfImages+=($(perl -MCwd -e 'print Cwd::abs_path shift' "${PsfImage1[j]}"))
                 else
@@ -225,6 +245,9 @@ if [[ ${#InputRms[@]} -gt 0 ]]; then
             IFS=$'\n' read -d '' -r -a RmsImage1 < "${InputRms[i]}"
             IFS="$Old_IFS"
             for (( j=0; j<${#RmsImage1[@]}; j++ )); do
+                if [[ "${RmsImage1[j]}" != "/"* ]]; then
+                    RmsImage1[j]=$(dirname "${InputRms[i]}")"/${RmsImage1[j]}"
+                fi
                 if [[ -f "${RmsImage1[j]}" ]]; then
                     RmsImages+=($(perl -MCwd -e 'print Cwd::abs_path shift' "${RmsImage1[j]}"))
                 else
@@ -247,6 +270,8 @@ fi
 # Load sci and psf fits file list
 # 
 echo "Loading SciImages and PsfImages ... "
+#ls "$OutputDir/List_of_Input_Sci_Images.txt"
+#ls "$OutputDir/List_of_Input_Psf_Images.txt"
 if [[ ! -f "$OutputDir/List_of_Input_Sci_Images.txt" || ! -f "$OutputDir/List_of_Input_Psf_Images.txt" ]]; then
     # 
     # Check SciImages
@@ -260,9 +285,14 @@ if [[ ! -f "$OutputDir/List_of_Input_Sci_Images.txt" || ! -f "$OutputDir/List_of
         # print progress
         if [[ ${#SciImages[@]} -ge 10 ]]; then
             if [[ $(awk "BEGIN {print (($i)%(int(${#SciImages[@]}/10)))}") -eq 0 ]]; then
-                echo -n $(awk "BEGIN {print (100.0*($i)/(${#SciImages[@]}))}")"% "
-            elif [[ $(($i+1)) -eq ${#SciImages[@]} ]]; then
-                echo "100%"
+                printf "\r %-100s [%5.1f%%]" $(basename "${SciImages[i]}") $(awk "BEGIN {print (100.0*($i)/(${#SciImages[@]}))}")
+                #echo -n $(awk "BEGIN {print (100.0*($i)/(${#SciImages[@]}))}")"% "
+            fi
+            if [[ $(($i+1)) -eq ${#SciImages[@]} ]]; then
+                printf "\r %-100s [%5.1f%%]" $(basename "${SciImages[i]}") 100
+                printf "\r %-100s %20s"
+                printf "\r"
+                #echo -n "100%"
             fi
         fi
         # 
@@ -493,7 +523,8 @@ if [[ ! -f "$OutputDir/List_of_Input_Sci_Images.txt" || ! -f "$OutputDir/List_of
     done
 fi
 # 
-# Load SciImages and PsfImages from Output/List_of_Input_*_Images.txt
+# Load InputCats, SciImages and PsfImages from Output/List_of_Input_*.txt
+IFS=$'\n' InputCats=($(<"$OutputDir/List_of_Input_Catalog.txt"))
 IFS=$'\n' SciImages=($(<"$OutputDir/List_of_Input_Sci_Images.txt"))
 IFS=$'\n' PsfImages=($(<"$OutputDir/List_of_Input_Psf_Images.txt"))
 IFS=$'\n' RmsImages=($(<"$OutputDir/List_of_Input_Rms_Images.txt"))
@@ -583,7 +614,8 @@ for (( i=0; i<${#SciImages[@]}; i++ )); do
     #echo  "echo \"macro read astrodepth_go_galfit.sm print_result_fit_2\" | sm"                                                                >> "$SourceDir/$SourceName.run.bash"
     #echo  "cd ../../"                                                                                                                          >> "$SourceDir/$SourceName.run.bash"
     #
-    echo  "astrodepth_prior_extraction_photometry -cat \"$InputCat\" \\"                                            >> "$SourceDir/$SourceName.run.bash"
+    echo  "astrodepth_prior_extraction_photometry \\"                                                               >> "$SourceDir/$SourceName.run.bash"
+    echo  "                                       -cat "$(printf "'%s' " "${InputCats[@]}")" \\"                    >> "$SourceDir/$SourceName.run.bash"
     echo  "                                       -sci \"$SciImage\" \\"                                            >> "$SourceDir/$SourceName.run.bash"
     echo  "                                       -psf \"$PsfImage\" \\"                                            >> "$SourceDir/$SourceName.run.bash"
     echo  "                                       -rms \"$RmsImage\" \\"                                            >> "$SourceDir/$SourceName.run.bash"
@@ -659,10 +691,12 @@ done
 
 
 
-echo ""
-echo ""
-echo ""
-echo "Great! Finally! All done!"
+echo "Done!"
+
+#echo ""
+#echo ""
+#echo ""
+#echo "Great! Finally! All done!"
 
 
 
