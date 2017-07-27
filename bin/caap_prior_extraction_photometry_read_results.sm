@@ -9,6 +9,8 @@ read_results
     #        "List_all.txt"
     # 
     
+    define date "2017-06-26"
+    
     load rfile.sm
     rfile "Read_Results_all_final_x_y_f_df_pix_scale_fit_2.txt"
     rfile "Read_Results_all_final_morphologies_fit_2.txt"
@@ -94,9 +96,12 @@ read_results
         
         
         # 
-        !cp "List_all.txt" "A-COSMOS_prior_2017-06-26.txt"
-        !cp "List_snr_peak_2p5_pb_corr_5p0.txt" "A-COSMOS_prior_2017-06-26_snr_peak_2p5_pb_corr_5p0.txt"
-        !cp "List_snr_peak_2p5_pb_corr_5p0_for_alma_archive_v20170222.txt" "A-COSMOS_prior_2017-06-26_snr_peak_2p5_pb_corr_5p0_for_alma_archive_v20170222.txt"
+        !cp "List_all.txt" "A-COSMOS_prior_"$date".txt"
+        !cp "List_snr_peak_2p5_pb_corr_5p0.txt" "A-COSMOS_prior_"$date"_snr_peak_2p5_pb_corr_5p0.txt"
+        !cp "List_snr_peak_2p5_pb_corr_5p0_for_alma_archive_v20170222.txt" "A-COSMOS_prior_"$date"_snr_peak_2p5_pb_corr_5p0_for_alma_archive_v20170222.txt"
     }
     
     
+
+
+
