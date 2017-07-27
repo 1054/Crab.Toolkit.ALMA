@@ -272,10 +272,21 @@ for (( i=0; i<${#SciImages[@]}; i++ )); do
 done
 
 
+
+# 
+# cp caap_prior_extraction_photometry_read_results.sm
+# 
+if [[ -f $(dirname "${BASH_SOURCE[0]}")"/caap_prior_extraction_photometry_read_results.sm" ]]; then
+    cp $(dirname "${BASH_SOURCE[0]}")"/caap_prior_extraction_photometry_read_results.sm" .
+fi
+
+
+
 #cd "../"
 
 
 echo "Output to \"$OutputDir\"!"
+echo "Please then run \"macro read caap_prior_extraction_photometry_read_results.sm read_results\" in Supermongo!"
 echo "Great! Finally! All done!"
 
 
