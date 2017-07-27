@@ -1,0 +1,102 @@
+read_results
+    
+    # 
+    # Usage: 
+    #       echo "macro read caap_prior_extraction_photometry_read_results.sm read_results" | sm
+    # 
+    # Output: 
+    #        "List_f_total_f_peak.txt"
+    #        "List_all.txt"
+    # 
+    
+    load rfile.sm
+    rfile "Read_Results_all_final_x_y_f_df_pix_scale_fit_2.txt"
+    rfile "Read_Results_all_final_morphologies_fit_2.txt"
+    rfile "Read_Results_all_final_fluxes_fit_2.txt"
+    
+    set f = f_fit_2
+    set df = df_fit_2
+    set fpeak = fpeak_fit_2
+    set rms = rms_fit_2
+    set id = id_fit_2
+    set ra = ra_fit_2
+    set dec = dec_fit_2
+    
+    if(is_vector(Maj) && is_vector(Min) && is_vector(beam_area) && is_vector(pix_scale) && is_vector(rms) \
+        && is_vector(f) && is_vector(df) && is_vector(fpeak) && is_vector(id)) {
+        
+        # load
+        load vecSNR.sm
+        
+        # Area
+        set source_area_in_arcsec = pi/(4*ln(2)) * Maj * Min # arcsec**2
+        set source_area_in_beam = source_area_in_arcsec / beam_area # pix_area*(pix_scale**2)
+        set source_area_in_pixel = source_area_in_beam * beam_area / (pix_scale**2)
+        set convol_area_in_beam = sqrt(source_area_in_beam**2 + 1.0**2)
+        
+        # df_total
+        set rms_total = rms * sqrt(convol_area_in_beam)
+        set df_total = (df>rms_total) ? df : rms_total
+        set f_total = f
+        set snr_total = vecSNR(f_total,df_total)
+        
+        # df_peak
+        set df_peak = df_total / sqrt(convol_area_in_beam)
+        set f_peak = f / convol_area_in_beam
+        set snr_peak = vecSNR(f_peak,df_peak)
+        
+        # Min_Maj_Ratio
+        set Min_Maj_Ratio = vecSNR(Min,Maj)
+        
+        # print and check
+        print "List_f_total_f_peak.txt" \
+                '%15.0f %15g %15g %15g %15g %15g %15g %15g %15g %20g\n' \
+                {id f_total df_total snr_total f_peak fpeak df_peak snr_peak rms convol_area_in_beam}
+        
+        print "List_all.txt" \
+                '%15.0f %15.8f %15.8f %15g %15g %15g %15g %15g %15g %15g %15g %20g %15g %15g %15g %15g %15g %15g %15g   %s\n' \
+                {id ra dec f_total df_total snr_total f_peak fpeak df_peak snr_peak rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr image_file}
+        
+        # do S/N and pb_corr cut
+        set coo = (snr_peak>=2.5 && pb_corr<=5.0)
+        foreach var {id ra dec f_total df_total snr_total f_peak fpeak df_peak snr_peak rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr image_file} {
+            set $var = $var if(coo)
+        }
+        print "List_snr_peak_2p5_pb_corr_5p0.txt" \
+                '%15.0f %15.8f %15.8f %15g %15g %15g %15g %15g %15g %15g %15g %20g %15g %15g %15g %15g %15g %15g %15g   %s\n' \
+                {id ra dec f_total df_total snr_total f_peak fpeak df_peak snr_peak rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr image_file}
+        
+        # do image_file cut (to select those images of old alma archive v20170222, so as to compare with blind catalog with that version)
+        data "../check_image_fits_file_list/fits_file_list_sorted_v20170222_name_only.txt" read {project_list 1.s fits_file_list 2.s}
+        !echo -n "checking image_file of alma archive v20170222 ."
+        set coo = snr_peak*0+0
+        do i=0,dimen(image_file)-1 {
+            define j 0
+            while { $j <= dimen(fits_file_list)-1 } {
+                set image_file_2 = project_list[$j]+'_'+fits_file_list[$j]
+                if(index(image_file[$i],image_file_2)>=0) {
+                    set coo[$i] = 1
+                    break
+                }
+                define j $($j+1)
+            }
+            if(($i)%(int((dimen(image_file)-1)/10.0))==0) {
+                !echo -n "."
+            }
+        }
+        foreach var {id ra dec f_total df_total snr_total f_peak fpeak df_peak snr_peak rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr image_file} {
+            set $var = $var if(coo)
+        }
+        print "List_snr_peak_2p5_pb_corr_5p0_for_alma_archive_v20170222.txt" \
+                '%15.0f %15.8f %15.8f %15g %15g %15g %15g %15g %15g %15g %15g %20g %15g %15g %15g %15g %15g %15g %15g   %s\n' \
+                {id ra dec f_total df_total snr_total f_peak fpeak df_peak snr_peak rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr image_file}
+        
+        
+        
+        # 
+        !cp "List_all.txt" "A-COSMOS_prior_2017-06-26.txt"
+        !cp "List_snr_peak_2p5_pb_corr_5p0.txt" "A-COSMOS_prior_2017-06-26_snr_peak_2p5_pb_corr_5p0.txt"
+        !cp "List_snr_peak_2p5_pb_corr_5p0_for_alma_archive_v20170222.txt" "A-COSMOS_prior_2017-06-26_snr_peak_2p5_pb_corr_5p0_for_alma_archive_v20170222.txt"
+    }
+    
+    

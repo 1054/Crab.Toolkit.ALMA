@@ -1,0 +1,281 @@
+#!/bin/bash
+# 
+
+
+# 
+# Check input argument
+# 
+if [[ $# -eq 0 ]]; then
+    echo "Usage: "
+    echo "    caap-prior-extraction-photometry-read-results \"Prior_Extraction_with_Master_Catalog_v20170606a\""
+    echo "Output: "
+    echo "    \"Read_Results_of_Prior_Extraction_with_Master_Catalog_v20170606a\""
+    echo ""
+    exit
+fi
+
+
+# 
+# Check Mac System
+# 
+if [[ $(uname) -eq "Darwin" ]]; then
+    if [[ $(type gxargs 2>/dev/null | wc -l) -eq 1 ]]; then
+        alias xargs="gxargs"
+    else
+        echo "Error! Please install GNU findutils under Mac system! (e.g. sudo port install findutils)"
+        exit 1
+    fi
+fi
+
+
+# 
+# Set Input dir
+# 
+InputDir="$1"
+
+
+# 
+# Set Output dir
+# 
+if [[ $# -ge 2 ]]; then
+    OutputDir="$2"
+else
+    OutputDir="Read_Results_of_"$(basename "$InputDir")
+fi
+
+
+# 
+# Check input dir
+# 
+if [[ ! -d "$InputDir" ]]; then
+    echo "Error! The output directory \"$InputDir\" does not exist! Abort!"; exit 1
+else
+    InputDir=$(perl -MCwd -e 'print Cwd::abs_path shift' "$InputDir") # get full path
+fi
+
+
+# 
+# Check output dir
+# 
+if [[ ! -d "$OutputDir" ]]; then
+    mkdir -p "$OutputDir"
+fi
+
+
+# 
+# Read Sci Images
+# 
+Old_IFS=$IFS
+IFS=$'\n' SciImages=($(<"$InputDir/List_of_Input_Sci_Images.txt"))
+IFS=$'\n' PsfImages=($(<"$InputDir/List_of_Input_Psf_Images.txt"))
+IFS="$Old_IFS"
+if [[ ${#SciImages[@]} -eq 0 || ${#PsfImages[@]} -eq 0 ]]; then
+    echo "Error! Failed to read \"$InputDir/List_of_Input_Sci_Images.txt\" and \"$InputDir/List_of_Input_Psf_Images.txt\"!"
+    exit 1
+fi
+
+
+# 
+# Change dir to OutputDir
+# 
+cd "$OutputDir"
+
+
+# 
+# Backup previous ouput file
+# 
+for OutputItem in detections detections_on_negative_image fit_masks; do
+    if [[ -f "Read_Results_all_final_${OutputItem}.txt.backup" ]]; then
+        mv "Read_Results_all_final_${OutputItem}.txt.backup" "Read_Results_all_final_${OutputItem}.txt.backup.backup"
+    fi
+    if [[ -f "Read_Results_all_final_${OutputItem}.txt" ]]; then
+        mv "Read_Results_all_final_${OutputItem}.txt" "Read_Results_all_final_${OutputItem}.txt.backup"
+    fi
+done
+
+for OutputItem in detections fluxes; do
+    for fit_step in getpix getpix_on_negative_image fit_0 fit_1 fit_2 fit_n0 fit_n1 fit_n2; do
+        if [[ -f "Read_Results_all_final_${OutputItem}_${fit_step}.txt.backup" ]]; then
+            mv "Read_Results_all_final_${OutputItem}_${fit_step}.txt.backup" "Read_Results_all_final_${OutputItem}_${fit_step}.txt.backup.backup"
+        fi
+        if [[ -f "Read_Results_all_final_${OutputItem}_${fit_step}.txt" ]]; then
+            mv "Read_Results_all_final_${OutputItem}_${fit_step}.txt" "Read_Results_all_final_${OutputItem}_${fit_step}.txt.backup"
+        fi
+    done
+done
+
+for fit_step in fit_2 fit_n2; do
+    if [[ -f "Read_Results_all_final_morphologies_${fit_step}.txt.backup" ]]; then
+        mv "Read_Results_all_final_morphologies_${fit_step}.txt.backup" "Read_Results_all_final_morphologies_${fit_step}.txt.backup.backup"
+    fi
+    if [[ -f "Read_Results_all_final_morphologies_${fit_step}.txt" ]]; then
+        mv "Read_Results_all_final_morphologies_${fit_step}.txt" "Read_Results_all_final_morphologies_${fit_step}.txt.backup"
+    fi
+    # 
+    if [[ -f "Read_Results_all_final_x_y_f_df_pix_scale_${fit_step}.txt.backup" ]]; then
+        mv "Read_Results_all_final_x_y_f_df_pix_scale_${fit_step}.txt.backup" "Read_Results_all_final_x_y_f_df_pix_scale_${fit_step}.txt.backup.backup"
+    fi
+    if [[ -f "Read_Results_all_final_x_y_f_df_pix_scale_${fit_step}.txt" ]]; then
+        mv "Read_Results_all_final_x_y_f_df_pix_scale_${fit_step}.txt" "Read_Results_all_final_x_y_f_df_pix_scale_${fit_step}.txt.backup"
+    fi
+done
+
+
+
+# 
+# Loop and read the results of "getpix"
+# 
+for (( i=0; i<${#SciImages[@]}; i++ )); do
+    # 
+    SciImage="${SciImages[i]}"
+    PsfImage="${PsfImages[i]}"
+    SourceName=$(basename "$SciImage" | sed -e 's%\.fits%%g')   #<TODO># file name
+    
+    # print
+    #echo ""
+    #echo ""
+    echo "************"
+    echo "SourceName = $SourceName   ($(($i+1))/${#SciImages[@]})   ($(date +'%Y%m%d %Hh%Mm%Ss %Z'))"
+    #echo "SciImage = \"$SciImage\""
+    #echo "PsfImage = \"$PsfImage\""
+    #echo "InputDir = \"$(readlink -f $InputDir)/astrodepth_prior_extraction_photometry/$SourceName\""
+    #echo "***********"
+    
+    if [[ $(uname) == "Darwin" ]]; then
+        CurrentDir=$(pwd)
+    else
+        CurrentDir=$(pwd -P)
+    fi
+    
+    cd "$InputDir/astrodepth_prior_extraction_photometry/$SourceName/"
+    
+    if [[ -f "final.result" ]]; then
+        if [[ ! -f "$CurrentDir/Read_Results_all_final_detections.txt" ]]; then
+            head -n 1 "final.result" | xargs -d '\n' -I % echo "%    image_file" \
+            > "$CurrentDir/Read_Results_all_final_detections.txt"
+        fi
+        cat "final.result" | tail -n +3 | head -n 1 | xargs -d '\n' -I % echo "%    $SourceName" \
+        >> "$CurrentDir/Read_Results_all_final_detections.txt"
+    fi
+    
+    if [[ -f "final_on_negative_image.result" ]]; then
+        if [[ ! -f "$CurrentDir/Read_Results_all_final_detections_on_negative_image.txt" ]]; then
+            head -n 1 "final_on_negative_image.result" | xargs -d '\n' -I % echo "%    image_file" \
+            > "$CurrentDir/Read_Results_all_final_detections_on_negative_image.txt"
+        fi
+        cat "final_on_negative_image.result" | tail -n +3 | head -n 1 | xargs -d '\n' -I % echo "%    $SourceName" \
+        >> "$CurrentDir/Read_Results_all_final_detections_on_negative_image.txt"
+    fi
+    
+    for fit_step in getpix getpix_on_negative_image; do
+        if [[ -f "${fit_step}.result" ]]; then
+            if [[ ! -f "$CurrentDir/Read_Results_all_final_detections_${fit_step}.txt" ]]; then
+                head -n 1 "${fit_step}.result" | xargs -d '\n' -I % echo "%    image_file" \
+                > "$CurrentDir/Read_Results_all_final_detections_${fit_step}.txt"
+            fi
+            cat "${fit_step}.result" | tail -n +3 | xargs -d '\n' -I % echo "%    $SourceName" \
+            >> "$CurrentDir/Read_Results_all_final_detections_${fit_step}.txt"
+        fi
+    done
+    
+    for fit_step in fit_0 fit_1 fit_2 fit_n0 fit_n1 fit_n2; do
+        if [[ -f "${fit_step}.result.ra.dec.detect.id" ]]; then
+            if [[ ! -f "$CurrentDir/Read_Results_all_final_detections_${fit_step}.txt" ]]; then
+                head -n 1 "${fit_step}.result.ra.dec.detect.id" | xargs -d '\n' -I % echo "%    image_file" \
+                > "$CurrentDir/Read_Results_all_final_detections_${fit_step}.txt"
+            fi
+            cat "${fit_step}.result.ra.dec.detect.id" | tail -n +3 | xargs -d '\n' -I % echo "%    $SourceName" \
+            >> "$CurrentDir/Read_Results_all_final_detections_${fit_step}.txt"
+        fi
+    done
+    
+    for fit_step in getpix; do
+        if [[ -f "getpix.mask" ]]; then
+            if [[ ! -f "$CurrentDir/Read_Results_all_final_fit_masks.txt" ]]; then
+                head -n 1 "getpix.mask" | xargs -d '\n' -I % echo "%    image_file" \
+                > "$CurrentDir/Read_Results_all_final_fit_masks.txt"
+            fi
+            cat "getpix.mask" | tail -n +3 | xargs -d '\n' -I % echo "%    $SourceName" \
+            >> "$CurrentDir/Read_Results_all_final_fit_masks.txt"
+        fi
+    done
+    
+    for fit_step in getpix_on_negative_image; do
+        if [[ -f "getpix_on_negative_image.mask" ]]; then
+            if [[ ! -f "$CurrentDir/Read_Results_all_final_fit_masks_on_negative_image.txt" ]]; then
+                head -n 1 "getpix_on_negative_image.mask" | xargs -d '\n' -I % echo "%    image_file" \
+                > "$CurrentDir/Read_Results_all_final_fit_masks_on_negative_image.txt"
+            fi
+            cat "getpix_on_negative_image.mask" | tail -n +3 | xargs -d '\n' -I % echo "%    $SourceName" \
+            >> "$CurrentDir/Read_Results_all_final_fit_masks_on_negative_image.txt"
+        fi
+    done
+    
+    for fit_step in getpix getpix_on_negative_image; do
+        if [[ -f "${fit_step}.result" ]]; then
+            if [[ ! -f "$CurrentDir/Read_Results_all_final_fluxes_${fit_step}.txt" ]]; then
+                head -n 1 "${fit_step}.result" | xargs -d '\n' -I % echo "%    image_file" \
+                > "$CurrentDir/Read_Results_all_final_fluxes_${fit_step}.txt"
+            fi
+            cat "${fit_step}.result" | tail -n +3 | xargs -d '\n' -I % echo "%    $SourceName" \
+            >> "$CurrentDir/Read_Results_all_final_fluxes_${fit_step}.txt"
+        fi
+    done
+    
+    for fit_step in fit_0 fit_1 fit_n0 fit_n1; do
+        if [[ -f "${fit_step}.result.ra.dec.f.df.snr.id" ]]; then
+            if [[ ! -f "$CurrentDir/Read_Results_all_final_fluxes_${fit_step}.txt" ]]; then
+                head -n 1 "${fit_step}.result.ra.dec.f.df.snr.id" | xargs -d '\n' -I % echo "%    image_file" \
+                > "$CurrentDir/Read_Results_all_final_fluxes_${fit_step}.txt"
+            fi
+            cat "${fit_step}.result.ra.dec.f.df.snr.id" | tail -n +3 | xargs -d '\n' -I % echo "%    $SourceName" \
+            >> "$CurrentDir/Read_Results_all_final_fluxes_${fit_step}.txt"
+        fi
+    done
+    
+    for fit_step in fit_2 fit_n2; do
+        if [[ -f "${fit_step}.result.ra.dec.rms.pix.pbc.id" ]]; then
+            if [[ ! -f "$CurrentDir/Read_Results_all_final_fluxes_${fit_step}.txt" ]]; then
+                head -n 1 "${fit_step}.result.ra.dec.rms.pix.pbc.id" | xargs -d '\n' -I % echo "%    image_file" \
+                > "$CurrentDir/Read_Results_all_final_fluxes_${fit_step}.txt"
+            fi
+            cat "${fit_step}.result.ra.dec.rms.pix.pbc.id" | tail -n +3 | xargs -d '\n' -I % echo "%    $SourceName" \
+            >> "$CurrentDir/Read_Results_all_final_fluxes_${fit_step}.txt"
+        fi
+    done
+    
+    for fit_step in fit_2 fit_n2; do
+        if [[ -f "${fit_step}.result.ra.dec.Maj.Min.PA.id" ]]; then
+            if [[ ! -f "$CurrentDir/Read_Results_all_final_morphologies_${fit_step}.txt" ]]; then
+                head -n 1 "${fit_step}.result.ra.dec.Maj.Min.PA.id" | xargs -d '\n' -I % echo "%    image_file" \
+                > "$CurrentDir/Read_Results_all_final_morphologies_${fit_step}.txt"
+            fi
+            cat "${fit_step}.result.ra.dec.Maj.Min.PA.id" | tail -n +3 | xargs -d '\n' -I % echo "%    $SourceName" \
+            >> "$CurrentDir/Read_Results_all_final_morphologies_${fit_step}.txt"
+        fi
+    done
+    
+    for fit_step in fit_2 fit_n2; do
+        if [[ -f "${fit_step}.result" ]]; then
+            if [[ ! -f "$CurrentDir/Read_Results_all_final_x_y_f_df_pix_scale_${fit_step}.txt" ]]; then
+                head -n 1 "${fit_step}.result" | xargs -d '\n' -I % echo "%    image_file" \
+                > "$CurrentDir/Read_Results_all_final_x_y_f_df_pix_scale_${fit_step}.txt"
+            fi
+            cat "${fit_step}.result" | tail -n +3 | xargs -d '\n' -I % echo "%    $SourceName" \
+            >> "$CurrentDir/Read_Results_all_final_x_y_f_df_pix_scale_${fit_step}.txt"
+        fi
+    done
+    
+    
+    cd "$CurrentDir"
+    #break
+done
+
+
+#cd "../"
+
+
+echo "Output to \"$OutputDir\"!"
+echo "Great! Finally! All done!"
+
+

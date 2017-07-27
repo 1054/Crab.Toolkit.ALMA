@@ -54,7 +54,9 @@ fi
 UserFitStart=""
 UserFitEnd=""
 UserYes=0
-UserOverwrite=""
+UserSteps=()
+UserUnlock=()
+UserOverwrite=()
 InputCat=()
 InputSci=()
 InputPsf=()
@@ -77,10 +79,10 @@ while [[ "$#" -gt 0 ]]; do
      "-image-sci") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-sci";;
      "-image-psf") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-psf";;
      "-image-rms") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-rms";;
-     "-overwrite") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="overwrite";;
-          "-step") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="overwrite";;
-         "-steps") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="overwrite";;
-        "-unlock") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="overwrite";;
+     "-overwrite") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="user-overwrite";;
+          "-step") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="user-steps";;
+         "-steps") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="user-steps";;
+        "-unlock") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="user-unlock";;
            "-out") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output-dir";;
         "-output") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output-dir";;
      "-outputdir") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output-dir";;
@@ -100,7 +102,9 @@ while [[ "$#" -gt 0 ]]; do
  "list-image-rms") if [[ $# -gt 0 ]]; then InputRms+=("$1"); fi;;
      "output-dir") if [[ $# -gt 0 ]]; then OutputDir="$1"; fi;;
     "output-name") if [[ $# -gt 0 ]]; then OutputSubDir="$1"; fi;;
-      "overwrite") if [[ $# -gt 0 ]]; then UserOverwrite+=("$1"); fi;;
+     "user-steps") if [[ $# -gt 0 ]]; then UserSteps+=("$1"); fi;;
+    "user-unlock") if [[ $# -gt 0 ]]; then UserUnlock+=("$1"); fi;;
+ "user-overwrite") if [[ $# -gt 0 ]]; then UserOverwrite+=("$1"); fi;;
             "yes")                         UserYes=1;;
     esac
     #
@@ -109,6 +113,8 @@ done
 
 echo "UserFitStart = $UserFitStart"
 echo "UserFitEnd = $UserFitEnd"
+echo "UserSteps = ${UserSteps[@]}"
+echo "UserUnlock = ${UserUnlock[@]}"
 echo "UserOverwrite = ${UserOverwrite[@]}"
 echo "InputCat = ${InputCat[@]} (${#InputCat[@]})"
 echo "InputSci = ${InputSci[@]} (${#InputSci[@]})"
@@ -303,7 +309,12 @@ if [[ ! -f "$OutputDir/List_of_Input_Sci_Images.txt" || ! -f "$OutputDir/List_of
         if [[ ${#PsfImages[@]} -gt $i ]]; then
             PsfImage="${PsfImages[i]}"
         else
+            # create a PsfImage with extension .clean-beam.fits, by replacing the SciImage extension .image.fits
             PsfImage=$(echo "$SciImage" | sed -e 's/\.image\.fits$/.clean-beam/g')
+            # create a PsfImage with extension .clean-beam.fits, by replacing the SciImage extension .fits
+            if [[ "$PsfImage" == *".fits" ]]; then
+                PsfImage=$(echo "$SciImage" | sed -e 's/\.fits$/.clean-beam/g')
+            fi
             if [[ ! -f "$PsfImage.fits" ]]; then
                 echo "# "$(date +'%Y%m%d %Hh%Mm%Ss %Z') > "$PsfImage.log"
                 echo "caap-generate-PSF-Gaussian-2D \"$SciImage\" \"$PsfImage.fits\"" >> "$PsfImage.log"
@@ -341,8 +352,12 @@ if [[ ! -f "$OutputDir/List_of_Input_Sci_Images.txt" || ! -f "$OutputDir/List_of
             if [[ $(awk "BEGIN {if( sqrt((($RmsValue)-($RmsValue2))**2) / ((($RmsValue)+($RmsValue2))/2.0) > 2.0 ) print 1; else print 0;}") -eq 1 ]]; then
                 echo "Error! The Gaussian_sigma and Inner_sigma do not agree within 200% in \"$RmsStats.txt\"! Please check \"$RmsStats.log\"!"; exit 1
             fi
-            # create an rms image from the RmsStats
+            # create an rms image from the RmsStats with extension .rms.fits, by replacing the SciImage extension .image.fits
             RmsImage=$(echo "$SciImage" | sed -e 's/\.image\.fits$/.rms/g')
+            # create an rms image from the RmsStats with extension .rms.fits, by replacing the SciImage extension .fits
+            if [[ "$RmsImage" == *".fits" ]]; then
+                RmsImage=$(echo "$SciImage" | sed -e 's/\.fits$/.rms/g')
+            fi
             if [[ ! -f "$RmsImage.fits" ]]; then
                 echo "# "$(date +'%Y%m%d %Hh%Mm%Ss %Z') > "$RmsImage.log"
                 echo "CrabFitsImageArithmetic \"$SciImage\" times 0.0 \"$RmsImage.tmp.fits\"" >> "$RmsImage.log"
@@ -359,7 +374,7 @@ if [[ ! -f "$OutputDir/List_of_Input_Sci_Images.txt" || ! -f "$OutputDir/List_of
         fi
         # 
         # check SciImage and PsfImage name consistency
-        SciImage_check=$(echo "$SciImage" | sed -e 's%\.image\.fits%%g')   #<TODO># file name
+        SciImage_check=$(echo "$SciImage" | sed -e 's%\.image\.fits%%g' | sed -e 's%\.fits%%g')   #<TODO># file name
         PsfImage_check=$(echo "$PsfImage" | sed -e 's%\.clean-beam\.fits%%g')     #<TODO># file name
         RmsImage_check=$(echo "$RmsImage" | sed -e 's%\.rms\.fits%%g')     #<TODO># file name
         if [[ "$SciImage_check" != "$PsfImage_check" ]]; then 
@@ -587,8 +602,17 @@ for (( i=0; i<${#SciImages[@]}; i++ )); do
     SourceName=$(basename "$SciImage" | sed -e 's%\.fits%%g')   #<TODO># file name
     # 
     # cd OutputDir
-    CurrentDir=$(pwd -P)
+    if [[ $(uname) == "Darwin" ]]; then
+        CurrentDir=$(pwd)
+    else
+        CurrentDir=$(pwd -P)
+    fi
     cd "$OutputDir/"
+    if [[ $(uname) == "Darwin" ]]; then
+        OutputDir_fullpath=$(pwd)
+    else
+        OutputDir_fullpath=$(pwd -P)
+    fi
     # 
     # print
     echo ""
@@ -598,12 +622,13 @@ for (( i=0; i<${#SciImages[@]}; i++ )); do
     echo "SciImage = \"$SciImage\""
     echo "PsfImage = \"$PsfImage\""
     echo "RmsImage = \"$RmsImage\""
-    echo "OutputDir = \"$(pwd -P)/$SourceDir/$SourceName\""
+    echo "OutputDir = \"$OutputDir_fullpath/$SourceDir/$SourceName\""
     echo "***********"
     echo "Running astrodepth_prior_extraction_photometry"
     echo  "#!/bin/bash"                                                                                             >  "$SourceDir/$SourceName.run.bash"
+    echo  "# "                                                                                                      >> "$SourceDir/$SourceName.run.bash"
     echo  "source ~/Cloud/Github/DeepFields.SuperDeblending/Softwares/SETUP"                                        >> "$SourceDir/$SourceName.run.bash"
-    echo  "cd \"$(pwd -P)\""                                                                                        >> "$SourceDir/$SourceName.run.bash"
+    echo  "cd \"$OutputDir_fullpath/\""                                                                             >> "$SourceDir/$SourceName.run.bash"
     # 
     #<20170612> fix pb_corr array mask problem
     #<20170626> fix cat_index fit_X.param Note problem
@@ -621,8 +646,9 @@ for (( i=0; i<${#SciImages[@]}; i++ )); do
     echo  "                                       -rms \"$RmsImage\" \\"                                            >> "$SourceDir/$SourceName.run.bash"
     echo  "                                       -output-dir \"$SourceDir\" \\"                                    >> "$SourceDir/$SourceName.run.bash"
     echo  "                                       -output-name \"$SourceName\" \\"                                  >> "$SourceDir/$SourceName.run.bash"
-    echo  "                                       -steps \"getpix\" \"galfit\" \"gaussian\" \"final\" \\"           >> "$SourceDir/$SourceName.run.bash"
-    echo  "                                       ${UserOverwrite[@]}"                                              >> "$SourceDir/$SourceName.run.bash"
+    echo  "                                       -steps getpix galfit gaussian ${UserSteps[@]} final \\"           >> "$SourceDir/$SourceName.run.bash"
+    echo  "                                       -unlock none ${UserUnlock[@]} \\"                                 >> "$SourceDir/$SourceName.run.bash"
+    echo  "                                       -overwrite none ${UserOverwrite[@]}"                              >> "$SourceDir/$SourceName.run.bash"
     echo  ""                                                                                                        >> "$SourceDir/$SourceName.run.bash"
     # 
     #<20170612># check image with problematic "image_sci_pixnoise.txt"
@@ -671,15 +697,15 @@ for (( i=0; i<${#SciImages[@]}; i++ )); do
     ##echo  "cd \"$SourceDir/$SourceName/\""                                                                          >> "$SourceDir/$SourceName.run.bash"
     ##echo  "echo \"macro read astrodepth_go_galfit.sm print_result_fit_2\" | sm"                                     >> "$SourceDir/$SourceName.run.bash"
     ##echo  "cd ../../"                                                                                               >> "$SourceDir/$SourceName.run.bash"
-    echo  "" >> "$SourceDir/$SourceName.run.bash"
-    echo  "# do cleaning" >> "$SourceDir/$SourceName.run.bash"
-    echo  "if [[ -d \"$SourceDir/$SourceName/\" ]]; then" >> "$SourceDir/$SourceName.run.bash"
-    echo  "cd \"$SourceDir/$SourceName/\"" >> "$SourceDir/$SourceName.run.bash"
-    echo  "rm galfit.* getpix.radius.* aaa_* aaa.* *.sky2xy.* *.tmp *.backup 2>/dev/null" >> "$SourceDir/$SourceName.run.bash"
-    echo  "rm prior_id.txt prior_x_y.txt 2>/dev/null" >> "$SourceDir/$SourceName.run.bash"
-    echo  "fi" >> "$SourceDir/$SourceName.run.bash"
-    echo  "" >> "$SourceDir/$SourceName.run.bash"
-    echo  "" >> "$SourceDir/$SourceName.run.bash"
+    echo  ""                                                                                 >> "$SourceDir/$SourceName.run.bash"
+    echo  "# do cleaning"                                                                    >> "$SourceDir/$SourceName.run.bash"
+    echo  "if [[ -d \"$SourceDir/$SourceName/\" ]]; then"                                    >> "$SourceDir/$SourceName.run.bash"
+    echo  "   cd \"$SourceDir/$SourceName/\""                                                >> "$SourceDir/$SourceName.run.bash"
+    echo  "   rm galfit.* getpix.radius.* aaa_* aaa.* *.sky2xy.* *.tmp *.backup 2>/dev/null" >> "$SourceDir/$SourceName.run.bash"
+    echo  "   rm prior_id.txt prior_x_y.txt 2>/dev/null"                                     >> "$SourceDir/$SourceName.run.bash"
+    echo  "fi"                                                                               >> "$SourceDir/$SourceName.run.bash"
+    echo  ""                                                                                 >> "$SourceDir/$SourceName.run.bash"
+    echo  ""                                                                                 >> "$SourceDir/$SourceName.run.bash"
     # 
     chmod +x "$SourceDir/$SourceName.run.bash"
     ./$SourceDir/$SourceName.run.bash
@@ -691,12 +717,7 @@ done
 
 
 
-echo "Done!"
-
-#echo ""
-#echo ""
-#echo ""
-#echo "Great! Finally! All done!"
+echo "All Done!"
 
 
 
