@@ -111,6 +111,13 @@ while [[ "$#" -gt 0 ]]; do
     if [[ $# -gt 0 ]]; then shift; fi
 done
 
+if [[ ${#UserOverwrite[@]} -eq 0 ]]; then
+    UserOverwrite=("none")
+fi
+if [[ ${#UserUnlock[@]} -eq 0 ]]; then
+    UserUnlock=("none")
+fi
+
 echo "UserFitStart = $UserFitStart"
 echo "UserFitEnd = $UserFitEnd"
 echo "UserSteps = ${UserSteps[@]}"
@@ -647,8 +654,8 @@ for (( i=0; i<${#SciImages[@]}; i++ )); do
     echo  "                                       -output-dir \"$SourceDir\" \\"                                    >> "$SourceDir/$SourceName.run.bash"
     echo  "                                       -output-name \"$SourceName\" \\"                                  >> "$SourceDir/$SourceName.run.bash"
     echo  "                                       -steps getpix galfit gaussian ${UserSteps[@]} final \\"           >> "$SourceDir/$SourceName.run.bash"
-    echo  "                                       -unlock none ${UserUnlock[@]} \\"                                 >> "$SourceDir/$SourceName.run.bash"
-    echo  "                                       -overwrite none ${UserOverwrite[@]}"                              >> "$SourceDir/$SourceName.run.bash"
+    echo  "                                       -unlock ${UserUnlock[@]} \\"                                      >> "$SourceDir/$SourceName.run.bash"
+    echo  "                                       -overwrite ${UserOverwrite[@]}"                                   >> "$SourceDir/$SourceName.run.bash"
     echo  ""                                                                                                        >> "$SourceDir/$SourceName.run.bash"
     # 
     #<20170612># check image with problematic "image_sci_pixnoise.txt"
