@@ -18,7 +18,7 @@ fi
 # 
 # Check Mac System
 # 
-if [[ $(uname) -eq "Darwin" ]]; then
+if [[ $(uname) == "Darwin" ]]; then
     if [[ $(type gxargs 2>/dev/null | wc -l) -eq 1 ]]; then
         alias xargs="gxargs"
     else
