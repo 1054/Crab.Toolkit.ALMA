@@ -1,6 +1,7 @@
 #!/bin/bash
 # 
-
+# 
+# 2017-07-29 Replaced all  "perl -MCwd -e 'print Cwd::abs_path shift'"  with  "caap-abs-path"
 
 
 # 
@@ -76,6 +77,8 @@ while [[ "$#" -gt 0 ]]; do
            "-sci") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-sci";;
           "-fits") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-sci";;
          "-image") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-sci";;
+           "-psf") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-psf";;
+           "-rms") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-rms";;
      "-image-sci") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-sci";;
      "-image-psf") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-psf";;
      "-image-rms") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-rms";;
@@ -160,7 +163,7 @@ if [[ ${#InputCat[@]} -gt 0 ]]; then
         #if [[ "${InputCat[i]}" != *".fits" ]]; then
         #    echo "Error! The input catalog \"${InputCat[i]}\" is not a FITS format data table!"; exit 1
         #fi
-        InputCat1=$(perl -MCwd -e 'print Cwd::abs_path shift' "${InputCat[i]}") # get full path
+        InputCat1=$(caap-abs-path "${InputCat[i]}") # get full path
         InputCats+=("$InputCat1")
         echo "$InputCat1" > "$OutputDir/List_of_Input_Catalog.txt"
     done
@@ -190,14 +193,14 @@ if [[ ${#InputSci[@]} -gt 0 ]]; then
                     SciImage1[j]=$(dirname "${InputSci[i]}")"/${SciImage1[j]}"
                 fi
                 if [[ -f "${SciImage1[j]}" ]]; then
-                    SciImages+=($(perl -MCwd -e 'print Cwd::abs_path shift' "${SciImage1[j]}"))
+                    SciImages+=($(caap-abs-path "${SciImage1[j]}"))
                 else
                     echo "Error! InputSci \"${SciImage1[j]}\" does not exist!"; exit 1
                 fi
             done
         elif [[ "${InputSci[i]}" == *".fits" ]]; then
             if [[ -f "${InputSci[i]}" ]]; then
-                SciImages+=($(perl -MCwd -e 'print Cwd::abs_path shift' "${InputSci[i]}"))
+                SciImages+=($(caap-abs-path "${InputSci[i]}"))
             else
                 echo "Error! InputSci \"${InputSci[i]}\" does not exist!"; exit 1
             fi
@@ -226,14 +229,14 @@ if [[ ${#InputPsf[@]} -gt 0 ]]; then
                     PsfImage1[j]=$(dirname "${InputPsf[i]}")"/${PsfImage1[j]}"
                 fi
                 if [[ -f "${PsfImage1[j]}" ]]; then
-                    PsfImages+=($(perl -MCwd -e 'print Cwd::abs_path shift' "${PsfImage1[j]}"))
+                    PsfImages+=($(caap-abs-path "${PsfImage1[j]}"))
                 else
                     echo "Error! InputPsf \"${PsfImage1[j]}\" does not exist!"; exit 1
                 fi
             done
         elif [[ "${InputPsf[i]}" == *".fits" ]]; then
             if [[ -f "${InputPsf[i]}" ]]; then
-                PsfImages+=($(perl -MCwd -e 'print Cwd::abs_path shift' "${InputPsf[i]}"))
+                PsfImages+=($(caap-abs-path "${InputPsf[i]}"))
             else
                 echo "Error! InputPsf \"${InputPsf[i]}\" does not exist!"; exit 1
             fi
@@ -262,14 +265,14 @@ if [[ ${#InputRms[@]} -gt 0 ]]; then
                     RmsImage1[j]=$(dirname "${InputRms[i]}")"/${RmsImage1[j]}"
                 fi
                 if [[ -f "${RmsImage1[j]}" ]]; then
-                    RmsImages+=($(perl -MCwd -e 'print Cwd::abs_path shift' "${RmsImage1[j]}"))
+                    RmsImages+=($(caap-abs-path "${RmsImage1[j]}"))
                 else
                     echo "Error! InputRms \"${RmsImage1[j]}\" does not exist!"; exit 1
                 fi
             done
         elif [[ "${InputRms[i]}" == *".fits" ]]; then
             if [[ -f "${InputRms[i]}" ]]; then
-                RmsImages+=($(perl -MCwd -e 'print Cwd::abs_path shift' "${InputRms[i]}"))
+                RmsImages+=($(caap-abs-path "${InputRms[i]}"))
             else
                 echo "Error! InputRms \"${InputRms[i]}\" does not exist!"; exit 1
             fi
@@ -382,7 +385,7 @@ if [[ ! -f "$OutputDir/List_of_Input_Sci_Images.txt" || ! -f "$OutputDir/List_of
         # 
         # check SciImage and PsfImage name consistency
         SciImage_check=$(echo "$SciImage" | sed -e 's%\.image\.fits%%g' | sed -e 's%\.fits%%g')   #<TODO># file name
-        PsfImage_check=$(echo "$PsfImage" | sed -e 's%\.clean-beam\.fits%%g')     #<TODO># file name
+        PsfImage_check=$(echo "$PsfImage" | sed -e 's%\.psf\.fits%%g' | sed -e 's%\.clean-beam\.fits%%g')     #<TODO># file name
         RmsImage_check=$(echo "$RmsImage" | sed -e 's%\.rms\.fits%%g')     #<TODO># file name
         if [[ "$SciImage_check" != "$PsfImage_check" ]]; then 
             echo ""; echo "Error! The input SciImage \"$SciImage\" and PsfImage \"$PsfImage\" do not match!"; exit 1
@@ -455,16 +458,18 @@ if [[ ! -f "$OutputDir/List_of_Input_Sci_Images.txt" || ! -f "$OutputDir/List_of
         fi
         # 
         # check SciImage and RmsImage dimension, make sure they have a size of about 300 pixel (below 450 pixel). 
+        CutSizeM=450 #<TODO># 450
+        CutSizeS=300 #<TODO># 300
         SciImage_fullpath="$SciImage"
         RmsImage_fullpath="$RmsImage"
         SciNAXIS1=$(gethead "$SciImage_fullpath" NAXIS1)
         SciNAXIS2=$(gethead "$SciImage_fullpath" NAXIS2)
-        if [[ $(awk "BEGIN {if(($SciNAXIS1>450)||($SciNAXIS2>450)) print 1; else print 0;}") -eq 1 ]]; then
+        if [[ $(awk "BEGIN {if(($SciNAXIS1>$CutSizeM)||($SciNAXIS2>$CutSizeM)) print 1; else print 0;}") -eq 1 ]]; then
             SciImage_cut_rect=$(echo "$SciImage_fullpath" | sed -e "s/\.fits$/.cut.rect.txt/g")
             RmsImage_cut_rect=$(echo "$RmsImage_fullpath" | sed -e "s/\.fits$/.cut.rect.txt/g")
             if [[ ! -f "$SciImage_cut_rect" ]]; then
-                CutNumbX=$(awk "BEGIN {print int(($SciNAXIS1)/300/2.0)*2+1}") # ~3
-                CutNumbY=$(awk "BEGIN {print int(($SciNAXIS2)/300/2.0)*2+1}") # ~3
+                CutNumbX=$(awk "BEGIN {print int(($SciNAXIS1)/$CutSizeS/2.0)*2+1}") # ~3
+                CutNumbY=$(awk "BEGIN {print int(($SciNAXIS2)/$CutSizeS/2.0)*2+1}") # ~3
                 CutSizeX=$(awk "BEGIN {print int(($SciNAXIS1)/$CutNumbX)}") # ~301
                 CutSizeY=$(awk "BEGIN {print int(($SciNAXIS2)/$CutNumbY)}") # ~301
                 CutBuffer=20
@@ -709,15 +714,15 @@ for (( i=0; i<${#SciImages[@]}; i++ )); do
     echo  "if [[ -d \"$SourceDir/$SourceName/\" ]]; then"                                    >> "$SourceDir/$SourceName.run.bash"
     echo  "   cd \"$SourceDir/$SourceName/\""                                                >> "$SourceDir/$SourceName.run.bash"
     echo  "   rm galfit.* getpix.radius.* aaa_* aaa.* *.sky2xy.* *.tmp *.backup 2>/dev/null" >> "$SourceDir/$SourceName.run.bash"
-    echo  "   rm prior_id.txt prior_x_y.txt 2>/dev/null"                                     >> "$SourceDir/$SourceName.run.bash"
+    echo  "   #rm prior_id.txt prior_x_y.txt 2>/dev/null"                                     >> "$SourceDir/$SourceName.run.bash"
     echo  "fi"                                                                               >> "$SourceDir/$SourceName.run.bash"
     echo  ""                                                                                 >> "$SourceDir/$SourceName.run.bash"
     echo  ""                                                                                 >> "$SourceDir/$SourceName.run.bash"
     # 
     chmod +x "$SourceDir/$SourceName.run.bash"
     ./$SourceDir/$SourceName.run.bash
-    rm "$SourceDir/astrodepth_image_0_catalog_0_sky2xy.txt" 2>/dev/null
-    rm "$SourceDir/astrodepth_image_0_catalog_0_x_y.txt"    2>/dev/null
+    #rm "$SourceDir/astrodepth_image_0_catalog_0_sky2xy.txt" 2>/dev/null
+    #rm "$SourceDir/astrodepth_image_0_catalog_0_x_y.txt"    2>/dev/null
     cd "$CurrentDir"
     #break
 done
