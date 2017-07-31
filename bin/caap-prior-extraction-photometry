@@ -182,6 +182,9 @@ if [[ ${#InputSci[@]} -gt 0 ]]; then
     if [[ -f "$OutputDir/List_of_Input_Sci_Images.txt" ]]; then
         mv "$OutputDir/List_of_Input_Sci_Images.txt" "$OutputDir/List_of_Input_Sci_Images.txt.backup"
     fi
+    if [[ -f "$OutputDir/List_of_Input_Rms_Images.txt" ]]; then
+        mv "$OutputDir/List_of_Input_Rms_Images.txt" "$OutputDir/List_of_Input_Rms_Images.txt.backup"
+    fi
     if [[ -f "$OutputDir/List_of_Input_Psf_Images.txt" ]]; then
         mv "$OutputDir/List_of_Input_Psf_Images.txt" "$OutputDir/List_of_Input_Psf_Images.txt.backup"
     fi
