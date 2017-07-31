@@ -62,6 +62,7 @@ InputCat=()
 InputSci=()
 InputPsf=()
 InputRms=()
+InputBoxSize=()
 OutputDir="Prior_Extraction_Photometry_v"$(date +"%Y%m%d")
 OutputSubDir="astrodepth_prior_extraction_photometry"
 while [[ "$#" -gt 0 ]]; do
@@ -93,6 +94,8 @@ while [[ "$#" -gt 0 ]]; do
    "-output-name") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output-name";;
  "-output-subdir") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output-name";;
 "-output-sub-dir") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output-name";;
+           "-box") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="box-size";;
+      "-box-size") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="box-size";;
            "-yes") CAAP_CMD_TEXT="$1";        CAAP_CMD_TYPE="yes";;
     esac
     #echo "$CAAP_CMD_TYPE"
@@ -103,6 +106,7 @@ while [[ "$#" -gt 0 ]]; do
  "list-image-sci") if [[ $# -gt 0 ]]; then InputSci+=("$1"); fi;;
  "list-image-psf") if [[ $# -gt 0 ]]; then InputPsf+=("$1"); fi;;
  "list-image-rms") if [[ $# -gt 0 ]]; then InputRms+=("$1"); fi;;
+       "box-size") if [[ $# -gt 0 ]]; then InputBoxSize+=("$1"); fi;;
      "output-dir") if [[ $# -gt 0 ]]; then OutputDir="$1"; fi;;
     "output-name") if [[ $# -gt 0 ]]; then OutputSubDir="$1"; fi;;
      "user-steps") if [[ $# -gt 0 ]]; then UserSteps+=("$1"); fi;;
@@ -458,8 +462,13 @@ if [[ ! -f "$OutputDir/List_of_Input_Sci_Images.txt" || ! -f "$OutputDir/List_of
         fi
         # 
         # check SciImage and RmsImage dimension, make sure they have a size of about 300 pixel (below 450 pixel). 
-        CutSizeM=450 #<TODO># 450
-        CutSizeS=300 #<TODO># 300
+        if [[ ${#InputBoxSize[@]} -gt 0 ]]; then
+            CutSizeM=$(awk "BEGIN {print int(${InputBoxSize[0]}*1.4);}") #<TODO># 450
+            CutSizeS=${InputBoxSize[0]} #<TODO># 300
+        else
+            CutSizeM=450 #<TODO># 450
+            CutSizeS=300 #<TODO># 300
+        fi
         SciImage_fullpath="$SciImage"
         RmsImage_fullpath="$RmsImage"
         SciNAXIS1=$(gethead "$SciImage_fullpath" NAXIS1)
