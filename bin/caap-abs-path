@@ -4,31 +4,50 @@
 #   return absolute path
 # 
 
-if [[ $(uname) == "Darwin" ]]; then
-    if [[ $(type greadlink 2>/dev/null | wc -l) -eq 2 ]]; then
-        greadlink -f "$@"
-        exit
+#if [[ $(uname) == "Darwin" ]]; then
+#    if [[ $(type greadlink 2>/dev/null | wc -l) -eq 1 ]]; then
+#        greadlink -f "$@"
+#        exit
+#    else
+#        #perl -MCwd -e 'print Cwd::abs_path shift' "$@" # -- however, this will follow symbol link!
+#        CAAP_ABS_PATH_FILE_NAME=$(basename "$1")
+#        CAAP_ABS_PATH_DIR_NAME=$(dirname "$1")
+#        if [[ "$CAAP_ABS_PATH_FILE_NAME" == ".." ]]; then
+#            CAAP_ABS_PATH_DIR_NAME="${CAAP_ABS_PATH_DIR_NAME}/.."
+#        fi
+#        if [[ -d "${CAAP_ABS_PATH_DIR_NAME}" ]]; then
+#            CAAP_ABS_PATH_DIR_PATH=$(bash -c "cd ${CAAP_ABS_PATH_DIR_NAME}; pwd;")
+#            if [[ "$CAAP_ABS_PATH_FILE_NAME" == "." || "$CAAP_ABS_PATH_FILE_NAME" == ".." ]]; then
+#                echo "${CAAP_ABS_PATH_DIR_PATH}"
+#            else
+#                echo "${CAAP_ABS_PATH_DIR_PATH}/${CAAP_ABS_PATH_FILE_NAME}"
+#            fi
+#        else
+#            echo "${CAAP_ABS_PATH_DIR_NAME}/${CAAP_ABS_PATH_FILE_NAME}"
+#        fi
+#        exit
+#    fi
+#else
+#    readlink -f "$@"
+#    exit
+#fi
+
+
+#perl -MCwd -e 'print Cwd::abs_path shift' "$@" # -- however, this will follow symbol link!
+CAAP_ABS_PATH_FILE_NAME=$(basename "$1")
+CAAP_ABS_PATH_DIR_NAME=$(dirname "$1")
+if [[ "$CAAP_ABS_PATH_FILE_NAME" == ".." ]]; then
+    CAAP_ABS_PATH_DIR_NAME="${CAAP_ABS_PATH_DIR_NAME}/.."
+fi
+if [[ -d "${CAAP_ABS_PATH_DIR_NAME}" ]]; then
+    CAAP_ABS_PATH_DIR_PATH=$(bash -c "cd ${CAAP_ABS_PATH_DIR_NAME}; pwd;")
+    if [[ "$CAAP_ABS_PATH_FILE_NAME" == "." || "$CAAP_ABS_PATH_FILE_NAME" == ".." ]]; then
+        echo "${CAAP_ABS_PATH_DIR_PATH}"
     else
-        #perl -MCwd -e 'print Cwd::abs_path shift' "$@" # -- however, this will follow symbol link!
-        CAAP_ABS_PATH_FILE_NAME=$(basename "$1")
-        CAAP_ABS_PATH_DIR_NAME=$(dirname "$1")
-        if [[ "$CAAP_ABS_PATH_FILE_NAME" == ".." ]]; then
-            CAAP_ABS_PATH_DIR_NAME="${CAAP_ABS_PATH_DIR_NAME}/.."
-        fi
-        if [[ -d "${CAAP_ABS_PATH_DIR_NAME}" ]]; then
-            CAAP_ABS_PATH_DIR_PATH=$(bash -c "cd ${CAAP_ABS_PATH_DIR_NAME}; pwd;")
-            if [[ "$CAAP_ABS_PATH_FILE_NAME" == "." || "$CAAP_ABS_PATH_FILE_NAME" == ".." ]]; then
-                echo "${CAAP_ABS_PATH_DIR_PATH}"
-            else
-                echo "${CAAP_ABS_PATH_DIR_PATH}/${CAAP_ABS_PATH_FILE_NAME}"
-            fi
-        else
-            echo "${CAAP_ABS_PATH_DIR_NAME}/${CAAP_ABS_PATH_FILE_NAME}"
-        fi
-        exit
+        echo "${CAAP_ABS_PATH_DIR_PATH}/${CAAP_ABS_PATH_FILE_NAME}"
     fi
 else
-    readlink -f "$@"
-    exit
+    echo "${CAAP_ABS_PATH_DIR_NAME}/${CAAP_ABS_PATH_FILE_NAME}"
 fi
+
 
