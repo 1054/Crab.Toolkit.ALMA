@@ -270,7 +270,7 @@ echo "Please run ds9 to check: "
 echo "cd \"$Sim_gal_dir\""
 echo "ds9 -title \"sim\" -tile mode column -lock frame image -lock scale yes -lock colorbar yes \"image_sci.fits\" \"image_res.fits\" \"image_mod.fits\" \"image_sim.fits\" &"
 
-ds9 -title "sim" -tile mode column -lock frame image -lock scale yes -lock colorbar yes "image_sci.fits" "image_res.fits" "image_mod.fits" "image_sim.fits" -scale limits -0.000147434 0.00150244 &
+#ds9 -title "sim" -tile mode column -lock frame image -lock scale yes -lock colorbar yes "image_sci.fits" "image_res.fits" "image_mod.fits" "image_sim.fits" -scale limits -0.000147434 0.00150244 &
 
 
 # 
