@@ -19,12 +19,14 @@ fi
 # Check Mac System
 # 
 if [[ $(uname) == "Darwin" ]]; then
-    if [[ $(type gxargs 2>/dev/null | wc -l) -eq 1 ]]; then
-        alias xargs="gxargs"
-    else
-        echo "Error! Please install GNU findutils under Mac system! (e.g. sudo port install findutils)"
-        exit 1
-    fi
+    #if [[ $(type gxargs 2>/dev/null | wc -l) -eq 1 ]]; then
+    #    alias xargs="gxargs"
+    #else
+    #    echo "Error! Please install GNU findutils under Mac system! (e.g. sudo port install findutils)"
+    #    exit 1
+    #fi
+    echo "Please run \"caap-prior-extraction-photometry-read-results-for-mac\" for Mac!"
+    exit
 fi
 
 
@@ -176,18 +178,7 @@ for (( i=0; i<${#SciImages[@]}; i++ )); do
         >> "$CurrentDir/Read_Results_all_final_detections_on_negative_image.txt"
     fi
     
-    for fit_step in getpix getpix_on_negative_image; do
-        if [[ -f "${fit_step}.result" ]]; then
-            if [[ ! -f "$CurrentDir/Read_Results_all_final_detections_${fit_step}.txt" ]]; then
-                head -n 1 "${fit_step}.result" | xargs -d '\n' -I % echo "%    image_file" \
-                > "$CurrentDir/Read_Results_all_final_detections_${fit_step}.txt"
-            fi
-            cat "${fit_step}.result" | tail -n +3 | xargs -d '\n' -I % echo "%    $SourceName" \
-            >> "$CurrentDir/Read_Results_all_final_detections_${fit_step}.txt"
-        fi
-    done
-    
-    for fit_step in fit_0 fit_1 fit_2 fit_n0 fit_n1 fit_n2; do
+    for fit_step in getpix getpix_on_negative_image fit_0 fit_1 fit_2 fit_n0 fit_n1 fit_n2; do
         if [[ -f "${fit_step}.result.ra.dec.detect.id" ]]; then
             if [[ ! -f "$CurrentDir/Read_Results_all_final_detections_${fit_step}.txt" ]]; then
                 head -n 1 "${fit_step}.result.ra.dec.detect.id" | xargs -d '\n' -I % echo "%    image_file" \
@@ -296,8 +287,21 @@ done
 # 
 # cp caap_prior_extraction_photometry_read_results.sm
 # 
+cp "$InputDir/astrodepth_prior_extraction_photometry/astrodepth_catalog_0_id_mask.txt" .
+cp "$InputDir/astrodepth_prior_extraction_photometry/astrodepth_catalog_0_ra_dec.txt" .
+
+
+
+# 
+# cp caap_prior_extraction_photometry_read_results.sm
+# 
 if [[ -f $(dirname "${BASH_SOURCE[0]}")"/caap_prior_extraction_photometry_read_results.sm" ]]; then
     cp $(dirname "${BASH_SOURCE[0]}")"/caap_prior_extraction_photometry_read_results.sm" .
+    
+    if [[ $(type sm 2>/dev/null | grep "DeepFields.SuperDeblending" | wc -l) -eq 1 ]]; then
+        echo "macro read caap_prior_extraction_photometry_read_results.sm read_results" | sm
+    fi
+    
 fi
 
 
@@ -305,8 +309,9 @@ fi
 #cd "../"
 
 
+echo "************"
 echo "Output to \"$OutputDir\"!"
-echo "Please then run \"macro read caap_prior_extraction_photometry_read_results.sm read_results\" in Supermongo!"
-echo "Great! Finally! All done!"
+#echo "Please then run \"macro read caap_prior_extraction_photometry_read_results.sm read_results\" in Supermongo!"
+#echo "Great! Finally! All done!"
 
 
