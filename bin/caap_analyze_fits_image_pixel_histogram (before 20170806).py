@@ -156,11 +156,8 @@ with open('%s.pixel.statistics.txt'%(FitsFile), 'a') as fp:
 # 
 
 BinNumb = 0
-BinStep = long( float(FitsHeader['NAXIS1']) * float(FitsHeader['NAXIS2']) / 1000.0 )
+BinStep = long( float(FitsHeader['NAXIS1']) * float(FitsHeader['NAXIS2']) / 500.0 )
 BinLoop = True
-
-if BinStep<1 :
-    BinStep = 1
 
 while BinLoop and BinNumb <= (len(BinVar)/17.5):
     # 
@@ -169,9 +166,9 @@ while BinLoop and BinNumb <= (len(BinVar)/17.5):
     if BinNumb<=BinStep*10:
         BinNumb = BinNumb + BinStep
     elif BinNumb<=BinStep*100:
-        BinNumb = BinNumb + long(BinStep*1.25)
+        BinNumb = BinNumb + long(BinStep*1.15)
     elif BinNumb<=BinStep*1000:
-        BinNumb = long(BinNumb*1.25)
+        BinNumb = long(BinNumb*1.15)
     else:
         BinNumb = len(BinVar)
         break
@@ -197,22 +194,8 @@ while BinLoop and BinNumb <= (len(BinVar)/17.5):
     # 
     FitParam = {'A': np.nan, 'mu': np.nan, 'sigma': np.nan}
     # 
-    # print
-    #print(BinCents[FitRange], BinHists[FitRange])
-    # 
     # try fitting
     if True:
-        try:
-            FitGauss, FitParam = fit_Gaussian_1D(BinCents[FitRange], BinHists[FitRange], np.max(BinHists[FitRange]), InnerMean, InnerSigma)
-            #print(FitParam)
-        except:
-            FitParam = {'A': np.nan, 'mu': np.nan, 'sigma': np.nan}
-        # 
-        if FitParam['mu'] < np.min(BinCents[FitRange]) or FitParam['mu'] > np.max(BinCents[FitRange]):
-            FitParam = {'A': np.nan, 'mu': np.nan, 'sigma': np.nan}
-    # 
-    # try fitting
-    if FitParam['sigma'] == np.nan or FitParam['sigma'] <= InnerSigma * 0.2:
         try:
             FitGauss, FitParam = fit_Gaussian_1D(BinCents[FitRange], BinHists[FitRange], np.max(BinHists[FitRange]), np.min([BinMode,BinMedian]), BinSigma)
             #print(FitParam)
