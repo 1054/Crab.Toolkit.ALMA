@@ -349,6 +349,14 @@ if [[ ! -f "$OutputDir/List_of_Input_Sci_Images.txt" || ! -f "$OutputDir/List_of
             RmsImage="${RmsImages[i]}"
         else
             RmsStats=$(echo "$SciImage" | sed -e 's/\.fits$/.fits.pixel.statistics/g')
+            # check rms value from $RmsStats.txt <20170806>
+            if [[ -f "$RmsStats.txt" ]]; then
+                RmsValue=$(cat $RmsStats.txt | grep "^Gaussian_sigma *=" | perl -p -e 's/Gaussian_sigma *= *([0-9.+-eE]+) *.*/\1/g')
+                if [[ "$RmsValue"x == ""x ]]; then
+                    rm "$RmsStats.txt"
+                fi
+            fi
+            # compute rms value with the code 'caap-analyze-fits-image-pixel-histogram'
             if [[ ! -f "$RmsStats.txt" ]]; then
                 echo "# "$(date +'%Y%m%d %Hh%Mm%Ss %Z') > "$RmsStats.log"
                 echo "caap-analyze-fits-image-pixel-histogram \"$SciImage\"" >> "$RmsStats.log"
