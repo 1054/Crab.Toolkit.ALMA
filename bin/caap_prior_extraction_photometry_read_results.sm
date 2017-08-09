@@ -44,13 +44,14 @@ read_results
     set f = f_fit_2
     set df = df_fit_2
     set fpeak = fpeak_fit_2
+    set fres = f_resabs # from "Read_Results_all_final_x_y_f_df_pix_scale_fit_2.txt"
     set rms = rms_fit_2
     set id = id_fit_2
     set ra = ra_fit_2
     set dec = dec_fit_2
     
     if(is_vector(Maj) && is_vector(Min) && is_vector(beam_area) && is_vector(pix_scale) && is_vector(rms) \
-        && is_vector(f) && is_vector(df) && is_vector(fpeak) && is_vector(id)) {
+        && is_vector(f) && is_vector(df) && is_vector(fpeak) && is_vector(fres) && is_vector(id)) {
         
         # load
         load vecSNR.sm
@@ -82,18 +83,18 @@ read_results
         
         echo "Writing \"Output_galfit.txt\""
         print "Output_galfit.txt" \
-                '%15.0f %15.8f %15.8f %15g %15g %15g %15g %15g %15g %15g %15g %20g %15g %15g %15g %15g %15g %15g %15g   %s\n' \
-                {id ra dec f_total df_total snr_total f_peak fpeak df_peak snr_peak rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr image_file}
+                '%15.0f %15.8f %15.8f %15g %15g %15g %15g %15g %15g %15g %15g %15g %20g %15g %15g %15g %15g %15g %15g %15g   %s\n' \
+                {id ra dec f_total df_total snr_total f_peak fpeak df_peak snr_peak fres rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr image_file}
         
         # do S/N and pb_corr cut
         set coo = (snr_peak>=2.5 && pb_corr<=5.0)
-        foreach var {id ra dec f_total df_total snr_total f_peak fpeak df_peak snr_peak rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr image_file} {
+        foreach var {id ra dec f_total df_total snr_total f_peak fpeak df_peak snr_peak fres rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr image_file} {
             set $var = $var if(coo)
         }
         echo "Writing \"Output_galfit_snr_peak_2p5_pb_corr_5p0.txt\""
         print "Output_galfit_snr_peak_2p5_pb_corr_5p0.txt" \
-                '%15.0f %15.8f %15.8f %15g %15g %15g %15g %15g %15g %15g %15g %20g %15g %15g %15g %15g %15g %15g %15g   %s\n' \
-                {id ra dec f_total df_total snr_total f_peak fpeak df_peak snr_peak rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr image_file}
+                '%15.0f %15.8f %15.8f %15g %15g %15g %15g %15g %15g %15g %15g %15g %20g %15g %15g %15g %15g %15g %15g %15g   %s\n' \
+                {id ra dec f_total df_total snr_total f_peak fpeak df_peak snr_peak fres rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr image_file}
         
         # copy & rename
         !cp "Output_galfit.txt" "A-COSMOS_prior_"$date".txt"
@@ -107,8 +108,8 @@ read_results
             do i=0,dimen(image_file)-1 {
                 define j 0
                 while { $j <= dimen(fits_file_list)-1 } {
-                    set image_file_2 = project_list[$j]+'_'+fits_file_list[$j]
-                    if(index(image_file[$i],image_file_2)>=0) {
+                    set image_file_tmp = project_list[$j]+'_'+fits_file_list[$j]
+                    if(index(image_file[$i],image_file_tmp)>=0) {
                         set coo[$i] = 1
                         break
                     }
@@ -118,12 +119,12 @@ read_results
                     !echo -n "."
                 }
             }
-            foreach var {id ra dec f_total df_total snr_total f_peak fpeak df_peak snr_peak rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr image_file} {
+            foreach var {id ra dec f_total df_total snr_total f_peak fpeak df_peak snr_peak fres rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr image_file} {
                 set $var = $var if(coo)
             }
             print "List_snr_peak_2p5_pb_corr_5p0_for_alma_archive_v20170222.txt" \
-                    '%15.0f %15.8f %15.8f %15g %15g %15g %15g %15g %15g %15g %15g %20g %15g %15g %15g %15g %15g %15g %15g   %s\n' \
-                    {id ra dec f_total df_total snr_total f_peak fpeak df_peak snr_peak rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr image_file}
+                    '%15.0f %15.8f %15.8f %15g %15g %15g %15g %15g %15g %15g %15g %15g %20g %15g %15g %15g %15g %15g %15g %15g   %s\n' \
+                    {id ra dec f_total df_total snr_total f_peak fpeak df_peak snr_peak fres rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr image_file}
             
             # copy & rename
             !cp "List_snr_peak_2p5_pb_corr_5p0_for_alma_archive_v20170222.txt" "A-COSMOS_prior_"$date"_snr_peak_2p5_pb_corr_5p0_for_alma_archive_v20170222.txt"

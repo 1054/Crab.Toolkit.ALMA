@@ -1,0 +1,67 @@
+analyze_statistics
+    # 
+    # 2017-08-09 copied from "run_simu_stats_v11.sm"
+    # 
+    # Usage: 
+    #       echo "macro read caap_prior_extraction_simulation_analyze_statistics.sm analyze_statistics" | sm
+    # 
+    # Input: 
+    #       
+    # 
+    # Output: 
+    #        
+    # 
+    
+    #!cp '/Users/dzliu/Cloud/Github/Crab.Toolkit.CAAP/bin/caap_prior_extraction_simulation_analyze_statistics.sm' .
+    #!cp '/Users/dzliu/Cloud/Github/DeepFields.SuperDeblending/Softwares/Galfit_Template_v20160225/run_simu_stats_v11.sm' .
+    
+    foreach var {id Xf f df fres noise} {
+        if(!is_vector($var)) {
+            print 'Error! Vector $var does not exist! Please read from simulation and recovery data files!\n' {}
+            return
+        }
+    }
+    
+    # copy flux
+    set Tf = f
+    set Tdf = df
+    
+    # calc median rms noise
+    stats_med noise noise_median noise_siqr
+    
+    # renormalize
+    set fRMS = f/(noise/$noise_median)
+    set dfRMS = df/(noise/$noise_median)
+    set fresRMS = fres/(noise/$noise_median)
+    
+    print "aaa.dfRMS.txt" '%15.0f %15g\n' {id dfRMS}
+    
+    # Analyzing sources
+    echo  
+    echo Analyzing $(dimen(Xf)) sources
+    echo  
+    
+    go_analyze_step 1
+    
+    
+    # FINAL
+    # CHECK OUTLIERS
+    #go_check_outliers
+    #go_check_outliers_df
+    #plot_S_in_S_out
+    plot_S_in_S_out_versus_Param 1
+    #plot_S_in_S_out_versus_Param 2
+    #plot_S_in_S_out_versus_Param 3
+    plot_S_in_S_out_versus_Param Xf
+    plot_S_in_S_out_versus_Param Tf
+    plot_XfmTfEdf_versus_Param 1
+    #plot_XfmTfEdf_versus_Param 2
+    #plot_XfmTfEdf_versus_Param 3
+    plot_XfmTfEdf_versus_Param Xf
+    plot_XfmTfEdf_versus_Param Tf
+    
+    
+    
+
+
+
