@@ -223,10 +223,14 @@ fi
 cp "$Obs_sci_image" "$Sim_gal_dir/image_sci.fits"
 cp "$Obs_res_image" "$Sim_gal_dir/image_res.fits"
 cp "$Obs_psf_image" "$Sim_gal_dir/image_psf.fits"
-CrabFitsImageArithmetic "$Sim_gal_dir/image_res.fits" "times" "0.0" "$Sim_gal_dir/image_tmp.fits" > "$Sim_gal_dir/image_tmp.log"
-CrabFitsImageArithmetic "$Sim_gal_dir/image_tmp.fits" "adds" "1.0" "$Sim_gal_dir/image_rms.fits" > "$Sim_gal_dir/image_rms.log"
-CrabPhotImageStatistics "$Sim_gal_dir/image_psf.fits" > "$Sim_gal_dir/image_psf_stats.txt"
-pixscale "$Sim_gal_dir/image_sci.fits" > "$Sim_gal_dir/image_sci_pixscale.txt"
+echo CrabFitsImageArithmetic "$Sim_gal_dir/image_res.fits" "times" "0.0" "$Sim_gal_dir/image_tmp.fits" ">" "$Sim_gal_dir/image_tmp.log"
+     CrabFitsImageArithmetic "$Sim_gal_dir/image_res.fits" "times" "0.0" "$Sim_gal_dir/image_tmp.fits" > "$Sim_gal_dir/image_tmp.log"
+echo CrabFitsImageArithmetic "$Sim_gal_dir/image_tmp.fits" "adds" "1.0" "$Sim_gal_dir/image_rms.fits" ">" "$Sim_gal_dir/image_rms.log"
+     CrabFitsImageArithmetic "$Sim_gal_dir/image_tmp.fits" "adds" "1.0" "$Sim_gal_dir/image_rms.fits" > "$Sim_gal_dir/image_rms.log"
+echo CrabPhotImageStatistics "$Sim_gal_dir/image_psf.fits" ">" "$Sim_gal_dir/image_psf_stats.txt"
+     CrabPhotImageStatistics "$Sim_gal_dir/image_psf.fits" > "$Sim_gal_dir/image_psf_stats.txt"
+echo pixscale "$Sim_gal_dir/image_sci.fits" ">" "$Sim_gal_dir/image_sci_pixscale.txt"
+     pixscale "$Sim_gal_dir/image_sci.fits" > "$Sim_gal_dir/image_sci_pixscale.txt"
 
 
 # 
@@ -257,6 +261,7 @@ Sim_gal_pwd=$(pwd)
 perl -MCwd -e 'print Cwd::abs_path shift' "$Sim_gal_model" | tr -s '/' '\n' | sed -e 's%^$%/%g' > "$Sim_gal_dir/galaxy_model_dirpath.txt" # id ra dec flux
 cd "$Sim_gal_dir"
 cp "$Sim_gal_script" .
+echo "macro read caap_full_galaxy_modelling_map_maker.sm run_map_maker ${Sim_gal_w[0]} ${Sim_gal_z[0]} ${Sim_gal_lgMstar[0]} '${Sim_gal_Type_SED[0]}'"
 echo "macro read caap_full_galaxy_modelling_map_maker.sm run_map_maker ${Sim_gal_w[0]} ${Sim_gal_z[0]} ${Sim_gal_lgMstar[0]} '${Sim_gal_Type_SED[0]}'" | sm | tee run_map_maker.log
 
 
@@ -264,7 +269,8 @@ echo "macro read caap_full_galaxy_modelling_map_maker.sm run_map_maker ${Sim_gal
 # Coadding model
 # 
 echo "Coadding model"
-CrabFitsImageArithmetic "image_res.fits" "adds" "image_mod.fits" "image_sim.fits" > "image_sim.log"
+echo CrabFitsImageArithmetic "image_res.fits" "adds" "image_mod.fits" "image_sim.fits" ">" "image_sim.log"
+     CrabFitsImageArithmetic "image_res.fits" "adds" "image_mod.fits" "image_sim.fits" > "image_sim.log"
 
 echo "Please run ds9 to check: "
 echo "cd \"$Sim_gal_dir\""
