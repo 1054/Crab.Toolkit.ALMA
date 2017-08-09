@@ -223,8 +223,8 @@ fi
 cp "$Obs_sci_image" "$Sim_gal_dir/image_sci.fits"
 cp "$Obs_res_image" "$Sim_gal_dir/image_res.fits"
 cp "$Obs_psf_image" "$Sim_gal_dir/image_psf.fits"
-CrabFitsImageArithmetic "$Sim_gal_dir/image_res.fits" "*" "0.0" "$Sim_gal_dir/image_tmp.fits" > "$Sim_gal_dir/image_tmp.log"
-CrabFitsImageArithmetic "$Sim_gal_dir/image_tmp.fits" "+" "1.0" "$Sim_gal_dir/image_rms.fits" > "$Sim_gal_dir/image_rms.log"
+CrabFitsImageArithmetic "$Sim_gal_dir/image_res.fits" "times" "0.0" "$Sim_gal_dir/image_tmp.fits" > "$Sim_gal_dir/image_tmp.log"
+CrabFitsImageArithmetic "$Sim_gal_dir/image_tmp.fits" "adds" "1.0" "$Sim_gal_dir/image_rms.fits" > "$Sim_gal_dir/image_rms.log"
 CrabPhotImageStatistics "$Sim_gal_dir/image_psf.fits" > "$Sim_gal_dir/image_psf_stats.txt"
 pixscale "$Sim_gal_dir/image_sci.fits" > "$Sim_gal_dir/image_sci_pixscale.txt"
 
@@ -264,7 +264,7 @@ echo "macro read caap_full_galaxy_modelling_map_maker.sm run_map_maker ${Sim_gal
 # Coadding model
 # 
 echo "Coadding model"
-CrabFitsImageArithmetic "image_res.fits" "+" "image_mod.fits" "image_sim.fits" > "image_sim.log"
+CrabFitsImageArithmetic "image_res.fits" "adds" "image_mod.fits" "image_sim.fits" > "image_sim.log"
 
 echo "Please run ds9 to check: "
 echo "cd \"$Sim_gal_dir\""

@@ -15,12 +15,23 @@ analyze_statistics
     #!cp '/Users/dzliu/Cloud/Github/Crab.Toolkit.CAAP/bin/caap_prior_extraction_simulation_analyze_statistics.sm' .
     #!cp '/Users/dzliu/Cloud/Github/DeepFields.SuperDeblending/Softwares/Galfit_Template_v20160225/run_simu_stats_v11.sm' .
     
-    foreach var {id Xf f df fres noise} {
+    foreach var {id Xf f df noise} {
         if(!is_vector($var)) {
             print 'Error! Vector $var does not exist! Please read from simulation and recovery data files!\n' {}
             return
         }
     }
+    
+    # load macro
+    load crabStat.sm
+    load crabPlotHistogram.sm
+    
+    # define 
+    define imax ALMA
+    define outdir sim_diagram_output_v11
+    
+    # check outdir
+    !mkdir $outdir 2>/dev/null
     
     # copy flux
     set Tf = f
@@ -34,31 +45,59 @@ analyze_statistics
     set dfRMS = df/(noise/$noise_median)
     set fresRMS = fres/(noise/$noise_median)
     
+    # print temporary check file
     print "aaa.dfRMS.txt" '%15.0f %15g\n' {id dfRMS}
+    print "aaa.f.uncorr.txt" '%15.0f %15g\n' {id f}
+    print "aaa.df.uncorr.txt" '%15.0f %15g\n' {id df}
     
-    # Analyzing sources
+    # print analyzing sources
     echo  
     echo Analyzing $(dimen(Xf)) sources
     echo  
     
+    # define NumberSteps
+    define NumberSteps 2
+    
+    # go_analyze_step
+    set binVolume = {10 5 3 2 1}
     go_analyze_step 1
     
+    set binVolume = {1 3 5 5 3 1 0.5 0.25}
+    go_analyze_step 2
     
-    # FINAL
-    # CHECK OUTLIERS
-    #go_check_outliers
-    #go_check_outliers_df
+    # do plots
     #plot_S_in_S_out
     plot_S_in_S_out_versus_Param 1
-    #plot_S_in_S_out_versus_Param 2
+    plot_S_in_S_out_versus_Param 2
     #plot_S_in_S_out_versus_Param 3
     plot_S_in_S_out_versus_Param Xf
     plot_S_in_S_out_versus_Param Tf
     plot_XfmTfEdf_versus_Param 1
-    #plot_XfmTfEdf_versus_Param 2
+    plot_XfmTfEdf_versus_Param 2
     #plot_XfmTfEdf_versus_Param 3
     plot_XfmTfEdf_versus_Param Xf
     plot_XfmTfEdf_versus_Param Tf
+    
+    
+    
+    # do correction
+    set id$imax = id
+    set ra$imax = ra
+    set de$imax = dec
+    set x$imax = ra*0.0+1.0
+    set y$imax = ra*0.0+1.0
+    define xdate xdate
+    define rBeam_$imax 1.0
+    define vary_positions 1
+    set f$imax = f
+    set df$imax = df
+    set noi$imax = noise
+    set fres$imax = fres
+    set crow$imax = fres*0.0+1.0
+    go_correct_three_step_recipes
+    
+    print "aaa.f.corr.txt" '%15.0f %15g\n' <id$imax f$imax>
+    print "aaa.df.corr.txt" '%15.0f %15g\n' <id$imax df$imax>
     
     
     
