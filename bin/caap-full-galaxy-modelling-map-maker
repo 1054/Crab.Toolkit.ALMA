@@ -271,10 +271,13 @@ echo "macro read caap_full_galaxy_modelling_map_maker.sm run_map_maker ${Sim_gal
 echo "Coadding model"
 echo CrabFitsImageArithmetic "image_res.fits" "adds" "image_mod.fits" "image_sim_nonan.fits" ">" "image_sim_nonan.log"
      CrabFitsImageArithmetic "image_res.fits" "adds" "image_mod.fits" "image_sim_nonan.fits"  >  "image_sim_nonan.log"
-echo CrabFitsImageArithmetic "image_sci.fits" "times" "1.0" "image_sci_mask.fits" ">" "image_sci_mask.log"
-     CrabFitsImageArithmetic "image_sci.fits" "times" "1.0" "image_sci_mask.fits"  >  "image_sci_mask.log"
+echo CrabFitsImageArithmetic "image_sci.fits" "times" "0" "image_sci_maskzero.fits" ">" "image_sci_maskzero.log"
+     CrabFitsImageArithmetic "image_sci.fits" "times" "0" "image_sci_maskzero.fits"  >  "image_sci_maskzero.log"
+echo CrabFitsImageArithmetic "image_sci_maskzero.fits" "adds" "1" "image_sci_mask.fits" ">" "image_sci_mask.log"
+     CrabFitsImageArithmetic "image_sci_maskzero.fits" "adds" "1" "image_sci_mask.fits"  >  "image_sci_mask.log"
 echo CrabFitsImageArithmetic "image_sim_nonan.fits" "times" "image_sci_mask.fits" "image_sim.fits" ">" "image_sim.log"
      CrabFitsImageArithmetic "image_sim_nonan.fits" "times" "image_sci_mask.fits" "image_sim.fits"  >  "image_sim.log"
+#rm image_sci_maskzero.fits image_sim_nonan.fits
 
 echo "Please run ds9 to check: "
 echo "cd \"$Sim_gal_dir\""

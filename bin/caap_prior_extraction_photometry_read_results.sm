@@ -35,20 +35,46 @@ read_results
     unset dec
     
     
-    verbose 0
-    rfile "Read_Results_all_final_x_y_f_df_pix_scale_fit_2.txt"
-    rfile "Read_Results_all_final_morphologies_fit_2.txt"
-    rfile "Read_Results_all_final_fluxes_fit_2.txt"
-    verbose 1
-    
-    set f = f_fit_2
-    set df = df_fit_2
-    set fpeak = fpeak_fit_2
-    set fres = f_resabs # from "Read_Results_all_final_x_y_f_df_pix_scale_fit_2.txt"
-    set rms = rms_fit_2
-    set id = id_fit_2
-    set ra = ra_fit_2
-    set dec = dec_fit_2
+    if( is_file("Read_Results_all_final_x_y_f_df_pix_scale_fit_3.txt") && \
+        is_file("Read_Results_all_final_morphologies_fit_3.txt") && \
+        is_file("Read_Results_all_final_fluxes_fit_3.txt") ) {
+        
+        verbose 0
+        rfile "Read_Results_all_final_x_y_f_df_pix_scale_fit_3.txt"
+        rfile "Read_Results_all_final_morphologies_fit_3.txt"
+        rfile "Read_Results_all_final_fluxes_fit_3.txt"
+        verbose 1
+        
+        set f = f_fit_3
+        set df = df_fit_3
+        set fpeak = fpeak_fit_3
+        set fres = f_resabs # from "Read_Results_all_final_x_y_f_df_pix_scale_fit_3.txt"
+        set rms = rms_fit_3
+        set id = id_fit_3
+        set ra = ra_fit_3
+        set dec = dec_fit_3
+    } else {
+        
+        if( is_file("Read_Results_all_final_x_y_f_df_pix_scale_fit_2.txt") && \
+            is_file("Read_Results_all_final_morphologies_fit_2.txt") && \
+            is_file("Read_Results_all_final_fluxes_fit_2.txt") ) {
+            
+            verbose 0
+            rfile "Read_Results_all_final_x_y_f_df_pix_scale_fit_2.txt"
+            rfile "Read_Results_all_final_morphologies_fit_2.txt"
+            rfile "Read_Results_all_final_fluxes_fit_2.txt"
+            verbose 1
+            
+            set f = f_fit_2
+            set df = df_fit_2
+            set fpeak = fpeak_fit_2
+            set fres = f_resabs # from "Read_Results_all_final_x_y_f_df_pix_scale_fit_2.txt"
+            set rms = rms_fit_2
+            set id = id_fit_2
+            set ra = ra_fit_2
+            set dec = dec_fit_2
+        }
+    }
     
     if(is_vector(Maj) && is_vector(Min) && is_vector(beam_area) && is_vector(pix_scale) && is_vector(rms) \
         && is_vector(f) && is_vector(df) && is_vector(fpeak) && is_vector(fres) && is_vector(id)) {

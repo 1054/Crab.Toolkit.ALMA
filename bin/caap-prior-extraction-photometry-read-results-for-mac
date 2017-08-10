@@ -97,7 +97,7 @@ for OutputItem in detections detections_on_negative_image fit_masks; do
 done
 
 for OutputItem in detections fluxes; do
-    for fit_step in getpix getpix_on_negative_image fit_0 fit_1 fit_2 fit_n0 fit_n1 fit_n2; do
+    for fit_step in getpix getpix_on_negative_image fit_0 fit_1 fit_2 fit_3 fit_n0 fit_n1 fit_n2 fit_n3; do
         if [[ -f "Read_Results_all_final_${OutputItem}_${fit_step}.txt.backup" ]]; then
             mv "Read_Results_all_final_${OutputItem}_${fit_step}.txt.backup" "Read_Results_all_final_${OutputItem}_${fit_step}.txt.backup.backup"
         fi
@@ -107,7 +107,7 @@ for OutputItem in detections fluxes; do
     done
 done
 
-for fit_step in fit_2 fit_n2; do
+for fit_step in fit_2 fit_3 fit_n2 fit_n3; do
     if [[ -f "Read_Results_all_final_morphologies_${fit_step}.txt.backup" ]]; then
         mv "Read_Results_all_final_morphologies_${fit_step}.txt.backup" "Read_Results_all_final_morphologies_${fit_step}.txt.backup.backup"
     fi
@@ -179,7 +179,7 @@ for (( i=0; i<${#SciImages[@]}; i++ )); do
         >> "$CurrentDir/Read_Results_all_final_detections_on_negative_image.txt"
     fi
     
-    for fit_step in getpix getpix_on_negative_image fit_0 fit_1 fit_2 fit_n0 fit_n1 fit_n2; do
+    for fit_step in getpix getpix_on_negative_image fit_0 fit_1 fit_2 fit_3 fit_n0 fit_n1 fit_n2 fit_n3; do
         if [[ -f "${fit_step}.result.ra.dec.detect.id" ]]; then
             if [[ ! -f "$CurrentDir/Read_Results_all_final_detections_${fit_step}.txt" ]]; then
                 head -n 1 "${fit_step}.result.ra.dec.detect.id" | gxargs -d '\n' -I % echo "%    image_file" \
@@ -234,7 +234,7 @@ for (( i=0; i<${#SciImages[@]}; i++ )); do
         fi
     done
     
-    for fit_step in fit_2 fit_n2; do
+    for fit_step in fit_2 fit_3 fit_n2 fit_n3; do
         if [[ -f "${fit_step}.result.ra.dec.rms.pix.pbc.id" ]]; then
             if [[ ! -f "$CurrentDir/Read_Results_all_final_fluxes_${fit_step}.txt" ]]; then
                 head -n 1 "${fit_step}.result.ra.dec.rms.pix.pbc.id" | gxargs -d '\n' -I % echo "%    image_file" \
@@ -245,7 +245,7 @@ for (( i=0; i<${#SciImages[@]}; i++ )); do
         fi
     done
     
-    for fit_step in fit_2 fit_n2; do
+    for fit_step in fit_2 fit_3 fit_n2 fit_n3; do
         if [[ -f "${fit_step}.result.ra.dec.Maj.Min.PA.id" ]]; then
             if [[ ! -f "$CurrentDir/Read_Results_all_final_morphologies_${fit_step}.txt" ]]; then
                 head -n 1 "${fit_step}.result.ra.dec.Maj.Min.PA.id" | gxargs -d '\n' -I % echo "%    image_file" \
@@ -256,7 +256,7 @@ for (( i=0; i<${#SciImages[@]}; i++ )); do
         fi
     done
     
-    for fit_step in fit_2 fit_n2; do
+    for fit_step in fit_2 fit_3 fit_n2 fit_n3; do
         if [[ -f "${fit_step}.result" ]]; then
             if [[ ! -f "$CurrentDir/Read_Results_all_final_x_y_f_df_pix_scale_${fit_step}.txt" ]]; then
                 head -n 1 "${fit_step}.result" | gxargs -d '\n' -I % echo "%    image_file" \
