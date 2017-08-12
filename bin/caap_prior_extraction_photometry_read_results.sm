@@ -53,6 +53,11 @@ read_results
         set id = id_fit_3
         set ra = ra_fit_3
         set dec = dec_fit_3
+        set Maj_err = Maj_err_fit_3
+        set Min = Min_fit_3
+        set Min_err = Min_err_fit_3
+        set PA = PA_fit_3
+        set PA_err = PA_err_fit_3
     } else {
         
         if( is_file("Read_Results_all_final_x_y_f_df_pix_scale_fit_2.txt") && \
@@ -73,6 +78,12 @@ read_results
             set id = id_fit_2
             set ra = ra_fit_2
             set dec = dec_fit_2
+            set Maj = Maj_fit_2
+            set Maj_err = Maj_err_fit_2
+            set Min = Min_fit_2
+            set Min_err = Min_err_fit_2
+            set PA = PA_fit_2
+            set PA_err = PA_err_fit_2
         }
     }
     
