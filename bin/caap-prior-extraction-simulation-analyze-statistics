@@ -30,7 +30,10 @@ fi
 # 
 # Read input arguments
 # 
-output_dir="check_simulated_and_recovered"
+image_name=$(basename $(pwd -P))
+simulated_dir="../../Simulated"
+recovered_dir="../../Recovered"
+output_dir="check_simulated_and_recovered_statistics"
 input_sbeam=()
 input_pbeam=()
 input_yes=0
@@ -40,6 +43,12 @@ while [[ "$#" -gt 0 ]]; do
     TempStr=$(echo "$1" | tr '[:upper:]' '[:lower:]')
     #echo $TempStr
     case "$TempStr" in
+      "-image-name") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="image_name";;
+           "-image") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="image_name";;
+             "-sim") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="simulated_dir";;
+   "-simulated-dir") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="simulated_dir";;
+             "-rec") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="recovered_dir";;
+   "-recovered-dir") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="recovered_dir";;
              "-out") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output_dir";;
                "-o") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output_dir";;
 "-synthesized-beam") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_sbeam";;
@@ -52,6 +61,9 @@ while [[ "$#" -gt 0 ]]; do
     esac
     #echo $CAAP_CMD_TYPE
     case "$CAAP_CMD_TYPE" in
+             "image_name") if [[ $# -gt 0 ]]; then image_name="$1"; fi;;
+          "simulated_dir") if [[ $# -gt 0 ]]; then simulated_dir="$1"; fi;;
+          "recovered_dir") if [[ $# -gt 0 ]]; then recovered_dir="$1"; fi;;
              "output_dir") if [[ $# -gt 0 ]]; then output_dir="$1"; fi;;
             "input_sbeam") if [[ $# -gt 0 ]]; then input_sbeam+=("$1"); fi;;
             "input_pbeam") if [[ $# -gt 0 ]]; then input_pbeam+=("$1"); fi;;
@@ -77,7 +89,35 @@ else
         input_pbeam+=("${input_pbeam[0]}")
     fi
 fi
-    
+
+
+# 
+# Check input dirs
+# 
+if [[ ! -d "$simulated_dir" ]]; then
+    echo "Error! Simulated data directory \"$simulated_dir\" was not found!"
+    exit 1
+fi
+if [[ ! -d "$recovered_dir" ]]; then
+    echo "Error! Simulated data directory \"$recovered_dir\" was not found!"
+    exit 1
+fi
+if [[ ! -d "$simulated_dir/$image_name" ]]; then
+    echo "Error! Simulated data directory \"$simulated_dir/$image_name\" was not found!"
+    exit 1
+fi
+if [[ ! -d "$recovered_dir/$image_name" ]]; then
+    echo "Error! Simulated data directory \"$recovered_dir/$image_name\" was not found!"
+    exit 1
+fi
+if [[ ! -d "$simulated_dir/$image_name/datatable_Simulated.txt" ]]; then
+    echo "Error! Simulated data file \"$simulated_dir/$image_name/datatable_Simulated.txt\" was not found!"
+    exit 1
+fi
+if [[ ! -d "$recovered_dir/$image_name/datatable_Recovered_galfit.txt" ]]; then
+    echo "Error! Simulated data file \"$recovered_dir/$image_name/datatable_Recovered_galfit.txt\" was not found!"
+    exit 1
+fi
 
 
 # 
@@ -104,8 +144,8 @@ cp "$copy_macro_dir/"* "$output_dir/"
 # 
 # Run
 # 
-cat "Simulated/2011.0.00097.S_SB1_GB1_MB1_COSMOS7_field5_sci.spw0_1_2_3/datatable_Simulated.txt"        | grep -v "^#$" > "$output_dir/datatable_Simulated.txt"
-cat "Recovered/2011.0.00097.S_SB1_GB1_MB1_COSMOS7_field5_sci.spw0_1_2_3/datatable_Recovered_galfit.txt" | grep -v "^#$" > "$output_dir/datatable_Recovered_galfit.txt"
+cat "$simulated_dir/$image_name/datatable_Simulated.txt"        | grep -v "^#$" > "$output_dir/datatable_Simulated.txt"
+cat "$recovered_dir/$image_name/datatable_Recovered_galfit.txt" | grep -v "^#$" > "$output_dir/datatable_Recovered_galfit.txt"
 
 cd "$output_dir"
 echo "${input_pbeam[@]}" > "info_primary_beam.txt"
