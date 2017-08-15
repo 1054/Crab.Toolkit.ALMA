@@ -4,7 +4,7 @@
 # 
 # Check Software Dependencies
 # 
-if [[ $(echo "load astroSfig.sm astroSfig" | sm 2>/dev/null | wc -l) -eq 0 ]]; then
+if [[ $(type sm 2>/dev/null | wc -l) -eq 0 ]] || [[ $(echo "load astroSfig.sm" | sm | wc -l) -ne 0 ]]; then
     if [[ -f "$HOME/Cloud/Github/DeepFields.SuperDeblending/Softwares/SETUP" ]]; then
         source "$HOME/Cloud/Github/DeepFields.SuperDeblending/Softwares/SETUP"
     elif [[ -f "$HOME/Softwares/DeepFields.SuperDeblending/Softwares/SETUP" ]]; then
