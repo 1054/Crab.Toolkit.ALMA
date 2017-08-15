@@ -1,0 +1,120 @@
+plot_flux_comparison
+    # 
+    # Aim: plot flux-flux comparison figure
+    # 
+    # check input
+    define plot_ok 1
+    foreach plot_var {Xf f df snr rms pbc z lgMstar lgSFR} {
+        if(!is_vector($var)) {
+            print 'Error! Vector $var does not exist! Please set it before run this macro!\n' {}
+            define plot_ok 0
+        }
+    }
+    if(!$plot_ok) {
+        return
+    }
+    # 
+    # load crabPlot.sm
+    load crabPlot.sm
+    crabPlotOpenPS "Plot_comparison_of_flux.eps"
+    crabPlotDefaultPenForBox
+    location 10000 31000 10000 31000
+    ticksize -1 10 -1 10
+    limits -2 $(lg(200)) -2 $(lg(200))
+    box
+    crabPlotDefaultPenForTitle
+    xlabel "Simulated S_{in} [mJy]"
+    ylabel "Recovered S_{out} [mJy]"
+    crabPlotDefaultPenForPoints
+    # 
+    # prepare lengend
+    crabPlotLegend 0.07 1.00 " "
+    # 
+    # limit flux error lower limit of S/N=10, check whether real detection or not
+    set df = (f>0 && df<f/10) ? f/10 : df
+    set is_real_detection = (abs(f-Xf)<df)
+    #set is_real_detection = (abs(lg(f)-lg(Xf))<(df/f))
+    # 
+    # plot SNR=2-3.5 sources
+    set plot_x = lg(Xf) if(snr>=2.0 && snr<3.5)
+    set plot_y = lg(f) if(snr>=2.0 && snr<3.5)
+    set plot_err = (df/f) if(snr>=2.0 && snr<3.5)
+    ctype gray lweight 0.25
+    points plot_x plot_y
+    error_y plot_x plot_y plot_err
+    lweight 3.5
+    crabPlotLegend "2.0{<}S/N{\le}3.5 (exp.spur. "$(sprintf('%0.1f',P_20_35))")"
+    # 
+    # plot SNR=3.5-5 sources
+    set plot_x = lg(Xf) if(snr>=3.5 && snr<5.0)
+    set plot_y = lg(f) if(snr>=3.5 && snr<5.0)
+    set plot_err = (df/f) if(snr>=3.5 && snr<5.0)
+    ctype green lweight 0.75
+    points plot_x plot_y
+    error_y plot_x plot_y plot_err
+    lweight 3.5
+    crabPlotLegend "3.5{<}S/N{\le}5 (exp.spur. "$(sprintf('%0.1f',P_35_50))")"
+    # 
+    # plot SNR>5 sources
+    set plot_x = lg(Xf) if(snr>=5.0)
+    set plot_y = lg(f) if(snr>=5.0)
+    set plot_err = (df/f) if(snr>=5.0)
+    ctype blue lweight 1.5
+    points plot_x plot_y
+    error_y plot_x plot_y plot_err
+    lweight 3.5
+    crabPlotLegend "S/N{\ge}5 (exp.spur. "$(sprintf('%0.3f',P_5))")"
+    # 
+    # overplot labels for SNR>5 and !is_real_detection sources
+    set plot_x = lg(Xf) if(snr>=5.0 && !is_real_detection)
+    set plot_y = lg(f) if(snr>=5.0 && !is_real_detection)
+    set plot_label = (id) if(snr>=5.0 && !is_real_detection)
+    do i=0,dimen(plot_label)-1 {
+        relocate $(plot_x[$i]) $(plot_y[$i])
+        expand 0.35 lweight 1.45 ctype default putlabel 6 $(sprintf('%.0f',plot_label[$i]))
+    }
+    # 
+    # overplot pb_corr>5 sources
+    set plot_x = lg(Xf) if(pbc>5.0)
+    set plot_y = lg(f) if(pbc>5.0)
+    set plot_err = (df/f) if(pbc>5.0)
+    ctype cyan lweight 2.5
+    ptype 15 0 expand 1.8
+    points plot_x plot_y
+    lweight 3.5
+    crabPlotLegend "cyan: PBcorr>5"
+    # 
+    # overplot z>4 sources
+    #set plot_x = lg(Xf) if(z>=4.0)
+    #set plot_y = lg(f) if(z>=4.0)
+    #set plot_err = (df/f) if(z>=4.0)
+    #ctype orange lweight 2.5
+    #ptype 15 0 expand 2.2
+    #points plot_x plot_y
+    #lweight 3.5
+    #crabPlotLegend "orange: z{\ge}4"
+    # 
+    # overplot lgMstar<10 sources
+    set plot_x = lg(Xf) if(lgMstar<10.0)
+    set plot_y = lg(f) if(lgMstar<10.0)
+    set plot_err = (df/f) if(lgMstar<10.0)
+    ctype orange lweight 2.5
+    ptype 15 0 expand 2.2
+    points plot_x plot_y
+    lweight 3.5
+    crabPlotLegend "orange: log M_{*}{<}10.0"
+    # 
+    # draw rms
+    ctype red ltype 1 lweight 3.5
+    relocate $fx1 $(lg(3.0*$rms_mean)) draw $(lg(3.0*$rms_mean)) $(lg(3.0*$rms_mean))
+    relocate $(lg(3.0*$rms_mean)) $fy1 draw $(lg(3.0*$rms_mean)) $(lg(3.0*$rms_mean))
+    relocate $(lg(3.0*$rms_mean)) $($fy1+0.08*($fy2-$fy1)) expand 1.25 puts "3\sigma_{rms}="$(sprintf('%0.4f',3.0*$rms_mean))" mJy"
+    # 
+    # draw 1-to-1 line
+    ctype black ltype 1 lweight 3.5
+    relocate $fx1 $fx1 draw $fx2 $fx2
+    # 
+    crabPlotClosePS
+    !open "Plot_comparison_of_flux.pdf"
+
+

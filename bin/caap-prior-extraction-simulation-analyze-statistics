@@ -1,0 +1,123 @@
+#!/bin/bash
+# 
+
+# 
+# Check Software Dependencies
+# 
+if [[ $(echo "load astroSfig.sm astroSfig" | sm 2>/dev/null | wc -l) -eq 0 ]]; then
+    if [[ -f "$HOME/Cloud/Github/DeepFields.SuperDeblending/Softwares/SETUP" ]]; then
+        source "$HOME/Cloud/Github/DeepFields.SuperDeblending/Softwares/SETUP"
+    elif [[ -f "$HOME/Softwares/DeepFields.SuperDeblending/Softwares/SETUP" ]]; then
+        source "$HOME/Softwares/DeepFields.SuperDeblending/Softwares/SETUP"
+    else
+        echo "Error! \"DeepFields.SuperDeblending\" (https://github.com/1054/DeepFields.SuperDeblending) was not found! Exit!"
+        exit
+    fi
+fi
+
+if [[ $(type caap-prior-extraction-simulation-analyze-statistics 2>/dev/null | wc -l) -eq 0 ]]; then
+    if [[ -f "$HOME/Cloud/Github/Crab.Toolkit.CAAP/SETUP.bash" ]]; then
+        source "$HOME/Cloud/Github/Crab.Toolkit.CAAP/SETUP.bash"
+    elif [[ -f "$HOME/Softwares/Crab.Toolkit.CAAP/SETUP.bash" ]]; then
+        source "$HOME/Softwares/Crab.Toolkit.CAAP/SETUP.bash"
+    else
+        echo "Error! \"Crab.Toolkit.CAAP\" (https://github.com/1054/Crab.Toolkit.CAAP) was not found! Exit!"
+        exit
+    fi
+fi
+
+
+# 
+# Read input arguments
+# 
+output_dir="check_simulated_and_recovered"
+input_sbeam=()
+input_pbeam=()
+input_yes=0
+
+while [[ "$#" -gt 0 ]]; do
+    #echo $1
+    TempStr=$(echo "$1" | tr '[:upper:]' '[:lower:]')
+    #echo $TempStr
+    case "$TempStr" in
+             "-out") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output_dir";;
+               "-o") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output_dir";;
+"-synthesized-beam") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_sbeam";;
+    "-primary-beam") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_pbeam";;
+             "-res") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_sbeam";;
+             "-fov") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_pbeam";;
+               "-s") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_sbeam";;
+               "-p") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_pbeam";;
+             "-yes") CAAP_CMD_TEXT="$1";        CAAP_CMD_TYPE="yes";;
+    esac
+    #echo $CAAP_CMD_TYPE
+    case "$CAAP_CMD_TYPE" in
+             "output_dir") if [[ $# -gt 0 ]]; then output_dir="$1"; fi;;
+            "input_sbeam") if [[ $# -gt 0 ]]; then input_sbeam+=("$1"); fi;;
+            "input_pbeam") if [[ $# -gt 0 ]]; then input_pbeam+=("$1"); fi;;
+                    "yes")                         input_yes=1;;
+    esac
+    #
+    if [[ $# -gt 0 ]]; then shift; fi
+done
+
+
+# 
+# Check sbeam pbeam
+# 
+if [[ ${#input_sbeam[@]} -eq 0 ]] || [[ ${#input_pbeam[@]} -eq 0 ]]; then
+    echo "Usage: "
+    echo "  caap-prior-extraction-simulation-analyze-statistics -synthesized-beam 0.1 0.1 -primary-beam 17"
+    echo ""
+else
+    if [[ ${#input_sbeam[@]} -eq 1 ]]; then
+        input_sbeam+=("${input_sbeam[0]}")
+    fi
+    if [[ ${#input_pbeam[@]} -eq 1 ]]; then
+        input_pbeam+=("${input_pbeam[0]}")
+    fi
+fi
+    
+
+
+# 
+# Check output dir
+# 
+if [[ ! -d "$output_dir" ]]; then
+    mkdir -p "$output_dir"
+fi
+
+
+# 
+# Copy macros
+# 
+copy_macro_dir=$(dirname ${BASH_SOURCE[0]})"/caap-prior-extraction-simulation-analyze-statistics-macros"
+
+if [[ ! -f "$copy_macro_dir" ]]; then 
+    echo "Error! \"$copy_macro_dir was not found!\""
+    exit 1
+fi
+
+cp "$copy_macro_dir/"* "$output_dir/"
+
+
+# 
+# Run
+# 
+cat "Simulated/2011.0.00097.S_SB1_GB1_MB1_COSMOS7_field5_sci.spw0_1_2_3/datatable_Simulated.txt"        | grep -v "^#$" > "$output_dir/datatable_Simulated.txt"
+cat "Recovered/2011.0.00097.S_SB1_GB1_MB1_COSMOS7_field5_sci.spw0_1_2_3/datatable_Recovered_galfit.txt" | grep -v "^#$" > "$output_dir/datatable_Recovered_galfit.txt"
+
+cd "$output_dir"
+echo "${input_pbeam[@]}" > "info_primary_beam.txt"
+echo "${input_sbeam[@]}" > "info_synthesized_beam.txt"
+echo "macro read a_dzliu_code_check_simulated_and_recovered.sm go" | sm
+echo "macro read a_dzliu_code_analyze_statistics.sm analyze_statistics" | sm
+echo "Done!"
+
+
+
+
+
+
+
+

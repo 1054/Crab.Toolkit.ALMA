@@ -69,7 +69,7 @@ while [[ "$#" -gt 0 ]]; do
     #echo $1
     TempStr=$(echo "$1" | tr '[:upper:]' '[:lower:]')
     #echo $TempStr
-    case $1 in
+    case "$TempStr" in
          "-start") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="start";;
            "-end") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="end";;
            "-cat") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="catalog";;

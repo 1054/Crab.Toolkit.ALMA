@@ -1,0 +1,117 @@
+plot_z_lgMstar_SNR
+    # 
+    # Aim: plot z-lgMstar figure
+    # 
+    # check input
+    define plot_ok 1
+    foreach plot_var {Xf f df snr rms pbc z lgMstar lgSFR} {
+        if(!is_vector($var)) {
+            print 'Error! Vector $var does not exist! Please set it before run this macro!\n' {}
+            define plot_ok 0
+        }
+    }
+    if(!$plot_ok) {
+        return
+    }
+    # 
+    # load crabPlot.sm
+    crabPlotOpenPS "Plot_comparison_of_z_Mstar_SNR.eps"
+    crabPlotDefaultPenForBox
+    location 10000 31000 10000 31000
+    ticksize 0.1 1 0.1 1
+    limits 0 7 8 13.5
+    box
+    crabPlotDefaultPenForTitle
+    xlabel "Simulated Redshift"
+    ylabel "Simulated log M_{*}"
+    crabPlotDefaultPenForPoints
+    # 
+    # prepare colorbar
+    #load crabPlotColorbar.sm
+    #plotColorBar 0.62 0.90 0 0 snr
+    #do i=0,dimen(snr_Colors)-1 {
+    #    set plot_x = (z[$i])
+    #    set plot_y = (lgMstar[$i])
+    #    set plot_color = (snr_Colors[$i])
+    #    set plot_size = ln(snr)
+    #    set plot_size = (plot_size>2) ? 2 : plot_size
+    #    set plot_size = (plot_size<0.2) ? 0.2 : plot_size
+    #    set plot_thick = ln(snr)
+    #    set plot_thick = (plot_thick>3) ? 3 : plot_thick
+    #    set plot_thick = (plot_thick<0.2) ? 0.2 : plot_thick
+    #    ctype $(plot_color)
+    #    expand $(plot_size)
+    #    lweight $(plot_thick)
+    #    ptype 15 0
+    #    points plot_x plot_y
+    #}
+    # 
+    # prepare lengend
+    crabPlotLegend 0.07 1.00 " "
+    # 
+    # check whether real detection or not
+    set is_real_detection = (abs(f-Xf)<df)
+    # 
+    # --
+    # 
+    # plot SNR=2-3.5 sources (is_real_detection)
+    set plot_x = (z) if(snr>=2.0 && snr<3.5 && is_real_detection)
+    set plot_y = (lgMstar) if(snr>=2.0 && snr<3.5 && is_real_detection)
+    ctype gray lweight 0.25 ptype 15 3
+    points plot_x plot_y
+    lweight 3.5
+    # 
+    # plot SNR=2-3.5 sources (!is_real_detection)
+    set plot_x = (z) if(snr>=2.0 && snr<3.5 && !is_real_detection)
+    set plot_y = (lgMstar) if(snr>=2.0 && snr<3.5 && !is_real_detection)
+    ctype gray lweight 0.25 ptype 15 0
+    points plot_x plot_y
+    lweight 3.5
+    # 
+    # plot SNR=2-3.5 sources (legend)
+    crabPlotLegend "2.0{<}S/N{\le}3.5"
+    # 
+    # --
+    # 
+    # plot SNR=3.5-5 sources (is_real_detection)
+    set plot_x = (z) if(snr>=3.5 && snr<5.0 && is_real_detection)
+    set plot_y = (lgMstar) if(snr>=3.5 && snr<5.0 && is_real_detection)
+    ctype green lweight 0.75 ptype 15 3
+    points plot_x plot_y
+    lweight 3.5
+    # 
+    # plot SNR=3.5-5 sources (!is_real_detection)
+    set plot_x = (z) if(snr>=3.5 && snr<5.0 && !is_real_detection)
+    set plot_y = (lgMstar) if(snr>=3.5 && snr<5.0 && !is_real_detection)
+    ctype green lweight 0.75 ptype 15 0
+    points plot_x plot_y
+    lweight 3.5
+    # 
+    # plot SNR=3.5-5 sources (legend)
+    crabPlotLegend "3.5{<}S/N{\le}5"
+    # 
+    # --
+    # 
+    # plot SNR>5 sources (is_real_detection)
+    set plot_x = (z) if(snr>=5.0 && is_real_detection)
+    set plot_y = (lgMstar) if(snr>=5.0 && is_real_detection)
+    ctype blue lweight 1.5 ptype 15 3
+    points plot_x plot_y
+    lweight 3.5
+    # 
+    # plot SNR>5 sources (!is_real_detection)
+    set plot_x = (z) if(snr>=5.0 && !is_real_detection)
+    set plot_y = (lgMstar) if(snr>=5.0 && !is_real_detection)
+    ctype blue lweight 1.5 ptype 15 0
+    points plot_x plot_y
+    lweight 3.5
+    # 
+    # plot SNR>5 sources (legend)
+    crabPlotLegend "S/N{\ge}5"
+    # 
+    # --
+    # 
+    crabPlotClosePS
+    !open "Plot_comparison_of_z_Mstar_SNR.pdf"
+
+

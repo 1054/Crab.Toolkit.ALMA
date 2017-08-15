@@ -6,18 +6,26 @@ analyze_statistics
     #       echo "macro read caap_prior_extraction_simulation_analyze_statistics.sm analyze_statistics" | sm
     # 
     # Input: 
-    #       
+    #       "simu_data_input.txt" (which is the output of the code "a_dzliu_code_check_simulated_and_recovered.sm")
     # 
     # Output: 
-    #        
+    #         fALMA dfALMA
     # 
     
     #!cp '/Users/dzliu/Cloud/Github/Crab.Toolkit.CAAP/bin/caap_prior_extraction_simulation_analyze_statistics.sm' .
     #!cp '/Users/dzliu/Cloud/Github/DeepFields.SuperDeblending/Softwares/Galfit_Template_v20160225/run_simu_stats_v11.sm' .
     
-    foreach var {id Xf f df noise} {
+    load rfile.sm
+    rfile "simu_data_input.txt"
+    
+    foreach var {id ra dec Xf f df noise fres} {
         if(!is_vector($var)) {
             print 'Error! Vector $var does not exist! Please read from simulation and recovery data files!\n' {}
+        }
+    }
+    
+    foreach var {id ra dec Xf f df noise fres} {
+        if(!is_vector($var)) {
             return
         }
     }
@@ -25,6 +33,7 @@ analyze_statistics
     # load macro
     load crabStat.sm
     load crabPlotHistogram.sm
+    macro read run_simu_stats_v11.sm
     
     # define 
     define imax ALMA
