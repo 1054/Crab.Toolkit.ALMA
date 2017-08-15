@@ -21,7 +21,7 @@ go
     }
     rfile "datatable_Recovered_galfit.txt"
     set fit_coo = (snr_total>2.0 && pb_corr<16.0) # goes as far as about 2xFWHM, 1/exp(-((2.0*2.35482/2.0))**2/2.0) = 16
-    foreach var {id ra dec Maj Min PA Maj_err Min_err} {
+    foreach var {id ra dec Maj Min PA Maj_err Min_err PA_err} {
         if(!is_vector($var)) {print 'Error! Vector $var is invalid!\n' {} exit}
         set fit_$var = $var if(fit_coo)
     }
