@@ -11,6 +11,7 @@ go
     }
     rfile "datatable_Simulated.txt"
     foreach var {id ra dec z lgMstar lgSFR Maj Min PA Maj_pix Min_pix flux} {
+        if(!is_vector($var)) {print 'Error! Vector $var is invalid!\n' {} exit}
         set sim_$var = $var
     }
     
@@ -21,9 +22,11 @@ go
     rfile "datatable_Recovered_galfit.txt"
     set fit_coo = (snr_total>2.0 && pb_corr<16.0) # goes as far as about 2xFWHM, 1/exp(-((2.0*2.35482/2.0))**2/2.0) = 16
     foreach var {id ra dec Maj Min PA Maj_err Min_err} {
+        if(!is_vector($var)) {print 'Error! Vector $var is invalid!\n' {} exit}
         set fit_$var = $var if(fit_coo)
     }
     foreach var {f_total df_total snr_total f_peak df_peak snr_peak pb_corr fpeak fres rms} {
+        if(!is_vector($var)) {print 'Error! Vector $var is invalid!\n' {} exit}
         set $var = $var if(fit_coo)
         # fpeak is the source model image measured peak pixel value * 1e3 -> mJy
         # fres is the source residual image measured 1.0 arcsec diameter aperture sum of absolute pixel values
