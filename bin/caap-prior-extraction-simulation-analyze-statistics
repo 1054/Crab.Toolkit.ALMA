@@ -133,7 +133,7 @@ fi
 # 
 copy_macro_dir=$(dirname ${BASH_SOURCE[0]})"/caap-prior-extraction-simulation-analyze-statistics-macros"
 
-if [[ ! -f "$copy_macro_dir" ]]; then 
+if [[ ! -d "$copy_macro_dir" ]]; then 
     echo "Error! \"$copy_macro_dir was not found!\""
     exit 1
 fi
