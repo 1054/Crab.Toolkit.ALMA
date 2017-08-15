@@ -110,11 +110,11 @@ if [[ ! -d "$recovered_dir/$image_name" ]]; then
     echo "Error! Simulated data directory \"$recovered_dir/$image_name\" was not found!"
     exit 1
 fi
-if [[ ! -d "$simulated_dir/$image_name/datatable_Simulated.txt" ]]; then
+if [[ ! -f "$simulated_dir/$image_name/datatable_Simulated.txt" ]]; then
     echo "Error! Simulated data file \"$simulated_dir/$image_name/datatable_Simulated.txt\" was not found!"
     exit 1
 fi
-if [[ ! -d "$recovered_dir/$image_name/datatable_Recovered_galfit.txt" ]]; then
+if [[ ! -f "$recovered_dir/$image_name/datatable_Recovered_galfit.txt" ]]; then
     echo "Error! Simulated data file \"$recovered_dir/$image_name/datatable_Recovered_galfit.txt\" was not found!"
     exit 1
 fi
