@@ -5,8 +5,8 @@ plot_flux_comparison
     # check input
     define plot_ok 1
     foreach plot_var {Xf f df snr rms pbc z lgMstar lgSFR} {
-        if(!is_vector($var)) {
-            print 'Error! Vector $var does not exist! Please set it before run this macro!\n' {}
+        if(!is_vector($plot_var)) {
+            print 'Error! Vector $plot_var does not exist! Please set it before run this macro!\n' {}
             define plot_ok 0
         }
     }
