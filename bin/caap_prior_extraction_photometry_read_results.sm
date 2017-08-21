@@ -35,12 +35,10 @@ read_results
     unset dec
     
     
-    if( is_file("Read_Results_all_final_x_y_f_df_pix_scale_fit_3.txt") && \
-        is_file("Read_Results_all_final_morphologies_fit_3.txt") && \
+    if( is_file("Read_Results_all_final_morphologies_fit_3.txt") && \
         is_file("Read_Results_all_final_fluxes_fit_3.txt") ) {
         
         verbose 0
-        rfile "Read_Results_all_final_x_y_f_df_pix_scale_fit_3.txt"
         rfile "Read_Results_all_final_morphologies_fit_3.txt"
         rfile "Read_Results_all_final_fluxes_fit_3.txt"
         verbose 1
@@ -61,12 +59,10 @@ read_results
         set PA_err = PA_err_fit_3
     } else {
         
-        if( is_file("Read_Results_all_final_x_y_f_df_pix_scale_fit_2.txt") && \
-            is_file("Read_Results_all_final_morphologies_fit_2.txt") && \
+        if( is_file("Read_Results_all_final_morphologies_fit_2.txt") && \
             is_file("Read_Results_all_final_fluxes_fit_2.txt") ) {
             
             verbose 0
-            rfile "Read_Results_all_final_x_y_f_df_pix_scale_fit_2.txt"
             rfile "Read_Results_all_final_morphologies_fit_2.txt"
             rfile "Read_Results_all_final_fluxes_fit_2.txt"
             verbose 1
