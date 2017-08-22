@@ -796,7 +796,7 @@ for (( i=0; i<${#SciImages[@]}; i++ )); do
     #echo  "cd ../../"                                                                                                                          >> "$SourceDir/$SourceName.run.bash"
     #
     # determine buffer if the image is cut
-    if [[ "$SciImage" == "*.cut_*_*_*_*.fits" ]]; then
+    if [[ "$SciImage" == *".cut_*_*_*_*.fits" ]]; then
         CutBuffer=$UserCutBuffer
     else
         CutBuffer=0
