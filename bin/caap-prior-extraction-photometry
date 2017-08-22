@@ -62,6 +62,7 @@ InputCat=()
 InputSci=()
 InputPsf=()
 InputRms=()
+InputPba=()
 InputBoxSize=()
 OutputDir="Prior_Extraction_Photometry_v"$(date +"%Y%m%d")
 OutputSubDir="astrodepth_prior_extraction_photometry"
@@ -80,9 +81,15 @@ while [[ "$#" -gt 0 ]]; do
          "-image") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-sci";;
            "-psf") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-psf";;
            "-rms") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-rms";;
+           "-pba") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-pba";; # primary beam attenuation file
+           "-pbc") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-pba";; # primary beam attenuation file
+            "-pb") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-pba";; # primary beam attenuation file
      "-image-sci") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-sci";;
      "-image-psf") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-psf";;
      "-image-rms") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-rms";;
+     "-image-pba") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-pba";; # primary beam attenuation file
+     "-image-pbc") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-pba";; # primary beam attenuation file
+      "-image-pb") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-pba";; # primary beam attenuation file
      "-overwrite") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="user-overwrite";;
           "-step") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="user-steps";;
          "-steps") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="user-steps";;
@@ -106,6 +113,7 @@ while [[ "$#" -gt 0 ]]; do
  "list-image-sci") if [[ $# -gt 0 ]]; then InputSci+=("$1"); fi;;
  "list-image-psf") if [[ $# -gt 0 ]]; then InputPsf+=("$1"); fi;;
  "list-image-rms") if [[ $# -gt 0 ]]; then InputRms+=("$1"); fi;;
+ "list-image-pba") if [[ $# -gt 0 ]]; then InputPba+=("$1"); fi;;
        "box-size") if [[ $# -gt 0 ]]; then InputBoxSize+=("$1"); fi;;
      "output-dir") if [[ $# -gt 0 ]]; then OutputDir="$1"; fi;;
     "output-name") if [[ $# -gt 0 ]]; then OutputSubDir="$1"; fi;;
@@ -134,6 +142,7 @@ echo "InputCat = ${InputCat[@]} (${#InputCat[@]})"
 echo "InputSci = ${InputSci[@]} (${#InputSci[@]})"
 echo "InputPsf = ${InputPsf[@]} (${#InputPsf[@]})"
 echo "InputRms = ${InputRms[@]} (${#InputRms[@]})"
+echo "InputPba = ${InputPba[@]} (${#InputPba[@]})"
 
 
 
@@ -184,6 +193,9 @@ if [[ ${#InputSci[@]} -gt 0 ]]; then
     fi
     if [[ -f "$OutputDir/List_of_Input_Rms_Images.txt" ]]; then
         mv "$OutputDir/List_of_Input_Rms_Images.txt" "$OutputDir/List_of_Input_Rms_Images.txt.backup"
+    fi
+    if [[ -f "$OutputDir/List_of_Input_Pba_Images.txt" ]]; then
+        mv "$OutputDir/List_of_Input_Pba_Images.txt" "$OutputDir/List_of_Input_Pba_Images.txt.backup"
     fi
     if [[ -f "$OutputDir/List_of_Input_Psf_Images.txt" ]]; then
         mv "$OutputDir/List_of_Input_Psf_Images.txt" "$OutputDir/List_of_Input_Psf_Images.txt.backup"
@@ -262,7 +274,7 @@ if [[ ${#InputRms[@]} -gt 0 ]]; then
     fi
     RmsImages=()
     for (( i=0; i<${#InputRms[@]}; i++ )); do
-        # if the input is a "txt" file, then read in as a list
+        # if the input is a "txt" file (containing the path of the fits image), then read in as a list
         if [[ "${InputRms[i]}" == *".txt" ]]; then
             Old_IFS=$IFS
             IFS=$'\n' read -d '' -r -a RmsImage1 < "${InputRms[i]}"
@@ -282,6 +294,42 @@ if [[ ${#InputRms[@]} -gt 0 ]]; then
                 RmsImages+=($(caap-abs-path "${InputRms[i]}"))
             else
                 echo "Error! InputRms \"${InputRms[i]}\" does not exist!"; exit 1
+            fi
+        fi
+    done
+fi
+
+
+
+# 
+# Check Input Pba Fits Image List
+# 
+if [[ ${#InputPba[@]} -gt 0 ]]; then
+    if [[ -f "$OutputDir/List_of_Input_Pba_Images.txt" ]]; then
+        mv "$OutputDir/List_of_Input_Pba_Images.txt" "$OutputDir/List_of_Input_Pba_Images.txt.backup"
+    fi
+    PbaImages=()
+    for (( i=0; i<${#InputPba[@]}; i++ )); do
+        # if the input is a "txt" file (containing the path of the fits image), then read in as a list
+        if [[ "${InputPba[i]}" == *".txt" ]]; then
+            Old_IFS=$IFS
+            IFS=$'\n' read -d '' -r -a PbaImage1 < "${InputPba[i]}"
+            IFS="$Old_IFS"
+            for (( j=0; j<${#PbaImage1[@]}; j++ )); do
+                if [[ "${PbaImage1[j]}" != "/"* ]]; then
+                    PbaImage1[j]=$(dirname "${InputPba[i]}")"/${PbaImage1[j]}"
+                fi
+                if [[ -f "${PbaImage1[j]}" ]]; then
+                    PbaImages+=($(caap-abs-path "${PbaImage1[j]}"))
+                else
+                    echo "Error! InputPba \"${PbaImage1[j]}\" does not exist!"; exit 1
+                fi
+            done
+        elif [[ "${InputPba[i]}" == *".fits" ]]; then
+            if [[ -f "${InputPba[i]}" ]]; then
+                PbaImages+=($(caap-abs-path "${InputPba[i]}"))
+            else
+                echo "Error! InputPba \"${InputPba[i]}\" does not exist!"; exit 1
             fi
         fi
     done
@@ -344,7 +392,7 @@ if [[ ! -f "$OutputDir/List_of_Input_Sci_Images.txt" || ! -f "$OutputDir/List_of
             PsfImages+=("$PsfImage")
         fi
         # 
-        # check RmsImage, generate a text file if not given
+        # check RmsImage. If not given, then generate an rms image according to "$RmsStats.txt" which is related to the "$SciImage" fits file. 
         if [[ ${#RmsImages[@]} -gt $i ]]; then
             RmsImage="${RmsImages[i]}"
         else
@@ -398,10 +446,43 @@ if [[ ! -f "$OutputDir/List_of_Input_Sci_Images.txt" || ! -f "$OutputDir/List_of
             RmsImages+=("$RmsImage")
         fi
         # 
+        # check PbaImage. If not given, then try to find *.pb.fits according to $SciImage fits file name. If nothing found, then generate an empty fits image. 
+        if [[ ${#PbaImages[@]} -gt $i ]]; then
+            PbaImage="${PbaImages[i]}"
+        else
+            PbaImage=""
+            if [[ "$PbaImage"x == ""x ]]; then PbaImage=$(echo "$SciImage" | sed -e 's/\.image\.fits$/.pb.fits/g');   if [[ ! -f "$PbaImage" ]]; then PbaImage=""; fi; fi
+            if [[ "$PbaImage"x == ""x ]]; then PbaImage=$(echo "$SciImage" | sed -e 's/\.fits$/.pb.fits/g');          if [[ ! -f "$PbaImage" ]]; then PbaImage=""; fi; fi
+            if [[ "$PbaImage"x == ""x ]]; then PbaImage=$(echo "$SciImage" | sed -e 's/\.image\.fits$/.flux.fits/g'); if [[ ! -f "$PbaImage" ]]; then PbaImage=""; fi; fi
+            if [[ "$PbaImage"x == ""x ]]; then PbaImage=$(echo "$SciImage" | sed -e 's/\.fits$/.flux.fits/g');        if [[ ! -f "$PbaImage" ]]; then PbaImage=""; fi; fi
+            if [[ "$PbaImage"x == ""x ]]; then 
+                # create a Pba image with extension .pba.fits
+                PbaImage=$(echo "$SciImage" | sed -e 's/\.image\.fits$/.pba/g')
+                if [[ "$PbaImage" == *".fits" ]]; then
+                    PbaImage=$(echo "$SciImage" | sed -e 's/\.fits$/.pba/g')
+                fi
+                if [[ ! -f "$PbaImage.fits" ]]; then
+                    PbaValue="0.0" #<TODO># fill Pba image with this value. 
+                    echo "# "$(date +'%Y%m%d %Hh%Mm%Ss %Z') > "$PbaImage.log"
+                    echo "CrabFitsImageArithmetic \"$SciImage\" times 0.0 \"$PbaImage.tmp.fits\"" >> "$PbaImage.log"
+                          CrabFitsImageArithmetic  "$SciImage"  times 0.0  "$PbaImage.tmp.fits"   >> "$PbaImage.log"
+                    echo "CrabFitsImageArithmetic \"$PbaImage.tmp.fits\" adds \"$PbaValue\" \"$PbaImage.fits\"" >> "$PbaImage.log"
+                          CrabFitsImageArithmetic  "$PbaImage.tmp.fits"  adds  "$PbaValue"   "$PbaImage.fits"   >> "$PbaImage.log"
+                    rm "$PbaImage.tmp.fits"
+                fi
+                if [[ ! -f "$PbaImage.fits" ]]; then
+                    echo "Error! Failed to run \"CrabFitsImageArithmetic\" to create the PbaImage \"$PbaImage.fits\"! Please check \"$PbaImage.log\"!"; exit 1
+                fi
+                PbaImage="$PbaImage.fits"
+                PbaImages+=("$PbaImage")
+            fi
+        fi
+        # 
         # check SciImage and PsfImage name consistency
         SciImage_check=$(echo "$SciImage" | sed -e 's%\.image\.fits%%g' | sed -e 's%\.fits%%g')   #<TODO># file name
         PsfImage_check=$(echo "$PsfImage" | sed -e 's%\.psf\.fits%%g' | sed -e 's%\.clean-beam\.fits%%g')     #<TODO># file name
         RmsImage_check=$(echo "$RmsImage" | sed -e 's%\.rms\.fits%%g')     #<TODO># file name
+        PbaImage_check=$(echo "$PbaImage" | sed -e 's%\.pba\.fits%%g' | sed -e 's%\.pb\.fits%%g' | sed -e 's%\.flux\.fits%%g')     #<TODO># file name
         if [[ "$SciImage_check" != "$PsfImage_check" ]]; then 
             echo ""; echo "Error! The input SciImage \"$SciImage\" and PsfImage \"$PsfImage\" do not match!"; exit 1
         fi
@@ -482,11 +563,13 @@ if [[ ! -f "$OutputDir/List_of_Input_Sci_Images.txt" || ! -f "$OutputDir/List_of
         fi
         SciImage_fullpath="$SciImage"
         RmsImage_fullpath="$RmsImage"
+        PbaImage_fullpath="$PbaImage"
         SciNAXIS1=$(gethead "$SciImage_fullpath" NAXIS1)
         SciNAXIS2=$(gethead "$SciImage_fullpath" NAXIS2)
         if [[ $(awk "BEGIN {if(($SciNAXIS1>$CutSizeM)||($SciNAXIS2>$CutSizeM)) print 1; else print 0;}") -eq 1 ]]; then
             SciImage_cut_rect=$(echo "$SciImage_fullpath" | sed -e "s/\.fits$/.cut.rect.txt/g")
             RmsImage_cut_rect=$(echo "$RmsImage_fullpath" | sed -e "s/\.fits$/.cut.rect.txt/g")
+            PbaImage_cut_rect=$(echo "$PbaImage_fullpath" | sed -e "s/\.fits$/.cut.rect.txt/g")
             if [[ ! -f "$SciImage_cut_rect" ]]; then
                 CutNumbX=$(awk "BEGIN {print int(($SciNAXIS1)/$CutSizeS/2.0)*2+1}") # ~3
                 CutNumbY=$(awk "BEGIN {print int(($SciNAXIS2)/$CutSizeS/2.0)*2+1}") # ~3
@@ -534,6 +617,26 @@ if [[ ! -f "$OutputDir/List_of_Input_Sci_Images.txt" || ! -f "$OutputDir/List_of
                         fi
                         # write to OutputDir/List_of_Input_*_Images.txt
                         echo "$CutImage_fullpath" >> "$OutputDir/List_of_Input_Rms_Images.txt"
+                        
+                        # cut PbaImage
+                        CutImage_fullpath=$(echo "$PbaImage_fullpath" | sed -e "s/\.fits$/.cut_${CutPos1X}_${CutPos1Y}_${CutPos2X}_${CutPos2Y}.fits/g")
+                        CutScript_fullpath=$(echo "$PbaImage_fullpath" | sed -e "s/\.fits$/.cut_${CutPos1X}_${CutPos1Y}_${CutPos2X}_${CutPos2Y}.sh/g")
+                        CutScriptLog_fullpath=$(echo "$PbaImage_fullpath" | sed -e "s/\.fits$/.cut_${CutPos1X}_${CutPos1Y}_${CutPos2X}_${CutPos2Y}.sh.log/g")
+                        echo "#!/bin/bash" > "$CutScript_fullpath"
+                        echo "CrabFitsImageCrop \"$PbaImage_fullpath\" -rect $CutPos1X $CutPos1Y $CutPos2X $CutPos2Y -out \"$CutImage_fullpath\"" >> "$CutScript_fullpath"
+                        echo "$CutPos1X $CutPos1Y $CutPos2X $CutPos2Y" >> "$PbaImage_cut_rect"
+                        chmod +x "$CutScript_fullpath"
+                        "$CutScript_fullpath" > "$CutScriptLog_fullpath"
+                        if [[ ! -f "$CutImage_fullpath" ]]; then
+                            echo ""; echo "Error! Failed to run \"$CutScript_fullpath\" and create \"$CutImage_fullpath\"!"
+                            echo ""; cat "$CutScriptLog_fullpath"
+                            exit 1
+                        fi
+                        # write to OutputDir/List_of_Input_*_Images.txt
+                        echo "$CutImage_fullpath" >> "$OutputDir/List_of_Input_Pba_Images.txt"
+                        
+                        # for Psf image, 
+                        # write to OutputDir/List_of_Input_*_Images.txt
                         echo "$PsfImage_fullpath" >> "$OutputDir/List_of_Input_Psf_Images.txt"
                     done
                 done
@@ -554,10 +657,21 @@ if [[ ! -f "$OutputDir/List_of_Input_Sci_Images.txt" || ! -f "$OutputDir/List_of
                     # check CutImage_fullpath for RmsImage
                     CutImage_fullpath=$(echo "$RmsImage_fullpath" | sed -e "s/\.fits$/.cut_${CutRect[0]}_${CutRect[1]}_${CutRect[2]}_${CutRect[3]}.fits/g")
                     if [[ ! -f "$CutImage_fullpath" ]]; then 
-                        echo ""; echo "Error! Failed to find the cut SCI image \"$CutImage_fullpath\"!"; exit 1
+                        echo ""; echo "Error! Failed to find the cut RMS image \"$CutImage_fullpath\"!"; exit 1
                     fi
                     # write to OutputDir/List_of_Input_*_Images.txt
                     echo "$CutImage_fullpath" >> "$OutputDir/List_of_Input_Rms_Images.txt"
+                    
+                    # check CutImage_fullpath for PbaImage
+                    CutImage_fullpath=$(echo "$PbaImage_fullpath" | sed -e "s/\.fits$/.cut_${CutRect[0]}_${CutRect[1]}_${CutRect[2]}_${CutRect[3]}.fits/g")
+                    if [[ ! -f "$CutImage_fullpath" ]]; then 
+                        echo ""; echo "Error! Failed to find the cut PBA image \"$CutImage_fullpath\"!"; exit 1
+                    fi
+                    # write to OutputDir/List_of_Input_*_Images.txt
+                    echo "$CutImage_fullpath" >> "$OutputDir/List_of_Input_Pba_Images.txt"
+                    
+                    # for Psf image, 
+                    # write to OutputDir/List_of_Input_*_Images.txt
                     echo "$PsfImage_fullpath" >> "$OutputDir/List_of_Input_Psf_Images.txt"
                 done
             fi
@@ -565,6 +679,7 @@ if [[ ! -f "$OutputDir/List_of_Input_Sci_Images.txt" || ! -f "$OutputDir/List_of
         else
             echo "$SciImage_fullpath" >> "$OutputDir/List_of_Input_Sci_Images.txt"
             echo "$RmsImage_fullpath" >> "$OutputDir/List_of_Input_Rms_Images.txt"
+            echo "$PbaImage_fullpath" >> "$OutputDir/List_of_Input_Pba_Images.txt"
             echo "$PsfImage_fullpath" >> "$OutputDir/List_of_Input_Psf_Images.txt"
         fi
     done
@@ -575,6 +690,7 @@ IFS=$'\n' InputCats=($(<"$OutputDir/List_of_Input_Catalog.txt"))
 IFS=$'\n' SciImages=($(<"$OutputDir/List_of_Input_Sci_Images.txt"))
 IFS=$'\n' PsfImages=($(<"$OutputDir/List_of_Input_Psf_Images.txt"))
 IFS=$'\n' RmsImages=($(<"$OutputDir/List_of_Input_Rms_Images.txt"))
+IFS=$'\n' PbaImages=($(<"$OutputDir/List_of_Input_Pba_Images.txt"))
 if [[ ${#SciImages[@]} -eq 0 || ${#PsfImages[@]} -eq 0 ]]; then
     echo "Error! Failed to read \"$OutputDir/List_of_Input_Sci_Images.txt\" and \"$OutputDir/List_of_Input_Psf_Images.txt\"!"
     exit 1
@@ -583,9 +699,14 @@ if [[ ${#SciImages[@]} -eq 0 || ${#RmsImages[@]} -eq 0 ]]; then
     echo "Error! Failed to read \"$OutputDir/List_of_Input_Sci_Images.txt\" and \"$OutputDir/List_of_Input_Rms_Images.txt\"!"
     exit 1
 fi
+if [[ ${#SciImages[@]} -eq 0 || ${#PbaImages[@]} -eq 0 ]]; then
+    echo "Error! Failed to read \"$OutputDir/List_of_Input_Sci_Images.txt\" and \"$OutputDir/List_of_Input_Pba_Images.txt\"!"
+    exit 1
+fi
 #echo ${SciImages[0]}
 #echo ${PsfImages[0]}
 #echo ${RmsImages[0]}
+#echo ${PbaImages[0]}
 #exit
 
 
@@ -630,6 +751,7 @@ for (( i=0; i<${#SciImages[@]}; i++ )); do
     SciImage="${SciImages[i]}"
     PsfImage="${PsfImages[i]}"
     RmsImage="${RmsImages[i]}"
+    PbaImage="${PbaImages[i]}"
     SourceDir="$OutputSubDir"
     SourceName=$(basename "$SciImage" | sed -e 's%\.fits%%g')   #<TODO># file name
     # 
@@ -654,6 +776,7 @@ for (( i=0; i<${#SciImages[@]}; i++ )); do
     echo "SciImage = \"$SciImage\""
     echo "PsfImage = \"$PsfImage\""
     echo "RmsImage = \"$RmsImage\""
+    echo "PbaImage = \"$PbaImage\""
     echo "OutputDir = \"$OutputDir_fullpath/$SourceDir/$SourceName\""
     echo "***********"
     echo "Running astrodepth_prior_extraction_photometry"
@@ -676,6 +799,7 @@ for (( i=0; i<${#SciImages[@]}; i++ )); do
     echo  "                                       -sci \"$SciImage\" \\"                                            >> "$SourceDir/$SourceName.run.bash"
     echo  "                                       -psf \"$PsfImage\" \\"                                            >> "$SourceDir/$SourceName.run.bash"
     echo  "                                       -rms \"$RmsImage\" \\"                                            >> "$SourceDir/$SourceName.run.bash"
+    echo  "                                       -pba \"$PbaImage\" \\"                                            >> "$SourceDir/$SourceName.run.bash"
     echo  "                                       -output-dir \"$SourceDir\" \\"                                    >> "$SourceDir/$SourceName.run.bash"
     echo  "                                       -output-name \"$SourceName\" \\"                                  >> "$SourceDir/$SourceName.run.bash"
     echo  "                                       -steps getpix galfit gaussian ${UserSteps[@]} final \\"           >> "$SourceDir/$SourceName.run.bash"

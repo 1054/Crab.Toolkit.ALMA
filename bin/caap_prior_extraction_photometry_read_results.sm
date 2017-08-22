@@ -23,7 +23,9 @@ read_results
     set ra = big_cat_ra[cat_index]
     set dec = big_cat_dec[cat_index]
     set galfit_mask = mask
+    if(is_vector(pix_scl)) {set pix_scale = pix_scl}
     if(!is_vector(pix_scale)) {set pix_scale = ra*0.0 - 99}
+    if(dimen(pix_scale)!=dimen(ra)) {set pix_scale = ra*0.0 - 99}
     
     echo "Writing \"Output_getpix.txt\""
     print "Output_getpix.txt" \
@@ -33,6 +35,7 @@ read_results
     unset id
     unset ra
     unset dec
+    unset pix_scale
     
     
     if( is_file("Read_Results_all_final_morphologies_fit_3.txt") && \
