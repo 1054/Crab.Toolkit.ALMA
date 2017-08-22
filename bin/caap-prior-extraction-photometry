@@ -58,6 +58,7 @@ UserYes=0
 UserSteps=()
 UserUnlock=()
 UserOverwrite=()
+UserCutBuffer=20
 InputCat=()
 InputSci=()
 InputPsf=()
@@ -575,7 +576,7 @@ if [[ ! -f "$OutputDir/List_of_Input_Sci_Images.txt" || ! -f "$OutputDir/List_of
                 CutNumbY=$(awk "BEGIN {print int(($SciNAXIS2)/$CutSizeS/2.0)*2+1}") # ~3
                 CutSizeX=$(awk "BEGIN {print int(($SciNAXIS1)/$CutNumbX)}") # ~301
                 CutSizeY=$(awk "BEGIN {print int(($SciNAXIS2)/$CutNumbY)}") # ~301
-                CutBuffer=20
+                CutBuffer=$UserCutBuffer
                 for (( icut_y=0; icut_y<$CutNumbY; icut_y++ )); do
                     for (( icut_x=0; icut_x<$CutNumbX; icut_x++ )); do
                         # define cut x1,y1 x2,y2
@@ -800,6 +801,7 @@ for (( i=0; i<${#SciImages[@]}; i++ )); do
     echo  "                                       -psf \"$PsfImage\" \\"                                            >> "$SourceDir/$SourceName.run.bash"
     echo  "                                       -rms \"$RmsImage\" \\"                                            >> "$SourceDir/$SourceName.run.bash"
     echo  "                                       -pba \"$PbaImage\" \\"                                            >> "$SourceDir/$SourceName.run.bash"
+    echo  "                                       -buffer $UserCutBuffer \\"                                        >> "$SourceDir/$SourceName.run.bash"
     echo  "                                       -output-dir \"$SourceDir\" \\"                                    >> "$SourceDir/$SourceName.run.bash"
     echo  "                                       -output-name \"$SourceName\" \\"                                  >> "$SourceDir/$SourceName.run.bash"
     echo  "                                       -steps getpix galfit gaussian ${UserSteps[@]} final \\"           >> "$SourceDir/$SourceName.run.bash"
