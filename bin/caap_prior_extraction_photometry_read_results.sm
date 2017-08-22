@@ -84,6 +84,14 @@ read_results
         }
     }
     
+    
+    # Check data arrays
+    foreach var {Maj Min beam_area pix_scale rms f df fpeak fres id image_file} {
+        echo is_vector($var) = $(is_vector($var)), dimen($var) = $(dimen($var))
+    }
+    
+    
+    
     if(is_vector(Maj) && is_vector(Min) && is_vector(beam_area) && is_vector(pix_scale) && is_vector(rms) \
         && is_vector(f) && is_vector(df) && is_vector(fpeak) && is_vector(fres) && is_vector(id)) {
         
