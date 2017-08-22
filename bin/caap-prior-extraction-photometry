@@ -795,13 +795,20 @@ for (( i=0; i<${#SciImages[@]}; i++ )); do
     #echo  "echo \"macro read astrodepth_go_galfit.sm print_result_fit_2\" | sm"                                                                >> "$SourceDir/$SourceName.run.bash"
     #echo  "cd ../../"                                                                                                                          >> "$SourceDir/$SourceName.run.bash"
     #
+    # determine buffer if the image is cut
+    if [[ "$SciImage" == "*.cut_*_*_*_*.fits" ]]; then
+        CutBuffer=$UserCutBuffer
+    else
+        CutBuffer=0
+    fi
+    # 
     echo  "astrodepth_prior_extraction_photometry \\"                                                               >> "$SourceDir/$SourceName.run.bash"
     echo  "                                       -cat "$(printf "'%s' " "${InputCats[@]}")" \\"                    >> "$SourceDir/$SourceName.run.bash"
     echo  "                                       -sci \"$SciImage\" \\"                                            >> "$SourceDir/$SourceName.run.bash"
     echo  "                                       -psf \"$PsfImage\" \\"                                            >> "$SourceDir/$SourceName.run.bash"
     echo  "                                       -rms \"$RmsImage\" \\"                                            >> "$SourceDir/$SourceName.run.bash"
     echo  "                                       -pba \"$PbaImage\" \\"                                            >> "$SourceDir/$SourceName.run.bash"
-    echo  "                                       -buffer $UserCutBuffer \\"                                        >> "$SourceDir/$SourceName.run.bash"
+    echo  "                                       -buffer $CutBuffer \\"                                            >> "$SourceDir/$SourceName.run.bash"
     echo  "                                       -output-dir \"$SourceDir\" \\"                                    >> "$SourceDir/$SourceName.run.bash"
     echo  "                                       -output-name \"$SourceName\" \\"                                  >> "$SourceDir/$SourceName.run.bash"
     echo  "                                       -steps getpix galfit gaussian ${UserSteps[@]} final \\"           >> "$SourceDir/$SourceName.run.bash"
