@@ -120,6 +120,13 @@ for fit_step in fit_2 fit_3 fit_n2 fit_n3; do
     if [[ -f "Read_Results_all_final_x_y_f_df_pix_scale_${fit_step}.txt" ]]; then
         mv "Read_Results_all_final_x_y_f_df_pix_scale_${fit_step}.txt" "Read_Results_all_final_x_y_f_df_pix_scale_${fit_step}.txt.backup"
     fi
+    # 
+    if [[ -f "Read_Results_all_final_mask_buffer_${fit_step}.txt.backup" ]]; then
+        mv "Read_Results_all_final_mask_buffer_${fit_step}.txt.backup" "Read_Results_all_final_mask_buffer_${fit_step}.txt.backup.backup"
+    fi
+    if [[ -f "Read_Results_all_final_mask_buffer_${fit_step}.txt" ]]; then
+        mv "Read_Results_all_final_mask_buffer_${fit_step}.txt" "Read_Results_all_final_mask_buffer_${fit_step}.txt.backup"
+    fi
 done
 
 for fit_step in getpix; do
@@ -272,6 +279,15 @@ for (( i=0; i<${#SciImages[@]}; i++ )); do
             fi
             cat "${fit_step}.result" | tail -n +3 | xargs -d '\n' -I % echo "%    $SourceName" \
             >> "$CurrentDir/Read_Results_all_final_x_y_f_df_pix_scale_${fit_step}.txt"
+        fi
+        # 
+        if [[ -f "${fit_step}.result.mask_buffer.txt" ]]; then
+            if [[ ! -f "$CurrentDir/Read_Results_all_final_mask_buffer_${fit_step}.txt" ]]; then
+                head -n 1 "${fit_step}.result.mask_buffer.txt" | xargs -d '\n' -I % echo "%    image_file" \
+                > "$CurrentDir/Read_Results_all_final_mask_buffer_${fit_step}.txt"
+            fi
+            cat "${fit_step}.result.mask_buffer.txt" | tail -n +3 | xargs -d '\n' -I % echo "%    $SourceName" \
+            >> "$CurrentDir/Read_Results_all_final_mask_buffer_${fit_step}.txt"
         fi
     done
     

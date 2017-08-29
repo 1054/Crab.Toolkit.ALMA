@@ -52,7 +52,11 @@ while [[ "$#" -gt 0 ]]; do
              "-out") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output_dir";;
                "-o") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output_dir";;
 "-synthesized-beam") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_sbeam";;
+           "-sbeam") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_sbeam";;
+              "-sb") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_sbeam";;
     "-primary-beam") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_pbeam";;
+           "-pbeam") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_pbeam";;
+              "-pb") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_pbeam";;
              "-res") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_sbeam";;
              "-fov") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_pbeam";;
                "-s") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_sbeam";;

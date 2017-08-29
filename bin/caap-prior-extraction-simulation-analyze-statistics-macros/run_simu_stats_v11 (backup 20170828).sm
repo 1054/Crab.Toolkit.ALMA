@@ -252,7 +252,7 @@ run_simu_stats_v11 03
     #define NumberSteps 6
     
     #<20170111># 
-    #define NumberSteps 3 # -- for 20cm and 24um
+    define NumberSteps 3 # -- for 20cm and 24um
     
     
     
@@ -298,21 +298,17 @@ run_simu_stats_v11 03
     
     # Normalize by noise
     stats_med noise noise_median noise_siqr
-    set fRMS = f/noise
-    #set fRMS = f/(noise/$noise_median)
-    set dfRMS = df/noise
-    #set dfRMS = df/(noise/$noise_median)
+    set fRMS = f/(noise/$noise_median)
+    set dfRMS = df/(noise/$noise_median)
     vecminmax dfRMS feMin feMax
     stats dfRMS feMean feSigma feKurt
     stats_med dfRMS feMedian feSIQR
-    set fresRMS = fres/noise
-    #set fresRMS = fres/(noise/$noise_median)
-    set crowRMS = crowdedness/noise
-    #set crowRMS = crowdedness/(noise/$noise_median)
+    set fresRMS = fres/(noise/$noise_median)
+    set crowRMS = crowdedness/(noise/$noise_median)
     set crow = crowdedness
     set crow$imax = crowdedness
     
-    #print "aaa.dfRMS.txt" '%15.0f %15g\n' {id dfRMS}
+    print "aaa.dfRMS.txt" '%15.0f %15g\n' {id dfRMS}
     
     
     # 
@@ -487,19 +483,6 @@ go_analyze_step 01
                 if('$imax'=='24') {set binVolume = <30 70 100 70 50 30 7>}
             }
             # 
-            # <TODO><20170825> 350um
-            if('$imax'=='350') {
-                if('$1'=='1') {
-                    set binVolume = <150 500 300 120 70 32 5> # <30 500 500 500 300 100 50 30 15>
-                }
-                if('$1'=='2') { 
-                    set binVolume = <7 28 62 47 14 3.5>
-                }
-                if('$1'=='3') { 
-                    set binVolume = <433 284 285 279 209 140>
-                }
-            }
-            # 
             # <TODO><20170513> 850um
             if('$imax'=='850') {
                 if('$1'=='1') {
@@ -513,13 +496,11 @@ go_analyze_step 01
             }
             if('$imax'=='850_NMF') {
                 if('$1'=='1') {
-                    set binVolume = <30 500 1000 50 50 30 15 3>
-                }
-                if('$1'=='2') {
-                    set binVolume = <0.03 0.25 1 3 5 3 1 0.25 0.03>
+                    #set binVolume = -7
+                    set binVolume = <1000 1000 50 50 30 10>
                 }
                 if('$1'=='3') { 
-                    set binVolume = <300 100 80 50 30 20>
+                    set binVolume = <1589 300 300 300 40>
                 }
             }
         }
@@ -669,7 +650,7 @@ plot_XfmTfEdf_versus_Param 01
     crabPlotDefaultPenForPoints ptype 4 1 points xarray ((Xf-(Tf))/df)
     ctype default lweight 4.0 ltype 1 rel $fx1 0 draw $fx2 0 # plot horizontal Y=0 line
     ctype default lweight 4.5 ltype 0 expand 2.2 xlabel $plotTitle # plot title 
-    ctype default lweight 4.5 ltype 0 expand 2.0 ylabel "(S_{in}-S_{out})/{\sigma}_{"$(substr('$imax',0,(index('$imax','_')+1)))"}"
+    ctype default lweight 4.5 ltype 0 expand 2.0 ylabel "(S_{in}-S_{out})/{\sigma}_{"$imax"}"
     # overplot 3-sigma and 12-sigma
     if((index('$1','Xf')==0 || index('$1','Tf')==0) && $?field) {
     set_$field""_photometry_constants_$imax
@@ -693,11 +674,11 @@ plot_XfmTfEdf_versus_Param 01
 
 determinePlotTitle 01
     # determine plotTitle
-    if('$1'=='1') { define plotTitle "\sigma_{galfit}/(\sigma_{rms\,noise}/\bar{\sigma_{rms\,noise}})" } # "flux uncertainty\,/\,rms\,noise"
-    if('$1'=='2') { define plotTitle "S_{residual}/(\sigma_{rms\,noise}/\bar{\sigma_{rms\,noise}})" } # "flux in residual image\,/\,rms\,noise"
+    if('$1'=='1') { define plotTitle "\sigma_{galfit}/\sigma_{rms\,noise}" } # "flux uncertainty\,/\,rms\,noise"
+    if('$1'=='2') { define plotTitle "S_{residual}/\sigma_{rms\,noise}" } # "flux in residual image\,/\,rms\,noise"
     if('$1'=='3') { define plotTitle "crowdedness" }
-    if(index('$1','1')==0) { define plotTitle "\sigma_{galfit}/(\sigma_{rms\,noise}/\bar{\sigma_{rms\,noise}})" } # "flux uncertainty\,/\,rms\,noise"
-    if(index('$1','2')==0) { define plotTitle "S_{residual}/(\sigma_{rms\,noise}/\bar{\sigma_{rms\,noise}})" } # "flux in residual image\,/\,rms\,noise"
+    if(index('$1','1')==0) { define plotTitle "\sigma_{galfit}/\sigma_{rms\,noise}" } # "flux uncertainty\,/\,rms\,noise"
+    if(index('$1','2')==0) { define plotTitle "S_{residual}/\sigma_{rms\,noise}" } # "flux in residual image\,/\,rms\,noise"
     if(index('$1','3')==0) { define plotTitle "crowdedness" }
     if('$1'=='fRMS') { define plotTitle "S_{galfit}/\sigma_{rms\,noise}" } # "flux \,/\,rms\,noise"
     if('$1'=='Tf') {define plotTitle "S_{out} [mJy]"}
@@ -746,21 +727,6 @@ determinePlotTicksize 02
         if(index('$1','Xf')==0) {ticksize -1 5 -1 10}
     }
 
-determinePlotNormalization 01
-    #<20170825># 
-    #if($?plotTitle) {echo plotTitle = }
-    #if($?noise_median) {echo noise_median = }
-    #if($?1) {echo input_argument = $1}
-    if($?plotTitle && $?noise_median && $?1) {
-        if(is_vector($1)) {
-            !echo '$plotTitle' | grep -q '/\\\\bar{\\\\sigma_.*}'
-            if($exit_status==0) {
-                set $1 = $1 + lg($noise_median)
-                echo set $1 = $1 + lg($noise_median)
-            }
-        }
-    }
-
 
 
 
@@ -793,11 +759,6 @@ go_analyze_fbias 01
     #if('$imax'=='350' && '$1'=='1') {set FUN_fbias_order = 3} #<20170104><dzliu><TODO># 350 histogram has a tail of Sin>Sout
     #if('$imax'=='350' && '$1'=='3') {set FUN_fbias_order = 3} #<20170104><dzliu><TODO># 350 histogram has a tail of Sin>Sout
     #if('$imax'=='350' && '$1'=='3') {set FUN_fbias_order = 0} #<20170104><dzliu><TODO># 350 histogram has a tail of Sin>Sout
-    #if('$field'=='goodsn' && '$imax'=='350' && '$1'=='1') {set FUN_fbias_order = 5}
-    #if('$field'=='goodsn' && '$imax'=='350' && '$1'=='2') {set FUN_fbias_order = 5}
-    #if('$field'=='goodsn' && '$imax'=='350' && '$1'=='3') {set FUN_fbias_order = 5}
-    if('$field'=='goodsn' && '$imax'=='850_NMF' && '$1'=='1') {set FUN_fbias_order = 3}
-    if('$field'=='goodsn' && '$imax'=='850_NMF' && '$1'=='2') {set FUN_fbias_order = 4}
     set FUN_fbias_$1""_x = FUN_fbias_variable #<20170104><dzliu># 
     set FUN_fbias_$1""_y = FUN_fbias_value #<20170104><dzliu># 
     set FUN_fbias_$1 = fit_PolyLine(FUN_fbias_variable, FUN_fbias_value, FUN_fbias_order)
@@ -805,8 +766,7 @@ go_analyze_fbias 01
     set fbias_$1 = get_PolyLine(FUN_fbias_$1, VAR_fbias_$1)
     go_constrain_fbias $1
     print $outdir"/FUN_fbias_"$1"_xy.txt" <FUN_fbias_$1""_x FUN_fbias_$1""_y>
-    print $outdir"/FUN_fbias_"$1".txt" '%.15f\n' <FUN_fbias_$1>
-    print $outdir"/VAR_fbias_"$1".txt" <VAR_fbias_$1 fbias_$1>
+    print $outdir"/FUN_fbias_"$1".txt" <FUN_fbias_$1>
     print $outdir"/VAL_fbias_"$1".txt" <fbias_$1>
     # 
     go_plot_bin_fbias $1
@@ -842,7 +802,6 @@ go_analyze_dfcorr 01
     set FUN_dfcorr_order = 2 #<TODO># order of polyfit for dfcorr?
     #if('$imax'=='100' && '$1'=='3') {set FUN_dfcorr_order = 3} #<TODO># Band100 crow-dfcorr
     #if('$imax'=='350' && '$1'=='3') {set FUN_dfcorr_order = 0} #<20170104><dzliu><TODO># 350 histogram has a tail of Sin>Sout
-    #if('$field'=='goodsn' && '$imax'=='350' && '$1'=='3') {set FUN_dfcorr_order = 3}
     set FUN_dfcorr_$1""_x = FUN_dfcorr_x #<20170104><dzliu># 
     set FUN_dfcorr_$1""_y = FUN_dfcorr_y #<20170104><dzliu># 
     set FUN_dfcorr_$1 = fit_PolyLine(FUN_dfcorr_x, FUN_dfcorr_y, FUN_dfcorr_order)
@@ -850,7 +809,7 @@ go_analyze_dfcorr 01
     set dfcorr_$1 = get_PolyLine(FUN_dfcorr_$1, VAR_dfcorr_$1)
     go_constrain_dfcorr $1
     print $outdir"/FUN_dfcorr_"$1"_xy.txt" <FUN_dfcorr_$1""_x FUN_dfcorr_$1""_y>
-    print $outdir"/FUN_dfcorr_"$1".txt" '%.15f\n' <FUN_dfcorr_$1>
+    print $outdir"/FUN_dfcorr_"$1".txt" <FUN_dfcorr_$1>
     print $outdir"/VAR_dfcorr_"$1".txt" <VAR_dfcorr_$1 dfcorr_$1>
     print $outdir"/VAL_dfcorr_"$1".txt" <dfcorr_$1>
     # 
@@ -895,34 +854,20 @@ go_plot_bin_fbias 02
     set rangeX = binVar
     set rangeY = (Xf-(Tf))
     set rangeY = rangeY concat (-rangeY)
-    determinePlotNormalization rangeX # normalize rangeX by $noise_median
     determinePlotLocation
     determinePlotTicksize $1
     limits rangeX rangeY
     crabPlotDefaultPenForBox box 1 2 0 2
-    # overplot data points
-    set plotX = binVar
-    set plotY = (Xf-(Tf))
-    determinePlotNormalization plotX # normalize plotX by $noise_median
-    ctype blue lweight 0.2 expand 0.3 points plotX plotY
-    # overplot bin edges
-    set plotX = fenBinEdges
-    determinePlotNormalization plotX # normalize plotX by $noise_median
+    ctype blue lweight 0.2 expand 0.3 points binVar (Xf-(Tf))
     ctype default lweight 4.5 ltype 1 # plot edge of bins
-    foreach binEdge plotX {rel $(($binEdge)) $fy1 draw $(($binEdge)) $fy2}
+    foreach binEdge fenBinEdges {rel $(($binEdge)) $fy1 draw $(($binEdge)) $fy2}
     ctype default lweight 4.0 ltype 1 rel $fx1 0 draw $fx2 0 # plot horizontal Y=0 line
     ctype default lweight 4.5 ltype 0 expand 2.2 xlabel $plotTitle # plot title 
     ctype default lweight 4.5 ltype 0 expand 2.0 ylabel "(S_{in}-S_{out}) [mJy]"
     # overplot the MedianInBin data points
-    set plotX = binCen
-    set plotY = MedianInBin
-    determinePlotNormalization plotX # normalize plotX by $noise_median
-    ctype navyblue lweight 4.5 expand 3.0 ptype 4 0 points plotX plotY
+    ctype navyblue lweight 4.5 expand 3.0 ptype 4 0 points binCen MedianInBin
     # overplot the applied flux bias / fbias function in Y2 axis
-    set plotX = binVar
-    set plotY = fbias_$1
-    sort {plotX plotY}
-    determinePlotNormalization plotX # normalize plotX by $noise_median
+    set plotX = binVar set plotY = fbias_$1 sort {plotX plotY} # the fbias function
     ctype default lweight 5.5 expand 0.85 connect plotX plotY
     ctype red     lweight 2.5 expand 0.85 connect plotX plotY
     ctype default lweight 5.5 expand 1.35 relocate $(plotX[dimen(plotX)-1]) $(plotY[dimen(plotY)-1]) putlabel 4 "flux bias"
@@ -945,26 +890,17 @@ go_plot_bin_fbias 02
     set rangeX = binVar
     set rangeY = abs((Xf-Tf)/(df))*1.2 # expand Y axis range
     set rangeY = rangeY concat (-rangeY)
-    determinePlotNormalization rangeX # normalize rangeX by $noise_median
     determinePlotLocation
     determinePlotTicksize $1
     limits rangeX rangeY
     crabPlotDefaultPenForBox box 1 2 0 3
-    # plot data points
-    set plotX = binVar
-    set plotY_uncorr = ((Xf-Tf)/(df))
-    set plotY_corr = ((Xf-(Tf+fbias_$1))/(df))
-    determinePlotNormalization plotX # normalize plotX by $noise_median
-    ctype blue lweight 0.2 expand 0.3 points plotX plotY_uncorr
+    ctype blue lweight 0.2 expand 0.3 points binVar ((Xf-Tf)/(df))
     ctype default lweight 4.0 ltype 1 rel $fx1 0 draw $fx2 0 # plot horizontal Y=0 line
-    ctype red lweight 0.3 expand 0.4 points plotX plotY_corr
-    # plot bin edges
-    set plotX = fenBinEdges
-    determinePlotNormalization plotX # normalize plotX by $noise_median
+    ctype red lweight 0.3 expand 0.4 points binVar ((Xf-(Tf+fbias_$1))/(df))
     ctype default lweight 4.5 ltype 1 # plot edge of bins
-    foreach binEdge plotX {rel $(($binEdge)) $fy1 draw $(($binEdge)) $fy2}
+    foreach binEdge fenBinEdges {rel $(($binEdge)) $fy1 draw $(($binEdge)) $fy2}
     ctype default lweight 4.5 ltype 0 expand 2.2 xlabel $plotTitle # plot title 
-    ctype default lweight 4.5 ltype 0 expand 2.0 ylabel "(S_{in}-S_{out})/\sigma_{"$(substr('$imax',0,index('$imax','_')+1))"}"
+    ctype default lweight 4.5 ltype 0 expand 2.0 ylabel "(S_{in}-S_{out})/\sigma_{"$imax"}"
     ctype default lweight 5.5 expand 1.7 relocate (7000 29500) puts "before corr."
     ctype blue    lweight 2.5 expand 1.7 relocate (7000 29500) puts "before corr."
     ctype default lweight 5.5 expand 1.7 relocate (7000 28000) puts "after corr."
@@ -975,10 +911,8 @@ go_plot_bin_fbias 02
     notation 0 0 -2 2
     determinePlotTicksize $1
     crabPlotDefaultPenForBox box 3 3 3 2
-    # plot data points
     set plotX = binVar
     set plotY = fbias_$1
-    determinePlotNormalization plotX # normalize plotX by $noise_median
     sort {plotX plotY} # the fbias function
     ctype default lweight 5.5 expand 0.85 connect plotX plotY
     ctype red     lweight 2.5 expand 0.85 connect plotX plotY
@@ -1029,26 +963,17 @@ go_plot_bin_scatter 02
     set rangeX = binVar
     set rangeY = abs((Xf-Tf)/(df))*1.2 # expand Y axis range
     set rangeY = rangeY concat (-rangeY)
-    determinePlotNormalization rangeX # normalize rangeX by $noise_median
     determinePlotLocation
     determinePlotTicksize $1
     limits rangeX rangeY
     crabPlotDefaultPenForBox box 1 2 0 3
-    # plot data points
-    set plotX = binVar
-    set plotY_uncorr = ((Xf-Tf)/(df))
-    set plotY_corr = ((Xf-Tf)/(df*dfcorr_$1))
-    determinePlotNormalization plotX # normalize plotX by $noise_median
-    ctype blue lweight 0.2 expand 0.3 points plotX plotY_uncorr
+    ctype blue lweight 0.2 expand 0.3 points binVar ((Xf-Tf)/(df))
     ctype default lweight 4.0 ltype 0 rel $fx1 0 draw $fx2 0 # plot horizontal Y=0 line
-    ctype red lweight 0.3 expand 0.4 points plotX plotY_corr
-    # plot bin edges
-    set plotX = fenBinEdges
-    determinePlotNormalization plotX # normalize plotX by $noise_median
+    ctype red lweight 0.3 expand 0.4 points binVar ((Xf-Tf)/(df*dfcorr_$1))
     ctype default lweight 4.5 ltype 1 # plot edge of bins
-    foreach binEdge plotX {rel $(($binEdge)) $fy1 draw $(($binEdge)) $fy2}
+    foreach binEdge fenBinEdges {rel $(($binEdge)) $fy1 draw $(($binEdge)) $fy2}
     ctype default lweight 4.5 ltype 0 expand 2.2 xlabel $plotTitle # plot title 
-    ctype default lweight 4.5 ltype 0 expand 2.0 ylabel "(S_{in}-S_{out})/\sigma_{"$(substr('$imax',0,index('$imax','_')+1))"}"
+    ctype default lweight 4.5 ltype 0 expand 2.0 ylabel "(S_{in}-S_{out})/\sigma_{"$imax"}"
     ctype default lweight 5.5 expand 1.7 relocate (7000 29500) puts "before corr."
     ctype blue    lweight 2.5 expand 1.7 relocate (7000 29500) puts "before corr."
     ctype default lweight 5.5 expand 1.7 relocate (7000 28000) puts "after corr."
@@ -1063,10 +988,8 @@ go_plot_bin_scatter 02
     notation 0 0 -2 2
     determinePlotTicksize $1 ylog
     crabPlotDefaultPenForBox box 3 3 3 2
-    # plot data points
     set plotX = binVar
     set plotY = lg(dfcorr_$1)
-    determinePlotNormalization plotX # normalize plotX by $noise_median
     sort {plotX plotY} # the dfcorr function
     ctype default lweight 6.0 expand 0.85 connect plotX plotY
     ctype red     lweight 3.5 expand 0.85 connect plotX plotY
@@ -1129,22 +1052,22 @@ go_plot_fbias 02
     set rangeY2 = (f+fbias_$1) if(fbias_coo)
     set rangeY = rangeY1 concat rangeY2
     set rangeY = rangeY concat 0.0
-    determinePlotNormalization rangeX # normalize rangeX by $noise_median
+    #<lg>#set rangeY = (lg(rangeY1)) concat (lg(rangeY2))
     determinePlotLocation
     determinePlotTicksize $1
     limits rangeX rangeY
     crabPlotDefaultPenForBox box 1 2 0 3
-    # plot uncorrected data points
+    # plot uncorrected flux
     set plotX = fbias_var if(fbias_coo)
     set plotY = (f)       if(fbias_coo)
-    determinePlotNormalization plotX # normalize plotX by $noise_median
+    #<lg>#set plotY = lg(plotY)
     sort {plotX plotY}
     set plotPosY1 = plotY[0] # tune plot text position
     ctype blue lweight 0.2 expand 0.3 points plotX plotY
-    # plot corrected data points
+    # plot corrected flux
     set plotX = fbias_var    if(fbias_coo)
     set plotY = (f+fbias_$1) if(fbias_coo)
-    determinePlotNormalization plotX # normalize plotX by $noise_median
+    #<lg>#set plotY = lg(plotY)
     sort {plotX plotY}
     set plotPosY2 = plotY[0] # tune plot text position
     if(abs(plotPosY2-plotPosY1)<0.10*($fy2-$fy1)) {
@@ -1164,21 +1087,20 @@ go_plot_fbias 02
     ctype default lweight 4.5 ltype 1 # plot edge of bins
     # plot bins
     if(is_vector(fenBinEdges)) {
-        set plotX = fenBinEdges
-        determinePlotNormalization plotX # normalize plotX by $noise_median
-        foreach binEdge plotX {rel $(($binEdge)) $fy1 draw $(($binEdge)) $fy2}
+        foreach binEdge fenBinEdges {rel $(($binEdge)) $fy1 draw $(($binEdge)) $fy2}
     }
     # plot title
     ctype default lweight 4.5 expand 2.2 xlabel $plotTitle # plot title
-    ctype default lweight 4.5 expand 2.0 ylabel "S_{"$(substr('$imax',0,index('$imax','_')+1))"} [mJy]"
+    ctype default lweight 4.5 expand 2.0 ylabel "S_{"$imax"} [mJy]"
     # overplot applied correction factor / fbias function in Y2 axis
+    #<lg>#set rangeY = {-1 1.5} # rangeY1 concat rangeY2
+    #set rangeY = fbias_$1*2.0 if(fbias_coo)
     limits rangeX rangeY
     notation 0 0 -2 2
     determinePlotTicksize $1
     crabPlotDefaultPenForBox box 3 3 3 2
     set plotX = fbias_var if(fbias_coo)
     set plotY = fbias_$1  if(fbias_coo)
-    determinePlotNormalization plotX # normalize plotX by $noise_median
     sort {plotX plotY} # the fbias function
     ctype default lweight 6.0 expand 0.85 connect plotX plotY
     ctype red     lweight 3.5 expand 0.85 connect plotX plotY
@@ -1231,7 +1153,6 @@ go_plot_dfcorr 02
     set rangeY1 = (lg(df))           if(dfcorr_coo)
     set rangeY2 = (lg(df*dfcorr_$1)) if(dfcorr_coo)
     set rangeY = rangeY1 concat rangeY2
-    determinePlotNormalization rangeX # normalize rangeX by $noise_median
     determinePlotLocation
     determinePlotTicksize $1 ylog
     limits rangeX rangeY
@@ -1239,7 +1160,6 @@ go_plot_dfcorr 02
     # plot uncorrected flux error
     set plotX = dfcorr_var if(dfcorr_coo)
     set plotY = (lg(df))   if(dfcorr_coo)
-    determinePlotNormalization plotX # normalize plotX by $noise_median
     sort {plotX plotY}
     set plotPosY1 = plotY[0] # tune plot text position
     ctype blue    lweight 0.2 expand 0.3 points plotX plotY
@@ -1248,7 +1168,6 @@ go_plot_dfcorr 02
     # plot corrected flux error
     set plotX = dfcorr_var         if(dfcorr_coo)
     set plotY = (lg(df*dfcorr_$1)) if(dfcorr_coo)
-    determinePlotNormalization plotX # normalize plotX by $noise_median
     sort {plotX plotY}
     set plotPosY2 = plotY[0] # tune plot text position
     if(abs(plotPosY2-plotPosY1)<0.10*($fy2-$fy1)) {
@@ -1264,13 +1183,11 @@ go_plot_dfcorr 02
     ctype default lweight 4.5 ltype 1 # plot edge of bins
     # plot bins
     if(is_vector(fenBinEdges)) {
-        set plotX = fenBinEdges
-        determinePlotNormalization plotX # normalize plotX by $noise_median
-        foreach binEdge plotX {rel $(($binEdge)) $fy1 draw $(($binEdge)) $fy2}
+        foreach binEdge fenBinEdges {rel $(($binEdge)) $fy1 draw $(($binEdge)) $fy2}
     }
     # plot title
     ctype default lweight 4.5 expand 2.2 xlabel $plotTitle # plot title
-    ctype default lweight 4.5 expand 2.0 ylabel "\sigma_{"$(substr('$imax',0,index('$imax','_')+1))"} [mJy]"
+    ctype default lweight 4.5 expand 2.0 ylabel "\sigma_{"$imax"} [mJy]"
     # overplot the applied correction factor / dfcorr function in Y2 axis
     #set rangeY1 = dfcorr_$1*0.8 if(dfcorr_coo)
     #set rangeY2 = dfcorr_$1*1.2 if(dfcorr_coo)
@@ -1281,7 +1198,6 @@ go_plot_dfcorr 02
     crabPlotDefaultPenForBox box 3 3 3 2
     set plotX = dfcorr_var    if(dfcorr_coo)
     set plotY = lg(dfcorr_$1) if(dfcorr_coo)
-    determinePlotNormalization plotX # normalize plotX by $noise_median
     sort {plotX plotY} # the dfcorr function
     ctype default lweight 6.0 expand 0.85 connect plotX plotY
     ctype red     lweight 3.5 expand 0.85 connect plotX plotY
@@ -1323,19 +1239,18 @@ go_correct_three_step_recipes
     # this function can be used in goFine.sm R_MIPS$imax
     # check input
     define _lets_go_ 1
-    if(!$?field)             {print 'go_correct_three_steps: Warning! field was not defined! Define as goodsn!\n' {} define field goodsn}
-    if(!$?imax)              {print 'go_correct_three_steps: Error! imax was not defined!\n' {}           define _lets_go_ 0}
-    if(!$?xdate)             {print 'go_correct_three_steps: Error! xdate was not defined!\n' {}          define _lets_go_ 0}
-    if(!$?vary_positions)    {print 'go_correct_three_steps: Error! vary_positions was not defined!\n' {} define _lets_go_ 0}
-    if(!$?rBeam_$imax)       {print 'go_correct_three_steps: Error! rBeam_$imax was not defined!\n' {}    define _lets_go_ 0}
-    if(!is_vector(ra$imax))  {print 'go_correct_three_steps: Error! ra$imax was not set!\n' {}            define _lets_go_ 0}
-    if(!is_vector(de$imax))  {print 'go_correct_three_steps: Error! de$imax was not set!\n' {}            define _lets_go_ 0}
-    if(!is_vector(id$imax))  {print 'go_correct_three_steps: Error! id$imax was not set!\n' {}            define _lets_go_ 0}
-    if(!is_vector(x$imax))   {print 'go_correct_three_steps: Error! x$imax was not set!\n' {}             define _lets_go_ 0}
-    if(!is_vector(y$imax))   {print 'go_correct_three_steps: Error! y$imax was not set!\n' {}             define _lets_go_ 0}
-    if(!is_vector(f$imax))   {print 'go_correct_three_steps: Error! f$imax was not set!\n' {}             define _lets_go_ 0}
-    if(!is_vector(df$imax))  {print 'go_correct_three_steps: Error! df$imax was not set!\n' {}            define _lets_go_ 0}
-    if(!is_vector(noi$imax)) {print 'go_correct_three_steps: Error! noi$imax was not set!\n' {}           define _lets_go_ 0}
+    if(!$?imax)              {print 'go_correct_three_steps: Error! imax was not defined!\n'           define _lets_go_ 0}
+    if(!$?xdate)             {print 'go_correct_three_steps: Error! xdate was not defined!\n'          define _lets_go_ 0}
+    if(!$?vary_positions)    {print 'go_correct_three_steps: Error! vary_positions was not defined!\n' define _lets_go_ 0}
+    if(!$?rBeam_$imax)       {print 'go_correct_three_steps: Error! rBeam_$imax was not defined!\n'    define _lets_go_ 0}
+    if(!is_vector(ra$imax))  {print 'go_correct_three_steps: Error! ra$imax was not set!\n'            define _lets_go_ 0}
+    if(!is_vector(de$imax))  {print 'go_correct_three_steps: Error! de$imax was not set!\n'            define _lets_go_ 0}
+    if(!is_vector(id$imax))  {print 'go_correct_three_steps: Error! id$imax was not set!\n'            define _lets_go_ 0}
+    if(!is_vector(x$imax))   {print 'go_correct_three_steps: Error! x$imax was not set!\n'             define _lets_go_ 0}
+    if(!is_vector(y$imax))   {print 'go_correct_three_steps: Error! y$imax was not set!\n'             define _lets_go_ 0}
+    if(!is_vector(f$imax))   {print 'go_correct_three_steps: Error! f$imax was not set!\n'             define _lets_go_ 0}
+    if(!is_vector(df$imax))  {print 'go_correct_three_steps: Error! df$imax was not set!\n'            define _lets_go_ 0}
+    if(!is_vector(noi$imax)) {print 'go_correct_three_steps: Error! noi$imax was not set!\n'           define _lets_go_ 0}
     if(!$_lets_go_) { define aaa ? return } # check failed, return # <TODO> still needs to check sim_diagram_output_v11
     # go correct fbias
     # go correct df
@@ -1350,9 +1265,9 @@ go_correct_three_step_recipes
     if(!is_vector(fres$imax)) {
         load fresidual.sm
         if($vary_positions) {
-          set fit_fres = fresidual("FIT_"$field"_"$imax"_Map_"$xdate"_vary.fits[2]", fit_ra, fit_de, $rBeam_$imax/2.0)
+          set fit_fres = fresidual("FIT_goodsn_"$imax"_Map_"$xdate"_vary.fits[2]", fit_ra, fit_de, $rBeam_$imax/2.0)
         } else {
-          set fit_fres = fresidual("FIT_"$field"_"$imax"_Map_"$xdate".fits[2]", fit_ra, fit_de, $rBeam_$imax/2.0)
+          set fit_fres = fresidual("FIT_goodsn_"$imax"_Map_"$xdate".fits[2]", fit_ra, fit_de, $rBeam_$imax/2.0)
         }
         set fres$imax = float(ra$imax)*0.0-99
         set fres$imax[fit_sid] = fit_fres
@@ -1430,16 +1345,10 @@ go_correct_three_step_recipes
     set df$imax = df$imax<0 ? 1e10 : df$imax
     # do simulation-based corrections
     # macro read run_simu_stats_v11.sm
-    stats_med noi$imax noi$imax""_median noi$imax""_siqr
-    # 
-    if(is_file("sim_diagram_output_v11/FUN_dfcorr_1.txt")) {
-        go_correct_fbias   1   (lg(df$imax/noi$imax))      "\sigma_{galfit}/\sigma_{rms\,noise}"
-        go_correct_df      1   (lg(df$imax/noi$imax))      "\sigma_{galfit}/\sigma_{rms\,noise}"
-    }
-    if(is_file("sim_diagram_output_v11/FUN_dfcorr_2.txt")) {
-        go_correct_fbias   2   (lg(fres$imax/noi$imax))    "S_{residual}/\sigma_{rms\,noise}"
-        go_correct_df      2   (lg(fres$imax/noi$imax))    "S_{residual}/\sigma_{rms\,noise}"
-    }
+    go_correct_fbias   1   (lg(df$imax/noi$imax))      "\sigma_{galfit}/\sigma_{rms\,noise}"
+    go_correct_df      1   (lg(df$imax/noi$imax))      "\sigma_{galfit}/\sigma_{rms\,noise}"
+    go_correct_fbias   2   (lg(fres$imax/noi$imax))    "S_{residual}/\sigma_{rms\,noise}"
+    go_correct_df      2   (lg(fres$imax/noi$imax))    "S_{residual}/\sigma_{rms\,noise}"
     if(is_file("sim_diagram_output_v11/FUN_dfcorr_3.txt")) {
         go_correct_fbias   3   (lg(crow$imax))         "crowdedness"
         go_correct_df      3   (lg(crow$imax))         "crowdedness"
@@ -1773,7 +1682,7 @@ go_constrain_dfcorr 01
             #    set dfcorr_$1 = (VAR_dfcorr_$1""<dfcorr_$1""_first_bin_center && dfcorr_$1<dfcorr_$1""_first_bin_value) ? dfcorr_$1""_first_bin_value : dfcorr_$1
             #}
             #if() {
-            if( (index('$imax','xxx')==0 && index('$1','3')==0) \
+            if( (index('$imax','850')==0 && index('$1','3')==0) \
               ) {
                 echo ""
                 echo ""
@@ -1874,7 +1783,7 @@ go_check_stats 01
         crabPlotHistogramOverPlot XfmTfdEdf_corr -5 5 0.3
         ctype red lweight 5.0 expand 1.4
         crabPlotHistogramGaussianFit XfmTfdEdf_corr -5 5 0.3
-        ctype default lweight 5.0 expand 2.0 xlabel "(S_{in}-S_{out})/\sigma_{"$(substr('$imax',0,index('$imax','_')+1))"}"
+        ctype default lweight 5.0 expand 2.0 xlabel "(S_{in}-S_{out})/\sigma_{"$imax"}"
         relocate (7000 29500) lweight 5.5 expand 1.3 
         ctype default puts "before corr."
         ctype default puts "after corr."
@@ -1911,7 +1820,7 @@ go_check_stats 01
         set crabPlotHistogram_ticksize = '0 0 -1 10'
         ctype red lweight 5.0 expand 1.4
         crabPlotHistogramGaussianFit XfmTfdEdf_corr -5 5 0.3
-        ctype default lweight 5.0 expand 2.0 xlabel "(S_{in}-S_{out})/\sigma_{"$(substr('$imax',0,index('$imax','_')+1))"}"
+        ctype default lweight 5.0 expand 2.0 xlabel "(S_{in}-S_{out})/\sigma_{"$imax"}"
         relocate (7000 29500) lweight 5.5 expand 1.3 
         ctype default puts "before corr."
         ctype default puts "after corr."
@@ -1941,7 +1850,7 @@ go_check_stats 01
         puts ""
         puts ""
         puts "median "$(sprintf('%.4g',$plot_df_MED))" mJy"
-        ctype default lweight 5.0 expand 2.0 xlabel "{\sigma}_{"$(substr('$imax',0,index('$imax','_')+1))"} [mJy]"
+        ctype default lweight 5.0 expand 2.0 xlabel "{\sigma}_{"$imax"} [mJy]"
         relocate (7000 29500) lweight 5.0 expand 1.3 
         ctype red puts after corr.
         ctype blue puts before corr.
@@ -1972,7 +1881,7 @@ go_check_stats 01
         puts ""
         puts ""
         puts "median "$(sprintf('%.4g',10**$lg_f_MED))" mJy"
-        ctype default lweight 5.0 ltype 0 expand 2.0 xlabel "S_{"$(substr('$imax',0,index('$imax','_')+1))"} [mJy]"
+        ctype default lweight 5.0 ltype 0 expand 2.0 xlabel "S_{"$imax"} [mJy]"
         relocate (7000 29500) lweight 5.0 expand 1.3 
         ctype red puts after corr.
         ctype blue puts before corr.
