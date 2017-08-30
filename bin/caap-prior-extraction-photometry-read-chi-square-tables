@@ -126,23 +126,23 @@ for (( i=0; i<${#SciImages[@]}; i++ )); do
     
     # print header
     if [[ $i -eq 0 ]]; then
-        printf "# %18s %20s %22s %20s %20s %20s %20s %22s %20s %20s   %s\n" \
+        printf "# %18s %20s %22s %20s %20s %22s %20s %20s         %s\n" \
                 "fit_2_chisq" "fit_2_ndof" "fit_2_chisq_reduced" \
                 "fit_3_chisq" "fit_3_ndof" "fit_2_chisq_reduced" \
                 "sky_frequency" "sky_wavelength" \
                 "image_file" \
                 > "datatable_chisq.txt"
-        printf "# %18s %20s %22s %20s %20s %20s %20s %22s %20s %20s   %s\n" \
+        printf "# %18s %20s %22s %20s %20s %22s %20s %20s         %s\n" \
                 " " " " " " \
                 " " " " " " \
                 "GHz" "um" \
-                " " \
+                "          " \
                 >> "datatable_chisq.txt"
         cat "datatable_chisq.txt"
     fi
     
     # print content
-        printf "%20s %20s %22s %20s %20s %22s %20s %20s   %s\n" \
+        printf "%20s %20s %22s %20s %20s %22s %20s %20s         %s\n" \
                 "$fit_2_chisq" "$fit_2_ndof" "$fit_2_chisq_reduced" \
                 "$fit_3_chisq" "$fit_3_ndof" "$fit_2_chisq_reduced" \
                 "$sky_frequency" "$sky_wavelength" \

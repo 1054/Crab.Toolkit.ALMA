@@ -162,9 +162,12 @@ read_results
         set source_area_in_pixel = source_area_in_beam * beam_area / (pix_scale**2)
         set convol_area_in_beam = sqrt(source_area_in_beam**2 + 1.0**2)
         
+        # df_galfit
+        set df_galfit = df
+        
         # df_total
         set rms_total = rms * sqrt(convol_area_in_beam)
-        set df_total = (df>rms_total) ? df : rms_total
+        set df_total = (df_galfit>rms_total) ? df_galfit : rms_total
         set f_total = f
         set snr_total = vecSNR(f_total,df_total)
         
@@ -188,20 +191,20 @@ read_results
         # print and check
         echo "Writing \"Output_galfit"$(out_suffix)"\""
         print "Output_galfit"$(out_suffix) \
-                '%15.0f %15.8f %15.8f %15g %15g %15g %15g %15g %15g %15g %15g %15g %20g %15g %15g %15g %15g %15g %15g %15g %25g %25g %25g %15g   %s\n' \
-                {id ra dec f_total df_total snr_total f_peak fpeak df_peak snr_peak fres rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr \
+                '%15.0f %15.8f %15.8f %15g %15g %15g %15g %15g %15g %15g %15g %15g %15g %20g %15g %15g %15g %15g %15g %15g %15g %25g %25g %25g %15g   %s\n' \
+                {id ra dec f_total df_galfit df_total snr_total f_peak fpeak df_peak snr_peak fres rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr \
                     flag_size_lower_boundary flag_size_upper_boundary flag_size_initial_guess flag_buffer image_file}
         
         # do S/N and pb_corr cut
         set coo = (snr_peak>=2.5 && pb_corr<=5.0)
-        foreach var {id ra dec f_total df_total snr_total f_peak fpeak df_peak snr_peak fres rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr \
+        foreach var {id ra dec f_total df_galfit df_total snr_total f_peak fpeak df_peak snr_peak fres rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr \
                         flag_size_lower_boundary flag_size_upper_boundary flag_size_initial_guess flag_buffer image_file} {
             set $var = $var if(coo)
         }
         echo "Writing \"Output_galfit_snr_peak_2p5_pb_corr_5p0"$(out_suffix)"\""
         print "Output_galfit_snr_peak_2p5_pb_corr_5p0"$(out_suffix) \
-                '%15.0f %15.8f %15.8f %15g %15g %15g %15g %15g %15g %15g %15g %15g %20g %15g %15g %15g %15g %15g %15g %15g %25g %25g %25g %15g   %s\n' \
-                {id ra dec f_total df_total snr_total f_peak fpeak df_peak snr_peak fres rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr \
+                '%15.0f %15.8f %15.8f %15g %15g %15g %15g %15g %15g %15g %15g %15g %15g %20g %15g %15g %15g %15g %15g %15g %15g %25g %25g %25g %15g   %s\n' \
+                {id ra dec f_total df_galfit df_total snr_total f_peak fpeak df_peak snr_peak fres rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr \
                     flag_size_lower_boundary flag_size_upper_boundary flag_size_initial_guess flag_buffer image_file}
         
         # copy & rename
@@ -227,13 +230,14 @@ read_results
                     !echo -n "."
                 }
             }
-            foreach var {id ra dec f_total df_total snr_total f_peak fpeak df_peak snr_peak fres rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr \
+            !echo "100%!"
+            foreach var {id ra dec f_total df_galfit df_total snr_total f_peak fpeak df_peak snr_peak fres rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr \
                             flag_size_lower_boundary flag_size_upper_boundary flag_size_initial_guess flag_buffer image_file} {
                 set $var = $var if(coo)
             }
             print "List_snr_peak_2p5_pb_corr_5p0_for_alma_archive_v20170222"$(out_suffix) \
-                    '%15.0f %15.8f %15.8f %15g %15g %15g %15g %15g %15g %15g %15g %15g %20g %15g %15g %15g %15g %15g %15g %15g %25g %25g %25g %15g   %s\n' \
-                    {id ra dec f_total df_total snr_total f_peak fpeak df_peak snr_peak fres rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr \
+                    '%15.0f %15.8f %15.8f %15g %15g %15g %15g %15g %15g %15g %15g %15g %15g %20g %15g %15g %15g %15g %15g %15g %15g %25g %25g %25g %15g   %s\n' \
+                    {id ra dec f_total df_galfit df_total snr_total f_peak fpeak df_peak snr_peak fres rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr \
                         flag_size_lower_boundary flag_size_upper_boundary flag_size_initial_guess flag_buffer image_file}
             
             # copy & rename

@@ -36,6 +36,7 @@ analyze_statistics
     macro read run_simu_stats_v11.sm
     
     # define 
+    define field cosmos
     define imax ALMA
     define outdir sim_diagram_output_v11
     
@@ -49,10 +50,13 @@ analyze_statistics
     # calc median rms noise
     stats_med noise noise_median noise_siqr
     
+    # define fSigma_$imax
+    define fSigma_$imax $noise_median
+    
     # renormalize
-    set fRMS = f/(noise/$noise_median)
-    set dfRMS = df/(noise/$noise_median)
-    set fresRMS = fres/(noise/$noise_median)
+    set fRMS = f/noise
+    set dfRMS = df/noise
+    set fresRMS = fres/noise
     
     # print temporary check file
     print "aaa.dfRMS.txt" '%15.0f %15g\n' {id dfRMS}
@@ -60,36 +64,69 @@ analyze_statistics
     print "aaa.df.uncorr.txt" '%15.0f %15g\n' {id df}
     
     # print analyzing sources
-    echo  
-    echo Analyzing $(dimen(Xf)) sources
-    echo  
+    echo 
+    echo Analyzing $(dimen(Xf)) sources   ($date)
+    echo 
     
     # define NumberSteps
     define NumberSteps 2
     
     # go_analyze_step
     set binVolume = {10 5 3 2 1}
-    go_analyze_step 1
+    echo 
+    echo go_analyze_step 1   ($date)
+    echo 
+         go_analyze_step 1
     
     set binVolume = {1 3 5 5 3 1 0.5 0.25}
-    go_analyze_step 2
+    echo 
+    echo go_analyze_step 2   ($date)
+    echo 
+         go_analyze_step 2
     
     # do plots
-    #plot_S_in_S_out
-    plot_S_in_S_out_versus_Param 1
-    plot_S_in_S_out_versus_Param 2
-    #plot_S_in_S_out_versus_Param 3
-    plot_S_in_S_out_versus_Param Xf
-    plot_S_in_S_out_versus_Param Tf
-    plot_XfmTfEdf_versus_Param 1
-    plot_XfmTfEdf_versus_Param 2
-    #plot_XfmTfEdf_versus_Param 3
-    plot_XfmTfEdf_versus_Param Xf
-    plot_XfmTfEdf_versus_Param Tf
+    echo 
+    echo plot_S_in_S_out_versus_Param 1   ($date)
+    echo 
+         plot_S_in_S_out_versus_Param 1
+    echo 
+    echo plot_S_in_S_out_versus_Param 2   ($date)
+    echo 
+         plot_S_in_S_out_versus_Param 2
+    # 
+    echo 
+    echo plot_S_in_S_out_versus_Param Xf   ($date)
+    echo 
+         plot_S_in_S_out_versus_Param Xf
+    echo 
+    echo plot_S_in_S_out_versus_Param Tf   ($date)
+    echo 
+         plot_S_in_S_out_versus_Param Tf
+    # 
+    echo 
+    echo plot_XfmTfEdf_versus_Param 1   ($date)
+    echo 
+         plot_XfmTfEdf_versus_Param 1
+    echo 
+    echo plot_XfmTfEdf_versus_Param 2   ($date)
+    echo 
+         plot_XfmTfEdf_versus_Param 2
+    # 
+    echo 
+    echo plot_XfmTfEdf_versus_Param Xf   ($date)
+    echo 
+         plot_XfmTfEdf_versus_Param Xf
+    echo 
+    echo plot_XfmTfEdf_versus_Param Tf   ($date)
+    echo 
+         plot_XfmTfEdf_versus_Param Tf
     
     
     
     # do correction
+    echo 
+    echo "Applying simulation-based correction recipes ..."   ($date)
+    echo 
     set id$imax = id
     set ra$imax = ra
     set de$imax = dec
@@ -105,8 +142,12 @@ analyze_statistics
     set crow$imax = fres*0.0+1.0
     go_correct_three_step_recipes
     
-    print "aaa.f.corr.txt" '%15.0f %15g\n' <id$imax f$imax>
-    print "aaa.df.corr.txt" '%15.0f %15g\n' <id$imax df$imax>
+    #print "aaa.f.corr.txt" '%15.0f %15g\n' <id$imax f$imax>
+    #print "aaa.df.corr.txt" '%15.0f %15g\n' <id$imax df$imax>
+    
+    echo 
+    echo "Successfully applied simulation-based correction recipes!"   ($date)
+    echo 
     
     
     
