@@ -94,41 +94,61 @@ for (( i=0; i<${#SciImages[@]}; i++ )); do
         CurrentDir=$(pwd -P)
     fi
     
-    
+    # prepare variables
     fit_3_chisq="-99"
     fit_3_ndof="-99"
     fit_3_chisq_reduced="-99"
     fit_2_chisq="-99"
     fit_2_ndof="-99"
     fit_2_chisq_reduced="-99"
+    sky_frequency="-99"
+    sky_wavelength="-99"
+    
     if [[ -f "$InputDir/astrodepth_prior_extraction_photometry/$SourceName/fit_3.log" ]]; then
-        cp "$InputDir/astrodepth_prior_extraction_photometry/$SourceName/fit_3.log" "$SourceName.fit_3.log"
-        fit_3_chisq=$(cat "$SourceName.fit_3.log" | grep "^ Chi\^2 = " | perl -p -e 's/^ Chi\^2 = ([0-9.+-eE]+),.*/\1/g')
-        fit_3_ndof=$(cat "$SourceName.fit_3.log" | grep "^ Chi\^2 = " | perl -p -e 's/.* ndof = ([0-9.+-eE]+)$/\1/g')
-        fit_3_chisq_reduced=$(cat "$SourceName.fit_3.log" | grep "^ Chi\^2/nu = " | perl -p -e 's%.* Chi\^2/nu = ([0-9.+-eE]+)[ ]*$%\1%g')
+        #cp "$InputDir/astrodepth_prior_extraction_photometry/$SourceName/fit_3.log" "$SourceName.fit_3.log"
+        fit_log_file="$InputDir/astrodepth_prior_extraction_photometry/$SourceName/fit_3.log"
+        fit_3_chisq=$(cat "$fit_log_file" | grep "^ Chi\^2 = " | perl -p -e 's/^ Chi\^2 = ([0-9.+-eE]+),.*/\1/g')
+        fit_3_ndof=$(cat "$fit_log_file" | grep "^ Chi\^2 = " | perl -p -e 's/.* ndof = ([0-9.+-eE]+)$/\1/g')
+        fit_3_chisq_reduced=$(cat "$fit_log_file" | grep "^ Chi\^2/nu = " | perl -p -e 's%.* Chi\^2/nu = ([0-9.+-eE]+)[ ]*$%\1%g')
     fi
     if [[ -f "$InputDir/astrodepth_prior_extraction_photometry/$SourceName/fit_2.log" ]]; then
-        cp "$InputDir/astrodepth_prior_extraction_photometry/$SourceName/fit_2.log" "$SourceName.fit_2.log"
-        fit_2_chisq=$(cat "$SourceName.fit_2.log" | grep "^ Chi\^2 = " | perl -p -e 's/^ Chi\^2 = ([0-9.+-eE]+),.*/\1/g')
-        fit_2_ndof=$(cat "$SourceName.fit_2.log" | grep "^ Chi\^2 = " | perl -p -e 's/.* ndof = ([0-9.+-eE]+)$/\1/g')
-        fit_2_chisq_reduced=$(cat "$SourceName.fit_2.log" | grep "^ Chi\^2/nu = " | perl -p -e 's%.* Chi\^2/nu = ([0-9.+-eE]+)[ ]*$%\1%g')
+        #cp "$InputDir/astrodepth_prior_extraction_photometry/$SourceName/fit_2.log" "$SourceName.fit_2.log"
+        fit_log_file="$InputDir/astrodepth_prior_extraction_photometry/$SourceName/fit_2.log"
+        fit_2_chisq=$(cat "$fit_log_file" | grep "^ Chi\^2 = " | perl -p -e 's/^ Chi\^2 = ([0-9.+-eE]+),.*/\1/g')
+        fit_2_ndof=$(cat "$fit_log_file" | grep "^ Chi\^2 = " | perl -p -e 's/.* ndof = ([0-9.+-eE]+)$/\1/g')
+        fit_2_chisq_reduced=$(cat "$fit_log_file" | grep "^ Chi\^2/nu = " | perl -p -e 's%.* Chi\^2/nu = ([0-9.+-eE]+)[ ]*$%\1%g')
     fi
+    if [[ -f "$InputDir/astrodepth_prior_extraction_photometry/$SourceName/image_sci_sky_frequency.txt" ]]; then
+        #cp "$InputDir/astrodepth_prior_extraction_photometry/$SourceName/image_sci_sky_frequency.txt" "$SourceName.image_sci_sky_frequency.txt"
+        sky_frequency=$(cat "$InputDir/astrodepth_prior_extraction_photometry/$SourceName/image_sci_sky_frequency.txt" | sed -e 's/^ *//g' | sed -e 's/ # GHz.*//g')
+        sky_wavelength=$(awk "BEGIN {printf \"%0.3f\", (2.99792458e5/($sky_frequency));}") # um
+    fi
+    
+    # print header
     if [[ $i -eq 0 ]]; then
-        printf "# %18s %20s %22s %20s %20s %22s   %s\n" \
+        printf "# %18s %20s %22s %20s %20s %20s %20s %22s %20s %20s   %s\n" \
                 "fit_2_chisq" "fit_2_ndof" "fit_2_chisq_reduced" \
                 "fit_3_chisq" "fit_3_ndof" "fit_2_chisq_reduced" \
+                "sky_frequency" "sky_wavelength" \
                 "image_file" \
                 > "datatable_chisq.txt"
-        printf "# \n" \
-                > "datatable_chisq.txt"
+        printf "# %18s %20s %22s %20s %20s %20s %20s %22s %20s %20s   %s\n" \
+                " " " " " " \
+                " " " " " " \
+                "GHz" "um" \
+                " " \
+                >> "datatable_chisq.txt"
         cat "datatable_chisq.txt"
     fi
-    printf "%20s %20s %22s %20s %20s %22s   %s\n" \
-            "$fit_2_chisq" "$fit_2_ndof" "$fit_2_chisq_reduced" \
-            "$fit_3_chisq" "$fit_3_ndof" "$fit_2_chisq_reduced" \
-            "$SourceName" \
-            >> "datatable_chisq.txt"
-    tail -n 1 "datatable_chisq.txt"
+    
+    # print content
+        printf "%20s %20s %22s %20s %20s %22s %20s %20s   %s\n" \
+                "$fit_2_chisq" "$fit_2_ndof" "$fit_2_chisq_reduced" \
+                "$fit_3_chisq" "$fit_3_ndof" "$fit_2_chisq_reduced" \
+                "$sky_frequency" "$sky_wavelength" \
+                "$SourceName" \
+                >> "datatable_chisq.txt"
+        tail -n 1 "datatable_chisq.txt"
     
 done
 
