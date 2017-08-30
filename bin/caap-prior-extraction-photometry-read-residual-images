@@ -216,7 +216,7 @@ for (( i=0; i<${#SciImages[@]}; i++ )); do
     fi
     
     
-    cd "$CurrentDir"
+    #cd "$CurrentDir"
     
     
     #if [[ $i -gt 3 ]]; then break; fi

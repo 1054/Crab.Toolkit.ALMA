@@ -1,0 +1,143 @@
+#!/bin/bash
+# 
+
+
+# 
+# Check input argument
+# 
+if [[ $# -eq 0 ]]; then
+    echo "Usage: "
+    echo "    caap-prior-extraction-photometry-read-chi-square-tables \"Prior_Extraction_with_Master_Catalog_v20170730\""
+    echo "Output: "
+    echo "    \"Read_Chi_Square_Tables_of_Prior_Extraction_with_Master_Catalog_v20170730\""
+    echo ""
+    exit
+fi
+
+
+# 
+# Set Input dir
+# 
+InputDir="$1"
+
+
+# 
+# Set Output dir
+# 
+if [[ $# -ge 2 ]]; then
+    OutputDir="$2"
+else
+    OutputDir="Read_Chi_Square_Tables_of_"$(basename "$InputDir")
+fi
+
+
+# 
+# Check input dir
+# 
+if [[ ! -d "$InputDir" ]]; then
+    echo "Error! The output directory \"$InputDir\" does not exist! Abort!"; exit 1
+else
+    InputDir=$(perl -MCwd -e 'print Cwd::abs_path shift' "$InputDir") # get full path
+fi
+
+
+# 
+# Check output dir
+# 
+if [[ ! -d "$OutputDir" ]]; then
+    mkdir -p "$OutputDir"
+fi
+
+
+# 
+# Read Sci Images
+# 
+Old_IFS=$IFS
+IFS=$'\n' SciImages=($(<"$InputDir/List_of_Input_Sci_Images.txt"))
+IFS=$'\n' PsfImages=($(<"$InputDir/List_of_Input_Psf_Images.txt"))
+IFS="$Old_IFS"
+if [[ ${#SciImages[@]} -eq 0 || ${#PsfImages[@]} -eq 0 ]]; then
+    echo "Error! Failed to read \"$InputDir/List_of_Input_Sci_Images.txt\" and \"$InputDir/List_of_Input_Psf_Images.txt\"!"
+    exit 1
+fi
+
+
+# 
+# Change dir to OutputDir
+# 
+cd "$OutputDir"
+
+
+
+# 
+# Loop and read the results of "fit_3.residual.fits"
+# 
+for (( i=0; i<${#SciImages[@]}; i++ )); do
+    # 
+    SciImage="${SciImages[i]}"
+    PsfImage="${PsfImages[i]}"
+    SourceName=$(basename "$SciImage" | sed -e 's%\.fits%%g')   #<TODO># file name
+    
+    # print
+    #echo ""
+    #echo ""
+    echo "************"
+    echo "SourceName = $SourceName   ($(($i+1))/${#SciImages[@]})   ($(date +'%Y%m%d %Hh%Mm%Ss %Z'))"
+    #echo "SciImage = \"$SciImage\""
+    #echo "PsfImage = \"$PsfImage\""
+    #echo "InputDir = \"$(readlink -f $InputDir)/astrodepth_prior_extraction_photometry/$SourceName\""
+    #echo "***********"
+    
+    if [[ $(uname) == "Darwin" ]]; then
+        CurrentDir=$(pwd)
+    else
+        CurrentDir=$(pwd -P)
+    fi
+    
+    
+    fit_3_chisq="-99"
+    fit_3_ndof="-99"
+    fit_3_chisq_reduced="-99"
+    fit_2_chisq="-99"
+    fit_2_ndof="-99"
+    fit_2_chisq_reduced="-99"
+    if [[ -f "$InputDir/astrodepth_prior_extraction_photometry/$SourceName/fit_3.log" ]]; then
+        cp "$InputDir/astrodepth_prior_extraction_photometry/$SourceName/fit_3.log" "$SourceName.fit_3.log"
+        fit_3_chisq=$(cat "$SourceName.fit_3.log" | grep "^ Chi\^2 = " | perl -p -e 's/^ Chi\^2 = ([0-9.+-eE]+),.*/\1/g')
+        fit_3_ndof=$(cat "$SourceName.fit_3.log" | grep "^ Chi\^2 = " | perl -p -e 's/.* ndof = ([0-9.+-eE]+)$/\1/g')
+        fit_3_chisq_reduced=$(cat "$SourceName.fit_3.log" | grep "^ Chi\^2/nu = " | perl -p -e 's%.* Chi\^2/nu = ([0-9.+-eE]+)[ ]*$%\1%g')
+    fi
+    if [[ -f "$InputDir/astrodepth_prior_extraction_photometry/$SourceName/fit_2.log" ]]; then
+        cp "$InputDir/astrodepth_prior_extraction_photometry/$SourceName/fit_2.log" "$SourceName.fit_2.log"
+        fit_2_chisq=$(cat "$SourceName.fit_2.log" | grep "^ Chi\^2 = " | perl -p -e 's/^ Chi\^2 = ([0-9.+-eE]+),.*/\1/g')
+        fit_2_ndof=$(cat "$SourceName.fit_2.log" | grep "^ Chi\^2 = " | perl -p -e 's/.* ndof = ([0-9.+-eE]+)$/\1/g')
+        fit_2_chisq_reduced=$(cat "$SourceName.fit_2.log" | grep "^ Chi\^2/nu = " | perl -p -e 's%.* Chi\^2/nu = ([0-9.+-eE]+)[ ]*$%\1%g')
+    fi
+    if [[ $i -eq 0 ]]; then
+        printf "# %18s %20s %22s %20s %20s %22s   %s\n" \
+                "fit_2_chisq" "fit_2_ndof" "fit_2_chisq_reduced" \
+                "fit_3_chisq" "fit_3_ndof" "fit_2_chisq_reduced" \
+                "image_file" \
+                > "datatable_chisq.txt"
+        printf "# \n" \
+                > "datatable_chisq.txt"
+        cat "datatable_chisq.txt"
+    fi
+    printf "%20s %20s %22s %20s %20s %22s   %s\n" \
+            "$fit_2_chisq" "$fit_2_ndof" "$fit_2_chisq_reduced" \
+            "$fit_3_chisq" "$fit_3_ndof" "$fit_2_chisq_reduced" \
+            "$SourceName" \
+            >> "datatable_chisq.txt"
+    tail -n 1 "datatable_chisq.txt"
+    
+done
+
+
+
+#cd "../"
+
+
+echo "************"
+echo "Output to \"$OutputDir\"!"
+
+
