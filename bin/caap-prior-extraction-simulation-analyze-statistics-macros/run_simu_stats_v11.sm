@@ -788,7 +788,7 @@ go_analyze_fbias 01
     # correc fbias
     set FUN_fbias_variable = binCen
     set FUN_fbias_value = MedianInBin #<TODO># MedianInBin or MeanInBin?
-    set FUN_fbias_order = 3 #<TODO># order of polyfit for flux bias?
+    if(!is_vector(FUN_fbias_order)) {set FUN_fbias_order = 3} #<TODO># order of polyfit for flux bias?
     #if('$imax'=='100' && '$1'=='2') {set FUN_fbias_order = 3} #<TODO># Band100 fres-dfcorr
     #if('$imax'=='350' && '$1'=='1') {set FUN_fbias_order = 3} #<20170104><dzliu><TODO># 350 histogram has a tail of Sin>Sout
     #if('$imax'=='350' && '$1'=='3') {set FUN_fbias_order = 3} #<20170104><dzliu><TODO># 350 histogram has a tail of Sin>Sout
@@ -813,6 +813,8 @@ go_analyze_fbias 01
     # 
     set fbias_var = binVar
     go_plot_fbias $1
+    # 
+    unset FUN_fbias_order
 
 
 
@@ -839,7 +841,7 @@ go_analyze_dfcorr 01
     # compute dfcorr = true flux unc. / galfit flux unc.
     set FUN_dfcorr_x = binCen
     set FUN_dfcorr_y = BIN_dfsim / BIN_dfgal
-    set FUN_dfcorr_order = 2 #<TODO># order of polyfit for dfcorr?
+    if(!is_vector(FUN_dfcorr_order)) {set FUN_dfcorr_order = 2} #<TODO># order of polyfit for dfcorr?
     #if('$imax'=='100' && '$1'=='3') {set FUN_dfcorr_order = 3} #<TODO># Band100 crow-dfcorr
     #if('$imax'=='350' && '$1'=='3') {set FUN_dfcorr_order = 0} #<20170104><dzliu><TODO># 350 histogram has a tail of Sin>Sout
     #if('$field'=='goodsn' && '$imax'=='350' && '$1'=='3') {set FUN_dfcorr_order = 3}
@@ -858,6 +860,8 @@ go_analyze_dfcorr 01
     # 
     set dfcorr_var = binVar
     go_plot_dfcorr $1
+    # 
+    unset FUN_dfcorr_order
 
 
 

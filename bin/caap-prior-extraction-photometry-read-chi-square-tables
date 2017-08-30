@@ -77,6 +77,9 @@ for (( i=0; i<${#SciImages[@]}; i++ )); do
     SciImage="${SciImages[i]}"
     PsfImage="${PsfImages[i]}"
     SourceName=$(basename "$SciImage" | sed -e 's%\.fits%%g')   #<TODO># file name
+    SciImageCutRect=($(echo "$SciImage" | perl -p -e 's%.*\.cut_(.*)_(.*)_(.*)_(.*)\.fits$%\1 \2 \3 \4%g'))
+    SciImageUncutPath=$(echo "$SciImage" | perl -p -e 's%\.cut_.*_.*_.*_.*\.fits$%.fits%g')
+    SciImageUncutName=$(basename "$SciImageUncutPath" | perl -p -e 's%\.fits%%g')
     
     # print
     #echo ""
@@ -126,29 +129,29 @@ for (( i=0; i<${#SciImages[@]}; i++ )); do
     
     # print header
     if [[ $i -eq 0 ]]; then
-        printf "# %18s %20s %22s %20s %20s %22s %20s %20s         %s\n" \
+        printf "# %18s %20s %22s %20s %20s %22s %20s %20s         %-100s         %s\n" \
                 "fit_2_chisq" "fit_2_ndof" "fit_2_chisq_reduced" \
-                "fit_3_chisq" "fit_3_ndof" "fit_2_chisq_reduced" \
+                "fit_3_chisq" "fit_3_ndof" "fit_3_chisq_reduced" \
                 "sky_frequency" "sky_wavelength" \
-                "image_file" \
+                "image_file_original" "image_file" \
                 > "datatable_chisq.txt"
-        printf "# %18s %20s %22s %20s %20s %22s %20s %20s         %s\n" \
+        printf "# %18s %20s %22s %20s %20s %22s %20s %20s         %-100s         %s\n" \
                 " " " " " " \
                 " " " " " " \
                 "GHz" "um" \
-                "          " \
+                " " "          " \
                 >> "datatable_chisq.txt"
-        cat "datatable_chisq.txt"
+        #cat "datatable_chisq.txt"
     fi
     
     # print content
-        printf "%20s %20s %22s %20s %20s %22s %20s %20s         %s\n" \
+        printf "%20s %20s %22s %20s %20s %22s %20s %20s         %-100s         %s\n" \
                 "$fit_2_chisq" "$fit_2_ndof" "$fit_2_chisq_reduced" \
-                "$fit_3_chisq" "$fit_3_ndof" "$fit_2_chisq_reduced" \
+                "$fit_3_chisq" "$fit_3_ndof" "$fit_3_chisq_reduced" \
                 "$sky_frequency" "$sky_wavelength" \
-                "$SourceName" \
+                "$SciImageUncutName.fits" "$SourceName" \
                 >> "datatable_chisq.txt"
-        tail -n 1 "datatable_chisq.txt"
+        #tail -n 1 "datatable_chisq.txt"
     
 done
 

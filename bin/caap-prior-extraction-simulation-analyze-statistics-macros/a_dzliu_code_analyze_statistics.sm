@@ -72,13 +72,16 @@ analyze_statistics
     define NumberSteps 2
     
     # go_analyze_step
-    set binVolume = {10 5 3 2 1}
+    #set binVolume = {10 5 3 2 1}
+    set binVolume = {10 5 2.5 1}
+    set FUN_fbias_order = 2
     echo 
     echo go_analyze_step 1   ($date)
     echo 
          go_analyze_step 1
     
-    set binVolume = {1 3 5 5 3 1 0.5 0.25}
+    #set binVolume = {1 3 5 5 3 1 0.5 0.25}
+    set binVolume = {1 3 5 5 3 1 0.5}
     echo 
     echo go_analyze_step 2   ($date)
     echo 
