@@ -208,7 +208,7 @@ read_results
                     flag_size_lower_boundary flag_size_upper_boundary flag_size_initial_guess flag_buffer image_file}
         
         # copy & rename
-        !ln -s "Output_galfit"$(out_suffix) "Output_galfit.txt"
+        !ln -fs "Output_galfit"$(out_suffix) "Output_galfit.txt"
         !cp "Output_galfit"$(out_suffix) "A-COSMOS_prior_"$(date_str)$(out_suffix)
         !cp "Output_galfit_snr_peak_2p5_pb_corr_5p0"$(out_suffix) "A-COSMOS_prior_"$(date_str)"_snr_peak_2p5_pb_corr_5p0"$(out_suffix)
         
