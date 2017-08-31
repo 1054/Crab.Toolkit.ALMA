@@ -189,7 +189,7 @@ read_results
         set flag_buffer = mask_buffer
         
         # print and check
-        echo "Writing \"Output_galfit"$(out_suffix)"\""
+        echo "Writing to \"Output_galfit"$(out_suffix)"\""
         print "Output_galfit"$(out_suffix) \
                 '%15.0f %15.8f %15.8f %15g %15g %15g %15g %15g %15g %15g %15g %15g %15g %20g %15g %15g %15g %15g %15g %15g %15g %25g %25g %25g %15g   %s\n' \
                 {id ra dec f_total df_galfit df_total snr_total f_peak fpeak df_peak snr_peak fres rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr \
@@ -201,13 +201,14 @@ read_results
                         flag_size_lower_boundary flag_size_upper_boundary flag_size_initial_guess flag_buffer image_file} {
             set $var = $var if(coo)
         }
-        echo "Writing \"Output_galfit_snr_peak_2p5_pb_corr_5p0"$(out_suffix)"\""
+        echo "Writing to \"Output_galfit_snr_peak_2p5_pb_corr_5p0"$(out_suffix)"\""
         print "Output_galfit_snr_peak_2p5_pb_corr_5p0"$(out_suffix) \
                 '%15.0f %15.8f %15.8f %15g %15g %15g %15g %15g %15g %15g %15g %15g %15g %20g %15g %15g %15g %15g %15g %15g %15g %25g %25g %25g %15g   %s\n' \
                 {id ra dec f_total df_galfit df_total snr_total f_peak fpeak df_peak snr_peak fres rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr \
                     flag_size_lower_boundary flag_size_upper_boundary flag_size_initial_guess flag_buffer image_file}
         
         # copy & rename
+        !ln -s "Output_galfit"$(out_suffix) "Output_galfit.txt"
         !cp "Output_galfit"$(out_suffix) "A-COSMOS_prior_"$(date_str)$(out_suffix)
         !cp "Output_galfit_snr_peak_2p5_pb_corr_5p0"$(out_suffix) "A-COSMOS_prior_"$(date_str)"_snr_peak_2p5_pb_corr_5p0"$(out_suffix)
         
