@@ -10,12 +10,20 @@ read_results
     # 
     
     # determine current date
-    set date_month = substr('$date',0,index('$date',' '))
-    set date_temp = substr('$date',index('$date',' ')+1,0)
+    set date_temp = '$date'
+    do i=0,strlen(date_temp)-3 { # remove continous two spaces
+        if(substr(date_temp,$i,1)==' ' && substr(date_temp,$i+1,1)==' ') { # the day number sometimes is single number
+            set date_temp = substr(date_temp,0,$i+1)+'0'+substr(date_temp,$i+2,0)
+        }
+    }
+    #echo $(date_temp)
+    set date_month = substr(date_temp,0,index(date_temp,' '))
+    set date_temp = substr(date_temp,index(date_temp,' ')+1,0)
     set date_day = substr(date_temp,0,index(date_temp,' '))
     set date_temp = substr(date_temp,index(date_temp,' ')+1,0)
     set date_year = substr(date_temp,index(date_temp,' ')+1,0)
     set date_str = date_year+'-'+date_month+'-'+date_day
+    #echo $(date_str)
     if(index(date_month,'Jan')==0) {set date_str = date_year+'-'+'01'+'-'+date_day}
     if(index(date_month,'Feb')==0) {set date_str = date_year+'-'+'02'+'-'+date_day}
     if(index(date_month,'Mar')==0) {set date_str = date_year+'-'+'03'+'-'+date_day}
@@ -28,6 +36,7 @@ read_results
     if(index(date_month,'Oct')==0) {set date_str = date_year+'-'+'10'+'-'+date_day}
     if(index(date_month,'Nov')==0) {set date_str = date_year+'-'+'11'+'-'+date_day}
     if(index(date_month,'Dec')==0) {set date_str = date_year+'-'+'12'+'-'+date_day}
+    #echo $(date_str)
     
     # read results
     load rfile.sm
@@ -208,9 +217,12 @@ read_results
                     flag_size_lower_boundary flag_size_upper_boundary flag_size_initial_guess flag_buffer image_file}
         
         # copy & rename
-        !ln -fs "Output_galfit"$(out_suffix) "Output_galfit.txt"
-        !cp "Output_galfit"$(out_suffix) "A-COSMOS_prior_"$(date_str)$(out_suffix)
-        !cp "Output_galfit_snr_peak_2p5_pb_corr_5p0"$(out_suffix) "A-COSMOS_prior_"$(date_str)"_snr_peak_2p5_pb_corr_5p0"$(out_suffix)
+        echo ln -fs "Output_galfit"$(out_suffix) "Output_galfit.txt"
+            !ln -fs "Output_galfit"$(out_suffix) "Output_galfit.txt"
+        echo cp "Output_galfit"$(out_suffix) "A-COSMOS_prior_"$(date_str)$(out_suffix)
+            !cp "Output_galfit"$(out_suffix) "A-COSMOS_prior_"$(date_str)$(out_suffix)
+        echo cp "Output_galfit_snr_peak_2p5_pb_corr_5p0"$(out_suffix) "A-COSMOS_prior_"$(date_str)"_snr_peak_2p5_pb_corr_5p0"$(out_suffix)
+            !cp "Output_galfit_snr_peak_2p5_pb_corr_5p0"$(out_suffix) "A-COSMOS_prior_"$(date_str)"_snr_peak_2p5_pb_corr_5p0"$(out_suffix)
         
         # do image_file cut (to select those images of old alma archive v20170222, so as to compare with blind catalog with that version)
         if(is_file("../check_image_fits_file_list/fits_file_list_sorted_v20170222_name_only.txt")) {

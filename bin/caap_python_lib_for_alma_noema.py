@@ -6,6 +6,8 @@
 
 import numpy
 
+from datetime import datetime
+
 
 def calc_BeamSize(Frequency_GHz, Diameter_m):
     # ALMA_Cycle4_Technical_Handbook_08Sep2016.pdf -- Equation(3.4)
@@ -32,7 +34,9 @@ def calc_JanskyPerKelvin(Aeff_m2, Frequency_GHz, Diameter_m):
     return (2.0 * 1.38e-23 / Aeff_m2 * 1e26) # this is better because "Aeff_m2" considers "eta_ap".
 
 
-def calc_Sensitivity(Tint=[], Tsys=[], Nant=0, Npol=2, Bandwidth=0.0, bw=0.0, Velowidth=0.0, dv=0.0, Frequency=0.0, freq=0.0, Telescope='NOEMA', Weather='summer', eta_ap=numpy.nan, Verbose=True):
+def calc_Sensitivity(Tint=[], Tsys=[], Nant=0, Npol=2, Bandwidth=0.0, bw=0.0, Velowidth=0.0, dv=0.0, 
+                     Frequency=0.0, freq=0.0, Telescope='NOEMA', Weather='summer', eta_ap=numpy.nan, 
+                     Verbose=True):
     # 
     # NOEMACapabilities.pdf 
     # 
@@ -119,6 +123,7 @@ def calc_Sensitivity(Tint=[], Tsys=[], Nant=0, Npol=2, Bandwidth=0.0, bw=0.0, Ve
                 JpK = numpy.nan
                 bandnumb = numpy.nan
                 telescop = ''
+                beamsize = 0.0
                 t_Nant = 0         # temporary variable, will be overriden if it has been given by the user. 
                 t_Tsys = numpy.nan # temporary variable, will be overriden if it has been given by the user. 
                 t_Tint = numpy.nan # temporary variable, will be overriden if it has been given by the user. 
@@ -126,7 +131,13 @@ def calc_Sensitivity(Tint=[], Tsys=[], Nant=0, Npol=2, Bandwidth=0.0, bw=0.0, Ve
                 # 
                 if Telescope.upper().find('NOEMA')>=0:
                     telescop = 'NOEMA'
-                    Beamsize = calc_BeamSize(Frequency, 15.0)
+                    beamsize = calc_BeamSize(Frequency, 15.0)
+                    # 
+                    # determine Nant
+                    t_Nant = 7 # ealier than 2017-09-14
+                    t_Nant = 9 # later than 2017-09-14
+                    # 
+                    # determine Band
                     # Band 1 before 201703 was 80-116GHz
                     # Band 1 after 201703 was 70.9-121.6GHz
                     # Band 2 before 201703 was 130-177GHz
@@ -148,7 +159,6 @@ def calc_Sensitivity(Tint=[], Tsys=[], Nant=0, Npol=2, Bandwidth=0.0, bw=0.0, Ve
                                              'Tsys':[150, 85, 95., 323.]} #<20170312># /Users/dzliu/Softwares/GILDAS/gildas-exe-10feb17/pro/noema-sensitivity-estimator.astro
                         # 
                         t_Tsys = numpy.interp(Frequency, database_Tsys['freq'], database_Tsys['Tsys'])
-                        t_Nant = 7
                     elif Frequency >= 124.4 and Frequency <= 183.6:
                         bandnumb = 2    # NOEMA Band 2
                         eta = 0.8       # NOEMA Band 2, February 22, 2016
@@ -163,7 +173,6 @@ def calc_Sensitivity(Tint=[], Tsys=[], Nant=0, Npol=2, Bandwidth=0.0, bw=0.0, Ve
                                              'Tsys':[140, 140, 140, 242.]} #<20170312># /Users/dzliu/Softwares/GILDAS/gildas-exe-10feb17/pro/noema-sensitivity-estimator.astro
                         # 
                         t_Tsys = numpy.interp(Frequency, database_Tsys['freq'], database_Tsys['Tsys'])
-                        t_Nant = 7
                     elif Frequency >= 196.4 and Frequency <= 279.6:
                         bandnumb = 3    # NOEMA Band 3
                         eta = 0.6       # NOEMA Band 3, February 22, 2016
@@ -178,17 +187,16 @@ def calc_Sensitivity(Tint=[], Tsys=[], Nant=0, Npol=2, Bandwidth=0.0, bw=0.0, Ve
                                              'Tsys':[250, 250, 250, 250.]} #<20170312># /Users/dzliu/Softwares/GILDAS/gildas-exe-10feb17/pro/noema-sensitivity-estimator.astro
                         # 
                         t_Tsys = numpy.interp(Frequency, database_Tsys['freq'], database_Tsys['Tsys'])
-                        t_Nant = 7
                 # 
                 elif Telescope.upper().find('ALMA')>=0:
                     # 
                     telescop = 'ALMA'
                     if Telescope.find('12m')>=0:
-                        Beamsize = calc_BeamSize(Frequency, 12.0)
+                        beamsize = calc_BeamSize(Frequency, 12.0)
                         telescop = telescop + ' 12m'
                         t_Nant = 40
                     elif Telescope.find('7m')>=0:
-                        Beamsize = calc_BeamSize(Frequency, 7.0)
+                        beamsize = calc_BeamSize(Frequency, 7.0)
                         telescop = telescop + ' 7m'
                         t_Nant = 10
                     # 
@@ -311,7 +319,7 @@ def calc_Sensitivity(Tint=[], Tsys=[], Nant=0, Npol=2, Bandwidth=0.0, bw=0.0, Ve
                         print("Frequency = %s GHz"%(Frequency))
                         print("Bandwidth = %s GHz"%(Bandwidth))
                         print("Velowidth = %s km/s"%(Velowidth))
-                        print("Beamsize = %s arcsec"%(Beamsize))
+                        print("Beamsize = %s arcsec"%(beamsize))
                         print("Jy/K = %s"%(JpK))
                         print("Nant = %s"%(t_Nant))
                         print("Tsys = %s K"%(t_Tsys))
@@ -323,7 +331,7 @@ def calc_Sensitivity(Tint=[], Tsys=[], Nant=0, Npol=2, Bandwidth=0.0, bw=0.0, Ve
                 # 
                 # output item --> output 1d array --> output 2d array
                 Output_item = {'Telescope':telescop, 'Bandnumber':bandnumb, 'Bandwidth':Bandwidth, 'Frequency':Frequency, 
-                                'BeamSize':BeamSize, 
+                                'BeamSize':beamsize, 
                                 'JpK':JpK, 'Tsys':t_Tsys, 
                                 'eta':eta, 'Nant':t_Nant, 'Npol':Npol, 'Tint':t_Tint, 
                                 'rms':rms,
