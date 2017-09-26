@@ -35,7 +35,7 @@ def calc_JanskyPerKelvin(Aeff_m2, Frequency_GHz, Diameter_m):
 
 
 def calc_Sensitivity(Tint=[], Tsys=[], Nant=0, Npol=2, Bandwidth=0.0, bw=0.0, Velowidth=0.0, dv=0.0, 
-                     Frequency=0.0, freq=0.0, Telescope='NOEMA', Weather='summer', eta_ap=numpy.nan, 
+                     Frequency=0.0, freq=0.0, Telescope='NOEMA', Weather='winter', eta_ap=numpy.nan, 
                      Verbose=True):
     # 
     # NOEMACapabilities.pdf 

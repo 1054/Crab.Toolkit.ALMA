@@ -381,24 +381,49 @@ class Highz_Galaxy(object):
 # 
 class Highz_Catalogue(object):
     # 
-    def __init__(self, FitsTableFile):
-        self.FitsTableFile = FitsTableFile
-        self.FitsTablePointer = CrabFitsTable(FitsTableFile)
+    def __init__(self, FitsTableFile=''):
         self.World = {}
-        if self.FitsTablePointer:
-            self.TableData = self.FitsTablePointer.getData()
-            self.TableHeaders = self.FitsTablePointer.getColumnNames()
-            self.World['Is Valid'] = True
-            self.RA = self.ra()
-            self.Dec = self.dec()
-            self.KDTree = None
+        self.FitsTableFile = ''
+        self.FitsTablePointer = []
+        self.TableData = []
+        self.TableHeaders = []
+        self.World['Is Valid'] = False
+        self.RA = None
+        self.Dec = None
+        self.KDTree = None
+        if FitsTableFile != '':
+            self.open(FitsTableFile)
+    # 
+    def clear(self):
+        self.FitsTableFile = ''
+        self.FitsTablePointer = []
+        self.TableData = []
+        self.TableHeaders = []
+        self.World['Is Valid'] = False
+        self.RA = None
+        self.Dec = None
+        self.KDTree = None
+    # 
+    def open(self, FitsTableFile):
+        if FitsTableFile != '':
+            self.FitsTableFile = FitsTableFile
+            self.FitsTablePointer = CrabFitsTable(FitsTableFile)
+            if self.FitsTablePointer:
+                self.TableData = self.FitsTablePointer.getData()
+                self.TableHeaders = self.FitsTablePointer.getColumnNames()
+                self.World['Is Valid'] = True
+                self.RA = self.ra()
+                self.Dec = self.dec()
+                self.KDTree = None
+            else:
+                self.clear()
         else:
-            self.TableData = []
-            self.TableHeaders = []
-            self.World['Is Valid'] = False
-            self.RA = None
-            self.Dec = None
-            self.KDTree = None
+            self.clear()
+    # 
+    def create(self, length, names=['ID','RA','Dec'], types=[numpy.int64,numpy.float64,numpy.float64]):
+        self.TableHeaders = names
+        self.TableData = numpy.recarray(shape=(length), dtype=zip(names,types))
+        self.TableData.fill(0)
     # 
     # get column by a given list of possible column names, 
     # can also input column number selection and row index selection. 
@@ -428,6 +453,16 @@ class Highz_Catalogue(object):
         # loop
         for ColHead in ColName:
             #print(ColHead, ColHead in self.TableHeaders)
+            #<20170922> allow input col head pattern (a string containing '*')
+            if ColHead.find('*')>=0:
+                ColHeadPattern = ColHead
+                ColHeadRegex = re.compile(ColHeadPattern)
+                for ColHeadItem in self.TableHeaders:
+                    ColHeadMatch = ColHeadRegex.match(ColHeadItem)
+                    if ColHeadMatch:
+                        ColHead = ColHeadItem
+                        break
+            # get the Column by the input ColHead, if it is in TableHeaders
             if ColHead in self.TableHeaders:
                 ColNumber = ColNumber + 1
                 #print(ColNumber, ColSelect)
@@ -469,40 +504,86 @@ class Highz_Catalogue(object):
             else:
                 return numpy.nan
         # return
+        #if type(ColOutput) is numpy.ndarray:
+        #    return ColOutput.flatten()
         return ColOutput
+    # 
+    def addCol(self, InputColumnName, InputDataArray, InputDataType=None, InputFillValue=None):
+        if self.TableHeaders and len(self.TableData)>0:
+            if InputColumnName in self.TableHeaders:
+                if type(InputDataArray) is numpy.ndarray:
+                    self.TableData[InputColumnName] = InputDataArray.flatten()
+                    #<DEBUG># print('len(InputDataArray.flatten()) = %d'%(len(InputDataArray.flatten())))
+                else:
+                    self.TableData[InputColumnName] = InputDataArray
+            else:
+                if type(InputDataArray) is numpy.ndarray:
+                    self.TableData = numpy.lib.recfunctions.append_fields(self.TableData, names=InputColumnName, data=InputDataArray.flatten(), dtypes=InputDataType, fill_value=InputFillValue, usemask=False, asrecarray=True)
+                else:
+                    self.TableData = numpy.lib.recfunctions.append_fields(self.TableData, names=InputColumnName, data=InputDataArray, dtypes=InputDataType, fill_value=InputFillValue, usemask=False, asrecarray=True)
+                self.TableHeaders.append(InputColumnName)
+    # 
+    def save(self, OutputFilePath, overwrite=False):
+        if OutputFilePath and self.TableHeaders and len(self.TableData)>0:
+            cols = []
+            for i in range(len(self.TableHeaders)):
+                colfmt = self.TableData[self.TableHeaders[i]].dtype.name
+                if colfmt.find('int64')>=0:
+                    colfmt = 'K'
+                elif colfmt.find('int32')>=0:
+                    colfmt = 'J'
+                elif colfmt.find('int16')>=0:
+                    colfmt = 'I'
+                elif colfmt.find('int')>=0:
+                    colfmt = 'I'
+                elif colfmt.find('float64')>=0:
+                    colfmt = 'D'
+                elif colfmt.find('float32')>=0:
+                    colfmt = 'F'
+                elif colfmt.find('float')>=0:
+                    colfmt = 'F'
+                elif colfmt.find('sft')>=0:
+                    colfmt = 'A'
+                coli = astropy.io.fits.Column(name=self.TableHeaders[i], format=colfmt, array=self.TableData[self.TableHeaders[i]])
+                cols.append(coli)
+            hdu = astropy.io.fits.BinTableHDU.from_columns(astropy.io.fits.ColDefs(cols))
+            if os.path.isfile(OutputFilePath) and not overwrite:
+                print('Output file exists! Please set overwrite option to True to overwrite!')
+            else:
+                hdu.writeto(OutputFilePath)
     # 
     def object(self, InputIndex=[]):
         ColList = ['OBJECT','Object','object','NAME','SOURCE','Name','Source','name','source']
         return self.col(ColName=ColList, ColSelect=1, RowSelect=InputIndex)
     # 
     def id(self, InputIndex=[]):
-        ColList = ['ID','INDEX','id','_id','index','NUMBER','ID_1','id_1','ID_2','id_2']
+        ColList = ['ID','INDEX','id','_id','index','NUMBER','ID_1','id_1','ID_2','id_2','id_.*']
         return self.col(ColName=ColList, ColSelect=1, RowSelect=InputIndex)
     # 
     def id_2(self, InputIndex=[]):
-        ColList = ['ID','INDEX','id','_id','index','NUMBER','ID_1','id_1','ID_2','id_2']
+        ColList = ['ID','INDEX','id','_id','index','NUMBER','ID_1','id_1','ID_2','id_2','id_.*']
         return self.col(ColName=ColList, ColSelect=2, RowSelect=InputIndex)
     # 
     def ra(self, InputIndex=[]):
-        ColList = ['RA','ra','ALPHA_J2000','_ra','RA_1','ra_1','RA_2','ra_2']
+        ColList = ['RA','ra','ALPHA_J2000','_ra','RA_1','ra_1','RA_2','ra_2','ra_.*']
         return self.col(ColName=ColList, ColSelect=1, RowSelect=InputIndex)
     # 
     # read a second RA/Dec column in the catalog
     def ra_2(self, InputIndex=[]):
-        ColList = ['RA','ra','ALPHA_J2000','_ra','RA_1','ra_1','RA_2','ra_2']
+        ColList = ['RA','ra','ALPHA_J2000','_ra','RA_1','ra_1','RA_2','ra_2','ra_.*']
         return self.col(ColName=ColList, ColSelect=2, RowSelect=InputIndex)
     # 
     def dec(self, InputIndex=[]):
-        ColList = ['DEC','Dec','dec','DELTA_J2000','_dec','DEC_1','Dec_1','dec_1','DEC_2','Dec_2','dec_2']
+        ColList = ['DEC','Dec','dec','DELTA_J2000','_dec','DEC_1','Dec_1','dec_1','DEC_2','Dec_2','dec_2','dec_.*']
         return self.col(ColName=ColList, ColSelect=1, RowSelect=InputIndex)
     # 
     # read a second RA/Dec column in the catalog
     def dec_2(self, InputIndex=[]):
-        ColList = ['DEC','Dec','dec','DELTA_J2000','_dec','DEC_1','Dec_1','dec_1','DEC_2','Dec_2','dec_2']
+        ColList = ['DEC','Dec','dec','DELTA_J2000','_dec','DEC_1','Dec_1','dec_1','DEC_2','Dec_2','dec_2','dec_.*']
         return self.col(ColName=ColList, ColSelect=2, RowSelect=InputIndex)
     # 
     def zphot(self, InputIndex=[]):
-        ColList = ['PHOTOZ','zphot','photo-z','z_phot','zPDF','ZPDF','ZML','z','Laigle_Z_MED']
+        ColList = ['PHOTOZ','zphot','photo-z','z_phot','zPDF','ZPDF','ZML','z','Laigle_Z_MED','Laigle_ZPDF']
         return self.col(ColName=ColList, ColSelect=1, RowSelect=InputIndex)
     # 
     def zspec(self, InputIndex=[]):

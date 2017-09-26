@@ -1,0 +1,201 @@
+analyze_statistics
+    # 
+    # 2017-08-09 copied from "run_simu_stats_v11.sm"
+    # 
+    # Usage: 
+    #       echo "macro read a_dzliu_code_run_simu_stats.sm analyze_statistics" | sm
+    # 
+    # Input: 
+    #       "simu_data_input.txt" (which is the output of the code "a_dzliu_code_check_simulated_and_recovered.sm")
+    # 
+    # Output: 
+    #         fALMA dfALMA
+    # 
+    
+    #!cp '/Users/dzliu/Cloud/Github/Crab.Toolkit.CAAP/bin/caap-prior-extraction-simulation-analyze-statistics-macros/a_dzliu_code_run_simu_stats.sm' .
+    #!cp '/Users/dzliu/Cloud/Github/Crab.Toolkit.CAAP/bin/caap-prior-extraction-simulation-analyze-statistics-macros/run_simu_stats_v11.sm' .
+    
+    load rfile.sm
+    rfile "simu_data_input.txt"
+    
+    foreach var {id ra dec Xf f df noise fres fpeak maj} {
+        if(!is_vector($var)) {
+            print 'Error! Vector $var does not exist! Please read from simulation and recovery data files!\n' {}
+        }
+    }
+    
+    foreach var {id ra dec Xf f df noise fres fpeak maj} {
+        if(!is_vector($var)) {
+            return
+        }
+    }
+    
+    # fix fpeakRMS
+    #set fpeak = (fpeak/noise<0.001) ? 0.001*noise : fpeak
+    set filter_fpeak = (fpeak>0)
+    foreach var {id ra dec Xf f df noise fres fpeak maj} {
+        set $var = $var if(filter_fpeak)
+    }
+    
+    
+    # load macro
+    load crabStat.sm
+    load crabPlotHistogram.sm
+    macro read run_simu_stats_v11.sm
+    
+    # define 
+    define field cosmos
+    define imax ALMA
+    define outdir sim_diagram_output_v11
+    
+    # check outdir
+    !mkdir $outdir 2>/dev/null
+    
+    # copy flux
+    set Tf = f
+    set Tdf = df
+    
+    # calc median rms noise
+    stats_med noise noise_median noise_siqr
+    
+    # define fSigma_$imax
+    define fSigma_$imax $noise_median
+    
+    # renormalize
+    set fRMS = f/noise
+    set dfRMS = df/noise
+    set fresRMS = fres/noise
+    set fpeakRMS = fpeak/noise
+    
+    # print temporary check file
+    print "aaa.dfRMS.txt" '%15.0f %15g\n' {id dfRMS}
+    print "aaa.f.uncorr.txt" '%15.0f %15g\n' {id f}
+    print "aaa.df.uncorr.txt" '%15.0f %15g\n' {id df}
+    
+    # print analyzing sources
+    echo 
+    echo Analyzing $(dimen(Xf)) sources   ($date)
+    echo 
+    
+    # define NumberSteps
+    define NumberSteps 3
+    
+    # go_analyze_step
+    set binVolume = {50 10 5 1}
+    echo 
+    echo go_analyze_step dfRMS   ($date)
+    echo 
+         go_analyze_step dfRMS
+    
+    set binVolume = {1 5 10 10 5 1}
+    echo 
+    echo go_analyze_step fresRMS   ($date)
+    echo 
+         go_analyze_step fresRMS
+    
+    # new: 2017-09-13
+    set binVolume = {5 1 1}
+    echo 
+    echo go_analyze_step fpeakRMS   ($date)
+    echo 
+         go_analyze_step fpeakRMS
+    
+    # new: 2017-09-13
+    set binVolume = {10 1}
+    set fitOrder = 1
+    echo 
+    echo go_analyze_step maj   ($date)
+    echo 
+         go_analyze_step maj
+    
+    # do plots
+    echo 
+    echo plot_S_in_S_out_versus_Param 1   ($date)
+    echo 
+         plot_S_in_S_out_versus_Param 1
+    echo 
+    echo plot_S_in_S_out_versus_Param 2   ($date)
+    echo 
+         plot_S_in_S_out_versus_Param 2
+    # 
+    echo 
+    echo plot_S_in_S_out_versus_Param Xf   ($date)
+    echo 
+         plot_S_in_S_out_versus_Param Xf
+    echo 
+    echo plot_S_in_S_out_versus_Param Tf   ($date)
+    echo 
+         plot_S_in_S_out_versus_Param Tf
+    # 
+    echo 
+    echo plot_XfmTfEdf_versus_Param 1   ($date)
+    echo 
+         plot_XfmTfEdf_versus_Param 1
+    echo 
+    echo plot_XfmTfEdf_versus_Param 2   ($date)
+    echo 
+         plot_XfmTfEdf_versus_Param 2
+    # 
+    echo 
+    echo plot_XfmTfEdf_versus_Param Xf   ($date)
+    echo 
+         plot_XfmTfEdf_versus_Param Xf
+    echo 
+    echo plot_XfmTfEdf_versus_Param Tf   ($date)
+    echo 
+         plot_XfmTfEdf_versus_Param Tf
+    
+    echo 
+    echo plot_XfmTfdXf_versus_Param 1   ($date)
+    echo 
+         plot_XfmTfdXf_versus_Param 1
+    
+    echo 
+    echo plot_XfmTfdXf_versus_Param fpeakRMS   ($date)
+    echo 
+         plot_XfmTfdXf_versus_Param fpeakRMS
+    
+    echo 
+    echo plot_XfmTfdXf_versus_Param Xf   ($date)
+    echo 
+         plot_XfmTfdXf_versus_Param Xf
+    
+    set XfRMS = Xf/noise
+    echo 
+    echo plot_XfmTfdXf_versus_Param XfRMS   ($date)
+    echo 
+         plot_XfmTfdXf_versus_Param XfRMS
+    
+    
+    # do correction
+    echo 
+    echo "Applying simulation-based correction recipes ..."   ($date)
+    echo 
+    set id$imax = id
+    set ra$imax = ra
+    set de$imax = dec
+    set x$imax = ra*0.0+1.0
+    set y$imax = ra*0.0+1.0
+    define xdate xdate
+    define rBeam_$imax 1.0
+    define vary_positions 1
+    set f$imax = f
+    set df$imax = df
+    set noi$imax = noise
+    set fres$imax = fres
+    set fpeak$imax = fpeak
+    set crow$imax = fres*0.0+1.0
+    #go_correct_three_step_recipes
+    
+    #print "aaa.f.corr.txt" '%15.0f %15g\n' <id$imax f$imax>
+    #print "aaa.df.corr.txt" '%15.0f %15g\n' <id$imax df$imax>
+    
+    echo 
+    echo "Successfully applied simulation-based correction recipes!"   ($date)
+    echo 
+    
+    
+    
+
+
+

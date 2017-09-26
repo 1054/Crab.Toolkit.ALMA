@@ -10,6 +10,8 @@
 if [[ $# -eq 0 ]]; then
     echo "Usage: "
     echo "    caap-prior-extraction-photometry -catalog Catalog.fits"
+    echo "    caap-prior-extraction-photometry -catalog Catalog.fits -sci XXX.fits -rms XXX.fits -psf XXX.fits -pba XXX.fits"
+    echo "    caap-prior-extraction-photometry -catalog Catalog.fits -sci XXX.fits -rms XXX.fits -psf XXX.fits -pba XXX.fits -fit-sky -galfit-prior-peak-snr 0.5 -galfit-prior-total-snr 1.5"
     exit
 fi
 
@@ -59,12 +61,17 @@ UserSteps=()
 UserUnlock=()
 UserOverwrite=()
 UserCutBuffer=20
+UserFitWithGalfit30=0
+UserFitWithGalfit255=0
+UserFitSkyBackground=0
 InputCat=()
 InputSci=()
 InputPsf=()
 InputRms=()
 InputPba=()
 InputBoxSize=()
+InputGalfitPriorPeakSNR=()
+InputGalfitPriorTotalSNR=()
 OutputDir="Prior_Extraction_Photometry_v"$(date +"%Y%m%d")
 OutputSubDir="astrodepth_prior_extraction_photometry"
 while [[ "$#" -gt 0 ]]; do
@@ -72,56 +79,72 @@ while [[ "$#" -gt 0 ]]; do
     TempStr=$(echo "$1" | tr '[:upper:]' '[:lower:]')
     #echo $TempStr
     case "$TempStr" in
-         "-start") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="start";;
-           "-end") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="end";;
-           "-cat") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="catalog";;
-       "-catalog") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="catalog";;
-           "-inp") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-sci";;
-           "-sci") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-sci";;
-          "-fits") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-sci";;
-         "-image") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-sci";;
-           "-psf") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-psf";;
-           "-rms") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-rms";;
-           "-pba") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-pba";; # primary beam attenuation file
-           "-pbc") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-pba";; # primary beam attenuation file
-            "-pb") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-pba";; # primary beam attenuation file
-     "-image-sci") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-sci";;
-     "-image-psf") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-psf";;
-     "-image-rms") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-rms";;
-     "-image-pba") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-pba";; # primary beam attenuation file
-     "-image-pbc") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-pba";; # primary beam attenuation file
-      "-image-pb") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-pba";; # primary beam attenuation file
-     "-overwrite") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="user-overwrite";;
-          "-step") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="user-steps";;
-         "-steps") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="user-steps";;
-        "-unlock") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="user-unlock";;
-           "-out") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output-dir";;
-        "-output") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output-dir";;
-     "-outputdir") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output-dir";;
-    "-output-dir") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output-dir";;
-   "-output-name") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output-name";;
- "-output-subdir") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output-name";;
-"-output-sub-dir") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output-name";;
-           "-box") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="box-size";;
-      "-box-size") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="box-size";;
-           "-yes") CAAP_CMD_TEXT="$1";        CAAP_CMD_TYPE="yes";;
+                       "-start") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="start";;
+                         "-end") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="end";;
+                         "-cat") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="catalog";;
+                     "-catalog") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="catalog";;
+                         "-inp") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-sci";;
+                         "-sci") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-sci";;
+                        "-fits") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-sci";;
+                       "-image") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-sci";;
+                         "-psf") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-psf";;
+                         "-rms") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-rms";;
+                         "-pba") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-pba";; # primary beam attenuation file
+                         "-pbc") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-pba";; # primary beam attenuation file
+                          "-pb") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-pba";; # primary beam attenuation file
+                   "-image-sci") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-sci";;
+                   "-image-psf") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-psf";;
+                   "-image-rms") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-rms";;
+                   "-image-pba") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-pba";; # primary beam attenuation file
+                   "-image-pbc") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-pba";; # primary beam attenuation file
+                    "-image-pb") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="list-image-pba";; # primary beam attenuation file
+                   "-overwrite") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="user-overwrite";;
+                        "-step") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="user-steps";;
+                       "-steps") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="user-steps";;
+                      "-unlock") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="user-unlock";;
+                         "-out") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output-dir";;
+                      "-output") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output-dir";;
+                   "-outputdir") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output-dir";;
+                  "-output-dir") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output-dir";;
+                 "-output-name") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output-name";;
+               "-output-subdir") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output-name";;
+              "-output-sub-dir") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output-name";;
+                         "-box") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="box-size";;
+                    "-box-size") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="box-size";;
+                         "-yes") CAAP_CMD_TEXT="$1";        CAAP_CMD_TYPE="yes";;
+                    "-galfit30") CAAP_CMD_TEXT="$1";        CAAP_CMD_TYPE="galfit30";;
+                   "-galfit255") CAAP_CMD_TEXT="$1";        CAAP_CMD_TYPE="galfit255";;
+                     "-fit-sky") CAAP_CMD_TEXT="$1";        CAAP_CMD_TYPE="fit-sky";;
+                 "-no-galfit30") CAAP_CMD_TEXT="$1";        CAAP_CMD_TYPE="no-galfit30";;
+                "-no-galfit255") CAAP_CMD_TEXT="$1";        CAAP_CMD_TYPE="no-galfit255";;
+              "-do-not-fit-sky") CAAP_CMD_TEXT="$1";        CAAP_CMD_TYPE="do-not-fit-sky";;
+       "-galfit-prior-peak-snr") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="galfit-prior-peak-snr";;
+      "-galfit-prior-total-snr") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="galfit-prior-total-snr";;
     esac
     #echo "$CAAP_CMD_TYPE"
     case "$CAAP_CMD_TYPE" in
-          "start") if [[ $# -gt 0 ]]; then UserFitStart="$1"; fi;;
-            "end") if [[ $# -gt 0 ]]; then UserFitEnd="$1"; fi;;
-        "catalog") if [[ $# -gt 0 ]]; then InputCat+=("$1"); fi;;
- "list-image-sci") if [[ $# -gt 0 ]]; then InputSci+=("$1"); fi;;
- "list-image-psf") if [[ $# -gt 0 ]]; then InputPsf+=("$1"); fi;;
- "list-image-rms") if [[ $# -gt 0 ]]; then InputRms+=("$1"); fi;;
- "list-image-pba") if [[ $# -gt 0 ]]; then InputPba+=("$1"); fi;;
-       "box-size") if [[ $# -gt 0 ]]; then InputBoxSize+=("$1"); fi;;
-     "output-dir") if [[ $# -gt 0 ]]; then OutputDir="$1"; fi;;
-    "output-name") if [[ $# -gt 0 ]]; then OutputSubDir="$1"; fi;;
-     "user-steps") if [[ $# -gt 0 ]]; then UserSteps+=("$1"); fi;;
-    "user-unlock") if [[ $# -gt 0 ]]; then UserUnlock+=("$1"); fi;;
- "user-overwrite") if [[ $# -gt 0 ]]; then UserOverwrite+=("$1"); fi;;
-            "yes")                         UserYes=1;;
+                        "start") if [[ $# -gt 0 ]]; then UserFitStart="$1"; fi;;
+                          "end") if [[ $# -gt 0 ]]; then UserFitEnd="$1"; fi;;
+                      "catalog") if [[ $# -gt 0 ]]; then InputCat+=("$1"); fi;;
+               "list-image-sci") if [[ $# -gt 0 ]]; then InputSci+=("$1"); fi;;
+               "list-image-psf") if [[ $# -gt 0 ]]; then InputPsf+=("$1"); fi;;
+               "list-image-rms") if [[ $# -gt 0 ]]; then InputRms+=("$1"); fi;;
+               "list-image-pba") if [[ $# -gt 0 ]]; then InputPba+=("$1"); fi;;
+                     "box-size") if [[ $# -gt 0 ]]; then InputBoxSize+=("$1"); fi;;
+                   "output-dir") if [[ $# -gt 0 ]]; then OutputDir="$1"; fi;;
+                  "output-name") if [[ $# -gt 0 ]]; then OutputSubDir="$1"; fi;;
+                   "user-steps") if [[ $# -gt 0 ]]; then UserSteps+=("$1"); fi;;
+                  "user-unlock") if [[ $# -gt 0 ]]; then UserUnlock+=("$1"); fi;;
+               "user-overwrite") if [[ $# -gt 0 ]]; then UserOverwrite+=("$1"); fi;;
+                     "galfit30")                         UserFitWithGalfit30=1;; #<20170919># added to allow use galfit30, which is more useful for IRAC images.
+                    "galfit255")                         UserFitWithGalfit255=1;; #<20170919># added to allow use galfit255, which is more useful for IRAC images.
+                      "fit-sky")                         UserFitSkyBackground=1;; #<20170919># added to allow fit sky background, which is important for IRAC images. 
+                  "no-galfit30")                         UserFitWithGalfit30=-1;; #<20170919># added to allow to not use galfit30, which is more useful for IRAC images.
+                 "no-galfit255")                         UserFitWithGalfit255=-1;; #<20170919># added to allow to not use galfit255, which is more useful for IRAC images.
+               "do-not-fit-sky")                         UserFitSkyBackground=-1;; #<20170919># added to allow to not fit sky background, which is important for IRAC images. 
+        "galfit-prior-peak-snr") if [[ $# -gt 0 ]]; then InputGalfitPriorPeakSNR+=("$1"); fi;; #<20170923># allow to set the peak snr threshold for selecting galfit prior
+       "galfit-prior-total-snr") if [[ $# -gt 0 ]]; then InputGalfitPriorTotalSNR+=("$1"); fi;; #<20170923># allow to set the total snr threshold for selecting galfit prior
+            "yes")                                       UserYes=1;;
     esac
     #
     if [[ $# -gt 0 ]]; then shift; fi
@@ -262,6 +285,8 @@ if [[ ${#InputPsf[@]} -gt 0 ]]; then
             fi
         fi
     done
+else
+    PsfImages=()
 fi
 
 
@@ -334,6 +359,8 @@ if [[ ${#InputPba[@]} -gt 0 ]]; then
             fi
         fi
     done
+else
+    PbaImages=()
 fi
 
 
@@ -370,6 +397,11 @@ if [[ ! -f "$OutputDir/List_of_Input_Sci_Images.txt" || ! -f "$OutputDir/List_of
         # 
         # check SciImage
         SciImage="${SciImages[i]}"
+        # 
+        # debug
+        #<20170923># echo "\${#PsfImages[@]} = ${#PsfImages[@]}"
+        #<20170923># echo "\${#RmsImages[@]} = ${#RmsImages[@]}"
+        #<20170923># echo "\${#PbaImages[@]} = ${#PbaImages[@]}"
         # 
         # check PsfImage, generate one if not given
         if [[ ${#PsfImages[@]} -gt $i ]]; then
@@ -452,18 +484,25 @@ if [[ ! -f "$OutputDir/List_of_Input_Sci_Images.txt" || ! -f "$OutputDir/List_of
             PbaImage="${PbaImages[i]}"
         else
             PbaImage=""
-            if [[ "$PbaImage"x == ""x ]]; then PbaImage=$(echo "$SciImage" | sed -e 's/\.image\.fits$/.pb.fits/g');   if [[ ! -f "$PbaImage" ]]; then PbaImage=""; fi; fi
-            if [[ "$PbaImage"x == ""x ]]; then PbaImage=$(echo "$SciImage" | sed -e 's/\.fits$/.pb.fits/g');          if [[ ! -f "$PbaImage" ]]; then PbaImage=""; fi; fi
-            if [[ "$PbaImage"x == ""x ]]; then PbaImage=$(echo "$SciImage" | sed -e 's/\.image\.fits$/.flux.fits/g'); if [[ ! -f "$PbaImage" ]]; then PbaImage=""; fi; fi
-            if [[ "$PbaImage"x == ""x ]]; then PbaImage=$(echo "$SciImage" | sed -e 's/\.fits$/.flux.fits/g');        if [[ ! -f "$PbaImage" ]]; then PbaImage=""; fi; fi
+            if [[ "$PbaImage"x == ""x ]]; then PbaImage=$(echo "$SciImage" | sed -e 's/\.image\.fits$/.pb.fits/g');   if [[ "$PbaImage" == "$SciImage" ]] || [[ ! -f "$PbaImage" ]]; then PbaImage=""; fi; fi
+            if [[ "$PbaImage"x == ""x ]]; then PbaImage=$(echo "$SciImage" | sed -e 's/\.fits$/.pb.fits/g');          if [[ "$PbaImage" == "$SciImage" ]] || [[ ! -f "$PbaImage" ]]; then PbaImage=""; fi; fi
+            if [[ "$PbaImage"x == ""x ]]; then PbaImage=$(echo "$SciImage" | sed -e 's/\.image\.fits$/.flux.fits/g'); if [[ "$PbaImage" == "$SciImage" ]] || [[ ! -f "$PbaImage" ]]; then PbaImage=""; fi; fi
+            if [[ "$PbaImage"x == ""x ]]; then PbaImage=$(echo "$SciImage" | sed -e 's/\.fits$/.flux.fits/g');        if [[ "$PbaImage" == "$SciImage" ]] || [[ ! -f "$PbaImage" ]]; then PbaImage=""; fi; fi
+            #debug# echo "\$PbaImage = $PbaImage"; sleep 10 #------ bug fixed <20170923> added [[ "$PbaImage" == "$SciImage" ]] condition in the above 4 lines
             if [[ "$PbaImage"x == ""x ]]; then 
                 # create a Pba image with extension .pba.fits
                 PbaImage=$(echo "$SciImage" | sed -e 's/\.image\.fits$/.pba/g')
                 if [[ "$PbaImage" == *".fits" ]]; then
+                    PbaImage=$(echo "$SciImage" | sed -e 's/\.sci\.fits$/.pba/g')
+                fi
+                if [[ "$PbaImage" == *".fits" ]]; then
+                    PbaImage=$(echo "$SciImage" | sed -e 's/_sci\.fits$/_pba/g')
+                fi
+                if [[ "$PbaImage" == *".fits" ]]; then
                     PbaImage=$(echo "$SciImage" | sed -e 's/\.fits$/.pba/g')
                 fi
                 if [[ ! -f "$PbaImage.fits" ]]; then
-                    PbaValue="0.0" #<TODO># fill Pba image with this value. 
+                    PbaValue="1.0" #<TODO># fill Pba image with this value. 
                     echo "# "$(date +'%Y%m%d %Hh%Mm%Ss %Z') > "$PbaImage.log"
                     echo "CrabFitsImageArithmetic \"$SciImage\" times 0.0 \"$PbaImage.tmp.fits\"" >> "$PbaImage.log"
                           CrabFitsImageArithmetic  "$SciImage"  times 0.0  "$PbaImage.tmp.fits"   >> "$PbaImage.log"
@@ -479,16 +518,18 @@ if [[ ! -f "$OutputDir/List_of_Input_Sci_Images.txt" || ! -f "$OutputDir/List_of
             fi
         fi
         # 
-        # check SciImage and PsfImage name consistency
-        SciImage_check=$(echo "$SciImage" | sed -e 's%\.image\.fits%%g' | sed -e 's%\.fits%%g')   #<TODO># file name
-        PsfImage_check=$(echo "$PsfImage" | sed -e 's%\.psf\.fits%%g' | sed -e 's%\.clean-beam\.fits%%g')     #<TODO># file name
-        RmsImage_check=$(echo "$RmsImage" | sed -e 's%\.rms\.fits%%g')     #<TODO># file name
-        PbaImage_check=$(echo "$PbaImage" | sed -e 's%\.pba\.fits%%g' | sed -e 's%\.pb\.fits%%g' | sed -e 's%\.flux\.fits%%g')     #<TODO># file name
-        if [[ "$SciImage_check" != "$PsfImage_check" ]]; then 
-            echo ""; echo "Error! The input SciImage \"$SciImage\" and PsfImage \"$PsfImage\" do not match!"; exit 1
-        fi
-        if [[ "$SciImage_check" != "$RmsImage_check" ]]; then 
-            echo ""; echo "Error! The input SciImage \"$SciImage\" and RmsImage \"$RmsImage\" do not match!"; exit 1
+        # check SciImage and PsfImage name consistency (only when it is ALMA image)
+        if echo "$SciImage" | grep -q "_SB" | grep -q "_GB" | grep -q "_MB" | grep -q "_sci" | grep -q ".spw"; then
+            SciImage_check=$(echo "$SciImage" | sed -e 's%\.image\.fits%%g' | sed -e 's%\.fits%%g')   #<TODO># file name
+            PsfImage_check=$(echo "$PsfImage" | sed -e 's%\.psf\.fits%%g' | sed -e 's%\.clean-beam\.fits%%g')     #<TODO># file name
+            RmsImage_check=$(echo "$RmsImage" | sed -e 's%\.rms\.fits%%g')     #<TODO># file name
+            PbaImage_check=$(echo "$PbaImage" | sed -e 's%\.pba\.fits%%g' | sed -e 's%\.pb\.fits%%g' | sed -e 's%\.flux\.fits%%g')     #<TODO># file name
+            if [[ "$SciImage_check" != "$PsfImage_check" ]]; then 
+                echo ""; echo "Error! The input SciImage \"$SciImage\" and PsfImage \"$PsfImage\" do not match!"; exit 1
+            fi
+            if [[ "$SciImage_check" != "$RmsImage_check" ]]; then 
+                echo ""; echo "Error! The input SciImage \"$SciImage\" and RmsImage \"$RmsImage\" do not match!"; exit 1
+            fi
         fi
         # 
         # check PsfImage dimension, make sure the psf has positive sum and has a size of below 300 pixel. 
@@ -500,16 +541,16 @@ if [[ ! -f "$OutputDir/List_of_Input_Sci_Images.txt" || ! -f "$OutputDir/List_of
             PsfImage_cut_rect=$(echo "$PsfImage_fullpath" | sed -e "s/\.fits$/.cut.rect.txt/g")
             if [[ ! -f "$PsfImage_cut_rect" ]]; then
                 # cut psf image, make sure the sum is positive, and size below 300 pixel.
-                CutBuffer=(0 0)
-                if [[ $(awk "BEGIN {if($PsfNAXIS1>300) print 1; else print 0;}") -eq 1 ]]; then CutBuffer[0]=$(awk "BEGIN {print int(($PsfNAXIS1-300)/2.0);}"); fi
-                if [[ $(awk "BEGIN {if($PsfNAXIS2>300) print 1; else print 0;}") -eq 1 ]]; then CutBuffer[1]=$(awk "BEGIN {print int(($PsfNAXIS2-300)/2.0);}"); fi
+                CutBuffer=(100 100)
+                #<20170919># if [[ $(awk "BEGIN {if($PsfNAXIS1>300) print 1; else print 0;}") -eq 1 ]]; then CutBuffer[0]=$(awk "BEGIN {print int(($PsfNAXIS1-300)/2.0);}"); fi
+                #<20170919># if [[ $(awk "BEGIN {if($PsfNAXIS2>300) print 1; else print 0;}") -eq 1 ]]; then CutBuffer[1]=$(awk "BEGIN {print int(($PsfNAXIS2-300)/2.0);}"); fi
                 while [[ $(awk "BEGIN {if(($PsfNAXIS1>2*${CutBuffer[0]})&&($PsfNAXIS2>2*${CutBuffer[1]})) print 1; else print 0;}") -eq 1 ]]; do
                     CutBuffer[0]=$((${CutBuffer[0]}+1))
                     CutBuffer[1]=$((${CutBuffer[1]}+1))
-                    CutPos1X=$(awk "BEGIN {print int(($PsfNAXIS1-1.0)/2.0)+(${CutBuffer[0]})}") #<TODO># +1 accounts for the small shift of the ALMA psf fits image produced by Benjamin
-                    CutPos1Y=$(awk "BEGIN {print int(($PsfNAXIS2-1.0)/2.0)+(${CutBuffer[1]})}") #<TODO># +1 accounts for the small shift of the ALMA psf fits image produced by Benjamin
-                    CutPos2X=$(awk "BEGIN {print int(($PsfNAXIS1-1.0)/2.0)-(${CutBuffer[0]})}") #<TODO># +1 accounts for the small shift of the ALMA psf fits image produced by Benjamin
-                    CutPos2Y=$(awk "BEGIN {print int(($PsfNAXIS2-1.0)/2.0)-(${CutBuffer[1]})}") #<TODO># +1 accounts for the small shift of the ALMA psf fits image produced by Benjamin
+                    CutPos1X=$(awk "BEGIN {print int(($PsfNAXIS1-1.0)/2.0)-(${CutBuffer[0]})}") #<TODO># +1 accounts for the small shift of the ALMA psf fits image produced by Benjamin
+                    CutPos1Y=$(awk "BEGIN {print int(($PsfNAXIS2-1.0)/2.0)-(${CutBuffer[1]})}") #<TODO># +1 accounts for the small shift of the ALMA psf fits image produced by Benjamin
+                    CutPos2X=$(awk "BEGIN {print int(($PsfNAXIS1-1.0)/2.0)+(${CutBuffer[0]})}") #<TODO># +1 accounts for the small shift of the ALMA psf fits image produced by Benjamin
+                    CutPos2Y=$(awk "BEGIN {print int(($PsfNAXIS2-1.0)/2.0)+(${CutBuffer[1]})}") #<TODO># +1 accounts for the small shift of the ALMA psf fits image produced by Benjamin
                     CutImage_fullpath=$(echo "$PsfImage_fullpath" | sed -e "s/\.fits$/.cut_${CutPos1X}_${CutPos1Y}_${CutPos2X}_${CutPos2Y}.fits/g")
                     CutScript_fullpath=$(echo "$PsfImage_fullpath" | sed -e "s/\.fits$/.cut_${CutPos1X}_${CutPos1Y}_${CutPos2X}_${CutPos2Y}.sh/g")
                     CutScriptLog_fullpath=$(echo "$PsfImage_fullpath" | sed -e "s/\.fits$/.cut_${CutPos1X}_${CutPos1Y}_${CutPos2X}_${CutPos2Y}.sh.log/g")
@@ -811,6 +852,27 @@ for (( i=0; i<${#SciImages[@]}; i++ )); do
     echo  "                                       -buffer $CutBuffer \\"                                            >> "$SourceDir/$SourceName.run.bash"
     echo  "                                       -output-dir \"$SourceDir\" \\"                                    >> "$SourceDir/$SourceName.run.bash"
     echo  "                                       -output-name \"$SourceName\" \\"                                  >> "$SourceDir/$SourceName.run.bash"
+    if [[ $UserFitWithGalfit30 -gt 0 ]]; then
+    echo  "                                       -galfit30 \\"                                                     >> "$SourceDir/$SourceName.run.bash"
+    elif [[ $UserFitWithGalfit30 -lt 0 ]]; then
+    echo  "                                       -no-galfit30 \\"                                                  >> "$SourceDir/$SourceName.run.bash"
+    fi
+    if [[ $UserFitWithGalfit255 -gt 0 ]]; then
+    echo  "                                       -galfit255 \\"                                                    >> "$SourceDir/$SourceName.run.bash"
+    elif [[ $UserFitWithGalfit255 -lt 0 ]]; then
+    echo  "                                       -no-galfit255 \\"                                                 >> "$SourceDir/$SourceName.run.bash"
+    fi
+    if [[ $UserFitSkyBackground -gt 0 ]]; then
+    echo  "                                       -fit-sky \\"                                                      >> "$SourceDir/$SourceName.run.bash"
+    elif [[ $UserFitSkyBackground -lt 0 ]]; then
+    echo  "                                       -do-not-fit-sky \\"                                               >> "$SourceDir/$SourceName.run.bash"
+    fi
+    if [[ ${#InputGalfitPriorPeakSNR[@]} -gt 0 ]]; then
+    echo  "                                       -galfit-prior-peak-snr ${InputGalfitPriorPeakSNR} \\"             >> "$SourceDir/$SourceName.run.bash"
+    fi
+    if [[ ${#InputGalfitPriorTotalSNR[@]} -gt 0 ]]; then
+    echo  "                                       -galfit-prior-total-snr ${InputGalfitPriorTotalSNR} \\"           >> "$SourceDir/$SourceName.run.bash"
+    fi
     echo  "                                       -steps getpix galfit gaussian ${UserSteps[@]} final \\"           >> "$SourceDir/$SourceName.run.bash"
     echo  "                                       -unlock ${UserUnlock[@]} \\"                                      >> "$SourceDir/$SourceName.run.bash"
     echo  "                                       -overwrite ${UserOverwrite[@]}"                                   >> "$SourceDir/$SourceName.run.bash"

@@ -1,0 +1,31 @@
+calc_alma_primary_beam_fwhm 02
+    
+    if(!$?1) {print 'usage: set aaa = calc_alma_primary_beam_fwhm(350.0)\n' {} return}
+    
+    set sky_frequency = $1
+    set sky_wavelength = 2.99792458e5/sky_frequency # um
+    set primary_beam_diam = 12.0 # ALMA 12m
+    #set primary_beam_tape = 10.0 # https://safe.nrao.edu/wiki/bin/view/ALMA/AlmaPrimaryBeamCorrection
+    #set primary_beam_bpar = 1.243 - 0.343 * primary_beam_tape + 0.12 * primary_beam_tape**2 # http://legacy.nrao.edu/alma/memos/html-memos/alma456/memo456.pdf -- Eq(18)
+    set primary_beam_bpar = 1.13
+    set primary_beam_fwhm = primary_beam_bpar * sky_wavelength / (primary_beam_diam*1e6) / pi * 180.0 * 3600.0 # arcsec
+    set primary_beam_sigm = primary_beam_fwhm/(2.0*sqrt(2.0*ln(2)))
+    #set primary_beam_attenuation = exp((-primary_beam_disq)/(2.0*((primary_beam_sigm)**2))) #<TODO><20170613># 
+    #set primary_beam_correction = 1.0/primary_beam_attenuation
+    set $0 = primary_beam_fwhm
+    
+    return
+
+
+
+calc_alma_primary_beam_area 02
+    
+    if(!$?1) {print 'usage: set aaa = calc_alma_primary_beam_area(350.0)\n' {} return}
+    
+    set primary_beam_fwhm = calc_alma_primary_beam_fwhm($1)
+    set primary_beam_area = pi /(4*ln(2)) * (primary_beam_fwhm * primary_beam_fwhm)
+    set $0 = primary_beam_area
+    
+    return
+
+

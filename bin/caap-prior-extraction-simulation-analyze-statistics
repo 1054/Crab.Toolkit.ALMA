@@ -68,6 +68,8 @@ recovered_dir="../../Recovered"
 output_dir="check_simulated_and_recovered_statistics"
 input_sbeam=()
 input_pbeam=()
+input_sfreq=() # sky frequency in GHz
+input_repno=()
 input_overwrite=0
 input_yes=0
 
@@ -76,26 +78,34 @@ while [[ "$#" -gt 0 ]]; do
     TempStr=$(echo "$1" | tr '[:upper:]' '[:lower:]')
     #echo $TempStr
     case "$TempStr" in
-      "-image-name") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="image_name";;
-           "-image") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="image_name";;
-             "-sim") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="simulated_dir";;
-   "-simulated-dir") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="simulated_dir";;
-             "-rec") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="recovered_dir";;
-   "-recovered-dir") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="recovered_dir";;
-             "-out") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output_dir";;
-               "-o") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output_dir";;
-"-synthesized-beam") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_sbeam";;
-           "-sbeam") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_sbeam";;
-              "-sb") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_sbeam";;
-    "-primary-beam") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_pbeam";;
-           "-pbeam") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_pbeam";;
-              "-pb") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_pbeam";;
-             "-res") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_sbeam";;
-             "-fov") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_pbeam";;
-               "-s") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_sbeam";;
-               "-p") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_pbeam";;
-       "-overwrite") CAAP_CMD_TEXT="$1";        CAAP_CMD_TYPE="overwrite";;
-             "-yes") CAAP_CMD_TEXT="$1";        CAAP_CMD_TYPE="yes";;
+               "-image-name") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="image_name";;
+                    "-image") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="image_name";;
+                      "-sim") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="simulated_dir";;
+            "-simulated-dir") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="simulated_dir";;
+                      "-rec") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="recovered_dir";;
+            "-recovered-dir") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="recovered_dir";;
+                      "-out") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output_dir";;
+                        "-o") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="output_dir";;
+         "-synthesized-beam") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_sbeam";;
+                    "-sbeam") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_sbeam";;
+                       "-sb") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_sbeam";;
+               "-resolution") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_sbeam";;
+                      "-res") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_sbeam";;
+                        "-s") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_sbeam";;
+             "-primary-beam") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_pbeam";;
+                    "-pbeam") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_pbeam";;
+                       "-pb") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_pbeam";;
+                      "-fov") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_pbeam";;
+                        "-p") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_pbeam";;
+            "-sky-frequency") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_sfreq";;
+                 "-sky-freq") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_sfreq";;
+                    "-sfreq") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_sfreq";;
+        "-repetition-number") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_repno";;
+               "-repetition") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_repno";;
+                      "-rep") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_repno";;
+                        "-n") CAAP_CMD_TEXT="$1"; shift; CAAP_CMD_TYPE="input_repno";;
+                "-overwrite") CAAP_CMD_TEXT="$1";        CAAP_CMD_TYPE="overwrite";;
+                      "-yes") CAAP_CMD_TEXT="$1";        CAAP_CMD_TYPE="yes";;
     esac
     #echo $CAAP_CMD_TYPE
     case "$CAAP_CMD_TYPE" in
@@ -105,6 +115,8 @@ while [[ "$#" -gt 0 ]]; do
              "output_dir") if [[ $# -gt 0 ]]; then output_dir="$1"; fi;;
             "input_sbeam") if [[ $# -gt 0 ]]; then input_sbeam+=("$1"); fi;;
             "input_pbeam") if [[ $# -gt 0 ]]; then input_pbeam+=("$1"); fi;;
+            "input_sfreq") if [[ $# -gt 0 ]]; then input_sfreq+=("$1"); fi;;
+            "input_repno") if [[ $# -gt 0 ]]; then input_repno+=("$1"); fi;;
               "overwrite")                         input_overwrite=1;;
                     "yes")                         input_yes=1;;
     esac
@@ -116,25 +128,120 @@ done
 # 
 # Check sbeam pbeam
 # 
-if [[ ${#input_sbeam[@]} -eq 0 ]] || [[ ${#input_pbeam[@]} -eq 0 ]]; then
-    if [[ -f "$output_dir/info_primary_beam.txt" ]] && [[ -f "$output_dir/info_synthesized_beam.txt" ]]; then
-        echo "Warning! No primary beam nor synthesized beam was given, but found \"info_primary_beam.txt\" and \"info_synthesized_beam.txt\" under output directory \"$output_dir/\". Will load from those files."
-        echo ""
-        input_pbeam=($(cat "$output_dir/info_primary_beam.txt"))
+if [[ ${#input_sbeam[@]} -eq 0 ]]; then
+    # check sbeam
+    if [[ -f "$output_dir/info_synthesized_beam.txt" ]]; then
+        echo "Warning! No synthesized beam was input, but found \"info_synthesized_beam.txt\" under output directory \"$output_dir/\". Will load from that."
         input_sbeam=($(cat "$output_dir/info_synthesized_beam.txt"))
-    else
-        echo "Usage: "
-        echo "  caap-prior-extraction-simulation-analyze-statistics -synthesized-beam 0.1 0.1 -primary-beam 17"
+        if [[ ${#input_sbeam_file[@]} -gt 0 ]]; then
+            echo "synthesized beam: ${input_sbeam[@]} arcsec"
+        else
+            echo "Error! Failed to load synthesized beam from \"$output_dir/info_synthesized_beam.txt\"!"
+            rm "$output_dir/info_synthesized_beam.txt"
+        fi
         echo ""
-        exit
     fi
-else
-    if [[ ${#input_sbeam[@]} -eq 1 ]]; then
-        input_sbeam+=("${input_sbeam[0]}")
+    if [[ ${#input_sbeam[@]} -eq 0 ]]; then
+        echo "Warning! No \"-synthesized-beam\" was input! Will try to find \"image_sim.fits\" files from the data directory \"$simulated_dir/$image_name\" (given by the \"-simulated-dir\" and \"-image-name\" arguments)."
+        input_sbeam_file=($(find "$simulated_dir/$image_name" -name "image_sim.fits"))
+        if [[ ${#input_sbeam_file[@]} -gt 0 ]]; then
+            input_sbeam_area=($(gethead ${input_sbeam_file[0]} "BMAJ" "BMIN" "BPA"))
+            if [[ ${#input_sbeam_area[@]} -eq 3 ]]; then
+                input_sbeam=($(awk "BEGIN {print ${input_sbeam_area[0]}*3600.0}") \
+                             $(awk "BEGIN {print ${input_sbeam_area[1]}*3600.0}") \
+                             $(awk "BEGIN {print ${input_sbeam_area[2]}}"))
+                echo "synthesized beam: ${input_sbeam[0]} x ${input_sbeam[1]} arcsec by PA ${input_sbeam[2]} degree"
+            else
+                echo "Error! Failed to determien synthesized beam by reading the fits header BMAJ BMIN BPA keywords from any \"image_sim.fits\"!"
+            fi
+        else
+            echo "Error! Failed to determien synthesized beam!"
+        fi
+        echo ""
     fi
-    if [[ ${#input_pbeam[@]} -eq 1 ]]; then
-        input_pbeam+=("${input_pbeam[0]}")
+    if [[ ${#input_sbeam[@]} -eq 0 ]]; then
+        echo "Warning! No \"-synthesized-beam\" was input! Will try to find \"image_sci_beamarea.txt\" files from the data directory \"$recovered_dir/$image_name\" (given by the \"-recovered-dir\" and \"-image-name\" arguments)."
+        input_sbeam_file=($(find "$recovered_dir/$image_name" -name "image_sci_beamarea.txt"))
+        if [[ ${#input_sbeam_file[@]} -gt 0 ]]; then
+            input_sbeam_area=$(cat ${input_sbeam_file[0]} | grep -v "^#" | sed -e 's/^ *//g' | tr -s ' ' | cut -d ' ' -f 1)
+            input_sbeam=($(awk "BEGIN {print sqrt(($input_sbeam_area)/3.1415926*(4*log(2)))}"))
+            echo "synthesized beam: ${input_sbeam[@]} arcsec"
+        else
+            echo "Error! Failed to determien synthesized beam!"
+        fi
+        echo ""
     fi
+fi
+if [[ ${#input_pbeam[@]} -eq 0 ]] && [[ ${#input_sfreq[@]} -eq 0 ]]; then
+    # check pbeam or sfreq
+    if [[ -f "$output_dir/info_primary_beam.txt" ]]; then
+        echo "Warning! No primary beam or sky frequency was input, but found \"info_primary_beam.txt\" under output directory \"$output_dir/\". Will load from that."
+        input_pbeam=($(cat "$output_dir/info_primary_beam.txt"))
+        input_sfreq=()
+        echo "primary beam: ${input_pbeam[@]} arcsec"
+        echo ""
+    elif [[ -f "$output_dir/info_sky_frequency.txt" ]]; then
+        echo "Warning! No primary beam or sky frequency was input, but found \"info_sky_frequency.txt\" under output directory \"$output_dir/\". Will load from that."
+        input_pbeam=()
+        input_sfreq=($(cat "$output_dir/info_sky_frequency.txt"))
+        echo "sky frequency: ${input_sfreq[@]} GHz"
+        echo ""
+    fi
+    if [[ ${#input_pbeam[@]} -eq 0 ]] && [[ ${#input_sfreq[@]} -eq 0 ]]; then
+        echo "Warning! No \"-primary-beam\" nor \"-sky-frequency\" were input! Will try to find \"image_sim.fits\" files from the data directory \"$simulated_dir/$image_name\" (given by the \"-simulated-dir\" and \"-image-name\" arguments)."
+        input_sfreq_file=($(find "$simulated_dir/$image_name" -name "image_sim.fits"))
+        if [[ ${#input_sfreq_file[@]} -gt 0 ]]; then
+            input_sfreq_Hz=($(gethead ${input_sfreq_file[0]} "CRVAL3"))
+            if [[ ${#input_sfreq_Hz[@]} -gt 0 ]]; then
+                input_sfreq=($(awk "BEGIN {print ${input_sfreq_Hz[0]}/1e9}"))
+                echo "sky frequency: ${input_sfreq[@]} GHz"
+            else
+                echo "Error! Failed to determien sky frequency by reading the fits header CRVAL3 keyword from any \"image_sim.fits\"!"
+            fi
+        else
+            echo "Error! Failed to determine sky frequency!"
+        fi
+        echo ""
+    fi
+    if [[ ${#input_pbeam[@]} -eq 0 ]] && [[ ${#input_sfreq[@]} -eq 0 ]]; then
+        echo "Warning! No \"-primary-beam\" nor \"-sky-frequency\" were input! Will try to find \"image_sci_sky_frequency.txt\" files from the data directory \"$recovered_dir/$image_name\" (given by the \"-recovered-dir\" and \"-image-name\" arguments)."
+        input_sfreq_file=($(find "$recovered_dir/$image_name" -name "image_sci_sky_frequency.txt"))
+        if [[ ${#input_sfreq_file[@]} -gt 0 ]]; then
+            input_sfreq=$(cat ${input_sfreq_file[0]} | grep -v "^#" | sed -e 's/^ *//g' | tr -s ' ' | cut -d ' ' -f 1)
+            echo "sky frequency: ${input_sfreq[@]} GHz"
+        else
+            echo "Error! Failed to determine sky frequency!"
+        fi
+        echo ""
+    fi
+fi
+if [[ ${#input_repno[@]} -eq 0 ]]; then
+    # check sbeam
+    if [[ -f "$output_dir/info_repetition_number.txt" ]]; then
+        echo "Warning! No repetition number was input, but found \"info_repetition_number.txt\" under output directory \"$output_dir/\". Will load from that."
+        input_repno=($(cat "$output_dir/info_repetition_number.txt"))
+        echo "repetition number: ${input_repno[@]}"
+        echo ""
+    else
+        echo "Warning! No \"-repetition-number\" was input! Will try to count \"List_of_Input_Sci_Images.txt\" files from the data directory \"$recovered_dir/$image_name\" (given by the \"-recovered-dir\" and \"-image-name\" arguments)."
+        input_repno_file=($(find "$recovered_dir/$image_name" -name "List_of_Input_Sci_Images.txt"))
+        if [[ ${#input_repno_file[@]} -gt 0 ]]; then
+            input_repno=(${#input_repno_file[@]})
+            echo "repetition number: ${input_repno[@]}"
+        else
+            echo "Error! Failed to determine repetition number!"
+        fi
+        echo ""
+    fi
+fi
+if [[ ${#input_sbeam[@]} -eq 0 ]] || \
+  ([[ ${#input_pbeam[@]} -eq 0 ]] && [[ ${#input_sfreq[@]} -eq 0 ]]) || \
+   [[ ${#input_repno[@]} -eq 0 ]]
+then
+    echo "Usage: "
+    echo "  caap-prior-extraction-simulation-analyze-statistics -synthesized-beam 0.1 0.1 -primary-beam 17 -repetition-number 84"
+    echo ""
+    exit
 fi
 
 
@@ -147,8 +254,33 @@ fi
 
 
 # 
+# write info files
+# 
+if [[ ${#input_sbeam[@]} -eq 1 ]]; then
+    input_sbeam+=("${input_sbeam[0]}")
+fi
+if [[ ${#input_pbeam[@]} -eq 1 ]]; then
+    input_pbeam+=("${input_pbeam[0]}")
+fi
+if [[ ! -f "$output_dir/info_synthesized_beam.txt" ]] && [[ ${#input_sbeam[@]} -gt 0 ]]; then
+    echo "${input_sbeam[@]}" > "$output_dir/info_synthesized_beam.txt"
+fi
+if [[ ! -f "$output_dir/info_primary_beam.txt" ]] && [[ ${#input_pbeam[@]} -gt 0 ]]; then
+    echo "${input_pbeam[@]}" > "$output_dir/info_primary_beam.txt"
+fi
+if [[ ! -f "$output_dir/info_sky_frequency.txt" ]] && [[ ${#input_sfreq[@]} -gt 0 ]]; then
+    echo "${input_sfreq[@]}" > "$output_dir/info_sky_frequency.txt"
+fi
+if [[ ! -f "$output_dir/info_repetition_number.txt" ]] && [[ ${#input_repno[@]} -gt 0 ]]; then
+    echo "${input_repno[@]}" > "$output_dir/info_repetition_number.txt"
+fi
+
+
+# 
 # Copy macros
 # 
+echo "Copying macros ..."
+echo ""
 copy_macro_dir=$(dirname ${BASH_SOURCE[0]})"/caap-prior-extraction-simulation-analyze-statistics-macros"
 
 if [[ ! -d "$copy_macro_dir" ]]; then 
@@ -162,18 +294,23 @@ cp "$copy_macro_dir/"* "$output_dir/"
 # 
 # Run
 # 
+echo "simulated_dir = $simulated_dir"
+echo "recovered_dir = $recovered_dir"
+echo "output_dir = $output_dir"
+echo "image_name = $image_name"
+echo ""
 if [[ $input_overwrite -eq 1 ]] || [[ ! -f "$output_dir/datatable_Simulated.txt" ]];        then check_input_dirs; cat "$simulated_dir/$image_name/datatable_Simulated.txt"        | grep -v "^#$" > "$output_dir/datatable_Simulated.txt"; fi
 if [[ $input_overwrite -eq 1 ]] || [[ ! -f "$output_dir/datatable_Recovered_galfit.txt" ]]; then check_input_dirs; cat "$recovered_dir/$image_name/datatable_Recovered_galfit.txt" | grep -v "^#$" > "$output_dir/datatable_Recovered_galfit.txt"; fi
 
+echo "cd \"$output_dir\""
+echo ""
 cd "$output_dir"
-echo "${input_pbeam[@]}" > "info_primary_beam.txt"
-echo "${input_sbeam[@]}" > "info_synthesized_beam.txt"
 
 if [[ $input_overwrite -eq 1 ]] || [[ ! -f "simu_data_input.txt" ]]; then
-    echo "macro read a_dzliu_code_check_simulated_and_recovered.sm go" | sm
+    echo "macro read a_dzliu_code_compile_simu_data.sm go" | sm
 fi
 
-echo "macro read a_dzliu_code_analyze_statistics.sm analyze_statistics" | sm
+echo "macro read a_dzliu_code_run_simu_stats.sm analyze_statistics" | sm
 rm sim_diagram_output_v*/*.{eps,pdfmarks,pdfconverts}
 rm aaa_*.{eps,pdfmarks,pdfconverts}
 

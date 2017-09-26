@@ -1,0 +1,179 @@
+#!/bin/bash
+# 
+# Aim:
+#     cut a fits image by the input ra dec and FoV
+# 
+# Output:
+#     cut fits image
+# 
+# Last update:
+#     20170919
+# 
+
+
+
+if [[ $# -lt 3 ]]; then
+    echo "Usage: caap-cut-fits-image-by-ra-dec aaa.fits ra dec fov"
+fi
+
+Input_check=0
+if [[ $(type xy2sky 2>/dev/null | wc -l) -eq 0 ]]; then
+    echo "Error! xy2sky was not found!"
+    Input_check=1
+fi
+if [[ $(type awk 2>/dev/null | wc -l) -eq 0 ]]; then
+    echo "Error! awk was not found!"
+    Input_check=1
+fi
+if [[ $(type CrabFitsImageCrop 2>/dev/null | wc -l) -eq 0 ]]; then
+    echo "Error! CrabFitsImageCrop was not found! Please install \"https://github.com/1054/DeepFields.SuperDeblending\""
+    Input_check=1
+fi
+if [[ $(type pixscale 2>/dev/null | wc -l) -eq 0 ]]; then
+    echo "Error! pixscale was not found! Please install \"https://github.com/1054/DeepFields.SuperDeblending\""
+    Input_check=1
+fi
+if [[ $Input_check -ne 0 ]]; then
+    exit $Input_check
+fi
+
+
+
+Input_files=()
+Input_RA=""
+Input_Dec=""
+Input_FoV="" # arcsec
+Output_arg=0
+Output_files=()
+
+for (( i=1; i<=$#; i++ )); do
+    echo "Input argument: ${!i}"
+    if [[ "${!i}" == *".fits" || "${!i}" == *".FITS" || "${!i}" == *".txt" || "${!i}" == *".TXT" ]]; then
+        if [[ $Output_arg -eq 0 ]]; then
+            Input_files+=("${!i}")
+        else
+            Output_files+=("${!i}")
+        fi
+    elif [[ "${!i}" == "-out" ]]; then
+        Output_arg=1
+    else
+        if [[ "$Input_RA"x == ""x ]]; then Input_RA="${!i}"; continue; fi
+        if [[ "$Input_Dec"x == ""x ]]; then Input_Dec="${!i}"; continue; fi
+        if [[ "$Input_FoV"x == ""x ]]; then Input_FoV="${!i}"; continue; fi
+    fi
+done
+
+# Set default cut FoV
+if [[ "$Input_FoV"x == ""x ]]; then Input_FoV="30.0"; fi
+
+
+
+for (( i=0; i<${#Input_files[@]}; i++ )); do
+    # get input_file string
+    Input_file="${Input_files[i]}"
+    # the input_file string can be "*.fits" or a text file "*.txt" which contains fits image paths
+    if [[ "$Input_file" == *".fits" || "$Input_file" == *".FITS" ]]; then
+        Input_fits_files=("$Input_file")
+        Input_fits_dir=""
+    else
+        Input_fits_files=($(cat "$Input_file" | sed -e 's/^ *//g' | grep -v "^#" | grep -i ".fits$"))
+        Input_fits_dir=$(dirname "$Input_file")
+    fi
+    # get output_file string if given
+    # the output_file string can be "*.fits" or a text file "*.txt" which contains fits image paths
+    if [[ $i -lt ${#Output_files[@]} ]]; then
+        Output_file="${Output_files[i]}"
+        if [[ "$Output_file" == *".fits" || "$Input_file" == *".FITS" ]]; then
+            Output_fits_files=("$Output_file")
+            Output_fits_dir=""
+        else
+            Output_fits_files=($(cat "$Output_file" | sed -e 's/^ *//g' | grep -v "^#" | grep -i ".fits$"))
+            Output_fits_dir=$(dirname "$Output_file")
+        fi
+    else
+        Output_fits_files=()
+    fi
+    # 
+    # loop each input fits image
+    for (( j=0; j<${#Input_fits_files[@]}; j++ )); do
+        # append prefix Input_fits_dir if needed (when the fits image file path is read from a text file, we use the dir of the text file as the image dir)
+        if [[ "${Input_fits_dir}"x != ""x ]]; then
+            if [[ "${Input_fits_files[j]}" != "/"* ]]; then
+                Input_fits_file="${Input_fits_dir}/${Input_fits_files[j]}"
+            else 
+                Input_fits_file="${Input_fits_files[j]}"
+            fi
+        else
+            Input_fits_file="${Input_fits_files[j]}"
+        fi
+        # determine output file path
+        if [[ $j -lt ${#Output_fits_files[@]} ]]; then
+            if [[ "${Output_fits_dir}"x != ""x ]]; then
+                if [[ "${Output_fits_files[j]}" != "/"* ]]; then
+                    Output_fits_file="${Output_fits_dir}/${Output_fits_files[j]}"
+                else 
+                    Output_fits_file="${Output_fits_files[j]}"
+                fi
+            else
+                Output_fits_file="${Output_fits_files[j]}"
+            fi
+        else
+            # get input file name and suffix
+            Input_fits_base=$(basename "${Input_fits_file}")
+            Input_fits_name="${Input_fits_base%.*}" # see -- https://stackoverflow.com/questions/965053/extract-filename-and-extension-in-bash
+            Input_fits_suffix="${Input_fits_base##*.}" # see -- https://stackoverflow.com/questions/965053/extract-filename-and-extension-in-bash
+            # set default output file name
+            Output_fits_file="Cut_${Input_fits_name}_FoV_${Input_FoV}_arcsec.fits"
+        fi
+        Output_fits_base=$(basename "${Output_fits_file}")
+        Output_fits_name="${Output_fits_base%.*}" # see -- https://stackoverflow.com/questions/965053/extract-filename-and-extension-in-bash
+        Output_fits_suffix="${Output_fits_base##*.}" # see -- https://stackoverflow.com/questions/965053/extract-filename-and-extension-in-bash
+        Output_log_file=$(echo "${Output_fits_file}" | sed -e "s/\.${Output_fits_suffix}$/.log/g")
+        # 
+        # check input file existence
+        if [[ ! -f "${Input_fits_file}" ]]; then
+            echo "Warning! \"${Input_fits_file}\" was not found!"
+            sleep 10.0
+            continue
+        fi
+        # 
+        # check output file existence, backup when needed
+        if [[ -f "${Output_fits_file}" ]]; then
+            echo "Warning! \"${Output_fits_file}\" was found! Back-up as \"${Output_fits_file}.backup\"."
+            mv "${Output_fits_file}" "${Output_fits_file}.backup"
+            if [[ -f "${Output_log_file}" ]]; then
+                mv "${Output_log_file}" "${Output_log_file}.backup"
+            fi
+        fi
+        # 
+        # read input fits header keywords
+        Input_fits_OBJECT=$(gethead "$Input_fits_file" "OBJECT")
+        Input_fits_NAXIS1=$(gethead "$Input_fits_file" "NAXIS1")
+        Input_fits_NAXIS2=$(gethead "$Input_fits_file" "NAXIS2")
+        posxy=($(sky2xy -n 3 "${Input_fits_file}" "${Input_RA}" "${Input_Dec}"))
+        pixsc=($(pixscale "${Input_fits_file}"))
+        # 
+        # do fits image cut
+        if [[ ${#posxy[@]} -eq 6 ]] && [[ ${#pixsc[@]} -eq 1 ]]; then
+            pixrd=$(awk "BEGIN {print ${Input_FoV}/2.0/${pixsc};}")
+            echo "Cutting FITS image \"${Input_fits_file}\" pixsc=${pixsc} pixrd=${pixrd}"
+            echo "Logging into \"${Output_log_file}\""
+            echo "CrabFitsImageCrop \"${Input_fits_file}\" -cen ${posxy[4]} ${posxy[5]} ${pixrd} -out \"${Output_fits_file}\""
+            echo "CrabFitsImageCrop \"${Input_fits_file}\" -cen ${posxy[4]} ${posxy[5]} ${pixrd} -out \"${Output_fits_file}\"" > "${Output_log_file}"
+                  CrabFitsImageCrop  "${Input_fits_file}"  -cen ${posxy[4]} ${posxy[5]} ${pixrd} -out  "${Output_fits_file}"  >> "${Output_log_file}"
+        fi
+    done
+done
+
+
+
+
+
+
+
+
+
+
+
+
+

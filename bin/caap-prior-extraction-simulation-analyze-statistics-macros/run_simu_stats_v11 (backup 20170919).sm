@@ -527,8 +527,6 @@ go_analyze_step 01
             # 
             # count processed steps
             if(!$?CountSteps) {
-                set Tf_before_step_1 = Tf
-                set df_before_step_1 = df
                 define CountSteps 1
             } else {
                 define CountSteps $($CountSteps+1)
@@ -541,12 +539,10 @@ go_analyze_step 01
             # go analyze and correct flux bias by input parameter
             go_analyze_fbias $1
             set Tf = Tf + fbias_$1 # correcting flux bias: Tf is corrected one, Tf0 is uncorrected one. 
-            set Tf_after_step_$CountSteps = Tf
             # 
             # go analyze and correct flux error by input parameter
             go_analyze_dfcorr $1
             set df = df * dfcorr_$1 # correcting flux uncertainty: df is corrected one, Edf0 is uncorrected one. 
-            set df_after_step_$CountSteps = df
             # 
             # print info, check more figures and tables in subfolder sim_diagram_outputs_v11/
             echo   
@@ -687,37 +683,6 @@ plot_XfmTfEdf_versus_Param 01
 
 
 
-plot_XfmTfdXf_versus_Param 01
-    # plot final (Sin-Sout)/Sin versus Parameters
-    location 6500 31500 18000 31500
-    determinePlotTicksize $1
-    crabPlotOpenPS $outdir/galsim_$imax""_XfmTfdXf_versus_Param_$1.eps
-    # determine xarray
-    determineXArray $1
-    # determine plotTitle
-    determinePlotTitle $1
-    # determine plotRange
-    #set yrange = ((Xf-(Tf))/Xf)
-    #set yrange = yrange concat (-yrange)
-    set yrange = {-5 5}
-    limits xrange yrange
-    crabPlotDefaultPenForBox box
-    crabPlotDefaultPenForPoints ptype 4 1 points xarray ((Xf-(Tf))/Xf)
-    set coo = (Tf<=0)
-    set cid = 0,dimen(Tf)-1
-    set cid = cid if(coo)
-    set plot_x = xarray[cid]
-    set plot_y = ((Xf[cid]-(Tf[cid]))/Xf[cid])
-    ctype red points plot_x plot_y
-                              # ctype red points xarray ((Xf-(Tf_after_step_3))/Xf)
-    ctype default lweight 4.0 ltype 1 rel $fx1 0 draw $fx2 0 # plot horizontal Y=0 line
-    ctype default lweight 4.5 ltype 0 expand 2.2 xlabel $plotTitle # plot title 
-    ctype default lweight 4.5 ltype 0 expand 2.0 ylabel "(S_{in}-S_{out})/S_{in} ({"$(substr('$imax',0,(index('$imax','_')+1)))"})"
-    # close plot
-    crabPlotClosePS
-
-
-
 
 
 
@@ -728,19 +693,15 @@ plot_XfmTfdXf_versus_Param 01
 
 determinePlotTitle 01
     # determine plotTitle
-    define plotTitle "N/A"
-    if('$1'=='1' || '$1'=='dfRMS') { define plotTitle "\sigma_{galfit}/(\sigma_{rms\,noise})" } # "flux uncertainty\,/\,rms\,noise"
-    if('$1'=='2' || '$1'=='fresRMS') { define plotTitle "S_{residual}/(\sigma_{rms\,noise})" } # "flux in residual image\,/\,rms\,noise"
-    if('$1'=='3' || '$1'=='crowdedness') { define plotTitle "crowdedness" }
-    if(index('$1','1')==0) { define plotTitle "\sigma_{galfit}/(\sigma_{rms\,noise})" } # "flux uncertainty\,/\,rms\,noise"
-    if(index('$1','2')==0) { define plotTitle "S_{residual}/(\sigma_{rms\,noise})" } # "flux in residual image\,/\,rms\,noise"
+    if('$1'=='1') { define plotTitle "\sigma_{galfit}/(\sigma_{rms\,noise}/\bar{\sigma_{rms\,noise}})" } # "flux uncertainty\,/\,rms\,noise"
+    if('$1'=='2') { define plotTitle "S_{residual}/(\sigma_{rms\,noise}/\bar{\sigma_{rms\,noise}})" } # "flux in residual image\,/\,rms\,noise"
+    if('$1'=='3') { define plotTitle "crowdedness" }
+    if(index('$1','1')==0) { define plotTitle "\sigma_{galfit}/(\sigma_{rms\,noise}/\bar{\sigma_{rms\,noise}})" } # "flux uncertainty\,/\,rms\,noise"
+    if(index('$1','2')==0) { define plotTitle "S_{residual}/(\sigma_{rms\,noise}/\bar{\sigma_{rms\,noise}})" } # "flux in residual image\,/\,rms\,noise"
     if(index('$1','3')==0) { define plotTitle "crowdedness" }
     if('$1'=='fRMS') { define plotTitle "S_{galfit}/\sigma_{rms\,noise}" } # "flux \,/\,rms\,noise"
-    if('$1'=='fpeakRMS') { define plotTitle "S_{peak}/(\sigma_{rms\,noise})" }
-    if('$1'=='maj') { define plotTitle "FWHM_{maj.axis}" }
     if('$1'=='Tf') {define plotTitle "S_{out} [mJy]"}
     if('$1'=='Xf') {define plotTitle "S_{in} [mJy]"}
-    if('$1'=='XfRMS') {define plotTitle "S_{in}/\sigma_{rms\,noise}"}
     if('$1'=='flux') {define plotTitle "S_{out} [mJy]"}
     if('$1'=='dfcrow') {define plotTitle "{\sigma}_{"$imax"}/{crowdedness} [mJy]"}
     if('$1'=='dfxcrow') {define plotTitle "{\sigma}_{"$imax"}\,\times\,{crowdedness} [mJy]"}
@@ -750,17 +711,14 @@ determinePlotTitle 01
 
 determineXArray 01
     # determine xarray
-    if('$1'=='1' || '$1'=='dfRMS') {set xarray = lg(dfRMS)}
-    if('$1'=='2' || '$1'=='fresRMS') {set xarray = lg(fresRMS)}
-    if('$1'=='3' || '$1'=='crowdedness') {set xarray = lg(crowdedness)}
+    if('$1'=='1') {set xarray = lg(dfRMS)}
+    if('$1'=='2') {set xarray = lg(fresRMS)}
+    if('$1'=='3') {set xarray = lg(crowdedness)}
     if(index('$1','1')==0) {set xarray = lg(dfRMS)}
     if(index('$1','2')==0) {set xarray = lg(fresRMS)}
     if(index('$1','3')==0) {set xarray = lg(crowdedness)}
-    if('$1'=='fpeakRMS') {set xarray = lg(fpeakRMS)}
-    if('$1'=='maj') {set xarray = (maj)}
     if('$1'=='Tf') {set xarray = (Tf>0)? Tf : 1e-30 set xarray = lg(xarray)}
     if('$1'=='Xf') {set xarray = lg(Xf)}
-    if('$1'=='XfRMS') {set xarray = lg(XfRMS)}
     if('$1'=='flux') {set xarray = (Tf>0)? Tf : 1e-30 set xarray = lg(xarray)}
     if('$1'=='dfcrow') {set xarray = lg(df/crowdedness)}
     if('$1'=='dfxcrow') {set xarray = lg(df*crowdedness)}
@@ -798,7 +756,7 @@ determinePlotNormalization 01
             !echo '$plotTitle' | grep -q '/\\\\bar{\\\\sigma_.*}'
             if($exit_status==0) {
                 set $1 = $1 + lg($noise_median)
-                #<DEBUG># echo set $1 = $1 + lg($noise_median)
+                echo set $1 = $1 + lg($noise_median)
             }
         }
     }
@@ -830,7 +788,7 @@ go_analyze_fbias 01
     # correc fbias
     set FUN_fbias_variable = binCen
     set FUN_fbias_value = MedianInBin #<TODO># MedianInBin or MeanInBin?
-    set FUN_fbias_order = 2 #<TODO># order of polyfit for flux bias?
+    if(!is_vector(FUN_fbias_order)) {set FUN_fbias_order = 3} #<TODO># order of polyfit for flux bias?
     #if('$imax'=='100' && '$1'=='2') {set FUN_fbias_order = 3} #<TODO># Band100 fres-dfcorr
     #if('$imax'=='350' && '$1'=='1') {set FUN_fbias_order = 3} #<20170104><dzliu><TODO># 350 histogram has a tail of Sin>Sout
     #if('$imax'=='350' && '$1'=='3') {set FUN_fbias_order = 3} #<20170104><dzliu><TODO># 350 histogram has a tail of Sin>Sout
@@ -840,7 +798,6 @@ go_analyze_fbias 01
     #if('$field'=='goodsn' && '$imax'=='350' && '$1'=='3') {set FUN_fbias_order = 5}
     if('$field'=='goodsn' && '$imax'=='850_NMF' && '$1'=='1') {set FUN_fbias_order = 3}
     if('$field'=='goodsn' && '$imax'=='850_NMF' && '$1'=='2') {set FUN_fbias_order = 4}
-    if(is_vector(fitOrder)) {set FUN_dfcorr_order = fitOrder unset fitOrder} #<20170919><dzliu># 
     set FUN_fbias_$1""_x = FUN_fbias_variable #<20170104><dzliu># 
     set FUN_fbias_$1""_y = FUN_fbias_value #<20170104><dzliu># 
     set FUN_fbias_$1 = fit_PolyLine(FUN_fbias_variable, FUN_fbias_value, FUN_fbias_order)
@@ -856,6 +813,8 @@ go_analyze_fbias 01
     # 
     set fbias_var = binVar
     go_plot_fbias $1
+    # 
+    unset FUN_fbias_order
 
 
 
@@ -881,19 +840,17 @@ go_analyze_dfcorr 01
     # 
     # compute dfcorr = true flux unc. / galfit flux unc.
     set FUN_dfcorr_x = binCen
-    set FUN_dfcorr_y = lg(BIN_dfsim / BIN_dfgal)
-    set FUN_dfcorr_order = 2 #<TODO># order of polyfit for dfcorr?
+    set FUN_dfcorr_y = BIN_dfsim / BIN_dfgal
+    if(!is_vector(FUN_dfcorr_order)) {set FUN_dfcorr_order = 2} #<TODO># order of polyfit for dfcorr?
     #if('$imax'=='100' && '$1'=='3') {set FUN_dfcorr_order = 3} #<TODO># Band100 crow-dfcorr
     #if('$imax'=='350' && '$1'=='3') {set FUN_dfcorr_order = 0} #<20170104><dzliu><TODO># 350 histogram has a tail of Sin>Sout
     #if('$field'=='goodsn' && '$imax'=='350' && '$1'=='3') {set FUN_dfcorr_order = 3}
-    if(is_vector(fitOrder)) {set FUN_dfcorr_order = fitOrder unset fitOrder} #<20170919><dzliu># 
     set FUN_dfcorr_$1""_x = FUN_dfcorr_x #<20170104><dzliu># 
     set FUN_dfcorr_$1""_y = FUN_dfcorr_y #<20170104><dzliu># 
     set FUN_dfcorr_$1 = fit_PolyLine(FUN_dfcorr_x, FUN_dfcorr_y, FUN_dfcorr_order)
     set VAR_dfcorr_$1 = binVar
     set dfcorr_$1 = get_PolyLine(FUN_dfcorr_$1, VAR_dfcorr_$1)
     go_constrain_dfcorr $1
-    set dfcorr_$1 = 10**(dfcorr_$1)
     print $outdir"/FUN_dfcorr_"$1"_xy.txt" <FUN_dfcorr_$1""_x FUN_dfcorr_$1""_y>
     print $outdir"/FUN_dfcorr_"$1".txt" '%.15f\n' <FUN_dfcorr_$1>
     print $outdir"/VAR_dfcorr_"$1".txt" <VAR_dfcorr_$1 dfcorr_$1>
@@ -903,6 +860,8 @@ go_analyze_dfcorr 01
     # 
     set dfcorr_var = binVar
     go_plot_dfcorr $1
+    # 
+    unset FUN_dfcorr_order
 
 
 
@@ -1489,16 +1448,6 @@ go_correct_three_step_recipes
         go_correct_fbias   3   (lg(crow$imax))         "crowdedness"
         go_correct_df      3   (lg(crow$imax))         "crowdedness"
     }
-    if(is_file("sim_diagram_output_v11/FUN_dfcorr_fpeakRMS.txt")) {
-        data "sim_diagram_output_v11/FUN_dfcorr_fpeakRMS.txt" read FUN_dfcorr_fpeakRMS 1
-        go_correct_fbias   fpeakRMS   (lg(fpeakRMS$imax))         "fpeakRMS"
-        go_correct_df      fpeakRMS   (lg(fpeakRMS$imax))         "fpeakRMS"
-    }
-    if(is_file("sim_diagram_output_v11/FUN_dfcorr_maj.txt")) {
-        data "sim_diagram_output_v11/FUN_dfcorr_maj.txt" read FUN_dfcorr_maj 1
-        go_correct_fbias   maj   ((maj$imax))         "maj"
-        go_correct_df      maj   ((maj$imax))         "maj"
-    }
     if(!is_vector(f$imax""_corr_3)) { set f$imax""_corr_3 = f$imax""_corr_2 } #<20160818><dzliu>#
     if(!is_vector(df$imax""_corr_3)) { set df$imax""_corr_3 = df$imax""_corr_2 } #<20160818><dzliu>#
     # 
@@ -1533,6 +1482,9 @@ go_correct_fbias 03
             print 'go_correct_fbias: Correcting flux bias step $1 (constant bias)\n' {}
         }
     }
+    ### if(!$?outdir) {
+    ###     define outdir "sim_diagram_output_v11" #<TODO># make sure same as above
+    ### }
     # 
     # do the correction for only good data points
     load crabStat.sm
@@ -1571,6 +1523,33 @@ go_correct_fbias 03
         unset fbias_cid
         unset f
         unset df
+        #<20160913># # plot fbias
+        #<20160913># load crabPlot.sm
+        #<20160913># set plot_coo = fbias_cid if(f$imax""_uncorr_$1[fbias_cid]>0.0 && f$imax""_corr_$1[fbias_cid]>0.0)
+        #<20160913># set plot_f_var = (fbias_var[plot_coo])
+        #<20160913># set plot_f_uncorr = (f$imax""_uncorr_$1[plot_coo])
+        #<20160913># set plot_f_corr = (f$imax""_corr_$1[plot_coo])
+        #<20160913># ticksize -1 10 0 0
+        #<20160913># if($1==3) {ticksize -1 1 0 0}
+        #<20160913># ctype blue lweight 0.2 expand 0.3 location 6000 31500 18000 31500
+        #<20160913># crabPlotQuickPlot plot_f_var plot_f_uncorr aaa_fbias_$1.eps keep
+        #<20160913># ctype red lweight 0.3 expand 0.4 
+        #<20160913># crabPlotOverPlot plot_f_var plot_f_corr
+        #<20160913># ctype default lweight 4.0 ltype 1 rel $fx1 0 draw $fx2 0 # plot horizontal Y=0 line
+        #<20160913># define TeX_strings 0
+        #<20160913># if($?3) {
+        #<20160913>#     ctype default lweight 4.5 ltype 0 expand 2.2 xlabel $3 # plot title 
+        #<20160913># } else {
+        #<20160913>#     ctype default lweight 4.5 ltype 0 expand 2.2 xlabel $2 # plot title 
+        #<20160913># }
+        #<20160913># ctype default lweight 4.5 ltype 0 expand 2.0 ylabel "f"$imax" [mJy]"
+        #<20160913># ctype blue lweight 4.5 expand 1.7 relocate (26000 29500) puts "f"$imax"_{uncorr.}"
+        #<20160913># ctype red lweight 4.5 expand 1.7 relocate (26000 28000) puts "f"$imax"_{corr.}"
+        #<20160913># #set plotX = plot_f_var set plotY = (plot_f_corr-plot_f_uncorr) sort {plotX plotY} # the fbias function
+        #<20160913># #ctype red lweight 2.5 expand 0.85 connect plotX plotY
+        #<20160913># #ctype red lweight 4.0 expand 1.35
+        #<20160913># #relocate $(plotX[dimen(plotX)-1]) $(plotY[dimen(plotY)-1]) putlabel 4 "flux bias"
+        #<20160913># crabPlotClosePS
     }
     # 
     # return
@@ -1603,6 +1582,9 @@ go_correct_df 03
             print 'go_correct_df: Correcting flux uncertainty step $1 (constant factor)\n' {}
         }
     }
+    ### if(!$?outdir) {
+    ###     define outdir "sim_diagram_output_v11" #<TODO># make sure same as above
+    ### }
     # 
     # do the correction for only good data points
     load crabStat.sm
@@ -1679,16 +1661,24 @@ go_correct_df 03
 
 
 go_constrain_fbias 01
-    # constrain fbias corretion factor at the edge of parameter space, prevent over-extrapolation
-    # the first input is the basename of current correction step
-    if($?1) {
+    if(1) {
         #<20170104># constrain the final bin fbias_3 not too low
-        if(is_vector(FUN_fbias_$1""_x) && is_vector(FUN_fbias_$1""_y) && is_vector(VAR_fbias_$1) && is_vector(fbias_$1)) {
+        if(is_vector(FUN_fbias_$1""_x) && is_vector(FUN_fbias_$1""_y) && is_vector(VAR_fbias_$1)) {
+            # sort array
+            #set fbias_$1""_sorted = fbias_$1
+            #set fbias_$1""_sort = VAR_fbias_$1
+            #sort <fbias_$1""_sort fbias_$1""_sorted>
             # right edge
             set fbias_$1""_last_bin_value = FUN_fbias_$1""_y[dimen(FUN_fbias_$1""_y)-1]
             set fbias_$1""_last_bin_center = FUN_fbias_$1""_x[dimen(FUN_fbias_$1""_x)-1] # (FUN_fbias_$1""_x[dimen(FUN_fbias_$1""_x)-1]+FUN_fbias_$1""_x[dimen(FUN_fbias_$1""_x)-2])/2.0
-            set fbias_$1""_is_same_sign = (fbias_$1)*(fbias_$1""_last_bin_value)>=0
-            # do constraint, but exclude special cases
+            #set fbias_$1""_last_bin_trend = (fbias_$1""_sorted[dimen(fbias_$1)-1] - FUN_fbias_$1""_y[dimen(FUN_fbias_$1""_y)-1]) # (FUN_fbias_$1""_y[dimen(FUN_fbias_$1""_y)-1] - FUN_fbias_$1""_y[dimen(FUN_fbias_$1""_y)-2])
+            #set fbias_$1""_last_bin_trend = ((abs(fbias_$1""_sorted[dimen(fbias_$1)-1]) - abs(FUN_fbias_$1""_y[dimen(FUN_fbias_$1""_y)-1])) > 0)
+            #set fbias_$1""_last_bin_trend = fbias_$1""_last_bin_trend * ((fbias_$1""_sorted[dimen(fbias_$1)-1] * FUN_fbias_$1""_y[dimen(FUN_fbias_$1""_y)-1]) / abs(fbias_$1""_sorted[dimen(fbias_$1)-1] * FUN_fbias_$1""_y[dimen(FUN_fbias_$1""_y)-1]))
+            #if(fbias_$1""_last_bin_trend == 1) {
+            #    # same sign, constrain the abs(fbias) to be in between 0 and abs(last_bin_value)
+            #    set fbias_$1 = (VAR_fbias_$1"">fbias_$1""_last_bin_center && abs(fbias_$1)>abs(fbias_$1""_last_bin_value)) ? fbias_$1""_last_bin_value : fbias_$1
+            #} 
+            #if(fbias_$1""_last_bin_trend == -1) {
             if( (index('$imax','850')==0 && '$1'=='2') || \
                 (index('$imax','1160')==0 && '$1'=='2') || \
                 (index('$imax','850')==0 && index('$1','2')==0) || \
@@ -1700,57 +1690,107 @@ go_constrain_fbias 01
                 echo ""
                 echo ""
             } else {
-                # go constrain: 
                 # if same sign, constrain the abs(fbias) to be in between 0 and abs(last_bin_value)
                 # if diff sign, constrain the fbias to be 0
-                set fbias_$1 = (VAR_fbias_$1>fbias_$1""_last_bin_center && fbias_$1""_is_same_sign && abs(fbias_$1)>abs(fbias_$1""_last_bin_value)) ? fbias_$1""_last_bin_value : fbias_$1
-                set fbias_$1 = (VAR_fbias_$1>fbias_$1""_last_bin_center && !fbias_$1""_is_same_sign) ? 0.0 : fbias_$1
+                set fbias_$1 = (VAR_fbias_$1>fbias_$1""_last_bin_center && (fbias_$1)*(fbias_$1""_last_bin_value)>0 && abs(fbias_$1)>abs(fbias_$1""_last_bin_value)) ? fbias_$1""_last_bin_value : fbias_$1
+                set fbias_$1 = (VAR_fbias_$1>fbias_$1""_last_bin_center && (fbias_$1)*(fbias_$1""_last_bin_value)<0) ? 0.0 : fbias_$1
             }
+            #}
             # left edge
             set fbias_$1""_first_bin_value = FUN_fbias_$1""_y[0]
             set fbias_$1""_first_bin_center = FUN_fbias_$1""_x[0] # (FUN_fbias_$1""_x[0]+FUN_fbias_$1""_x[1])/2.0
-            set fbias_$1""_is_same_sign = (fbias_$1)*(fbias_$1""_first_bin_value)>=0
-            # do constraint, but exclude special cases
-            if( (index('$1','no-left-edge-constrain')>=0) ) {
-                echo ""
-                echo ""
-                echo "We do not do left edge constraining for Band "$imax" Step "$1" fbias correction!"
-                echo ""
-                echo ""
-            } else {
-                # go constrain: 
+            #set fbias_$1""_first_bin_trend = (fbias_$1""_sorted[0] - FUN_fbias_$1""_y[0]) # (FUN_fbias_$1""_y[0] - FUN_fbias_$1""_y[1])
+            #set fbias_$1""_first_bin_trend = ((abs(fbias_$1""_sorted[0]) - abs(FUN_fbias_$1""_y[0])) > 0)
+            #set fbias_$1""_first_bin_trend = fbias_$1""_first_bin_trend * ((fbias_$1""_sorted[0] * FUN_fbias_$1""_y[0]) / abs(fbias_$1""_sorted[0] * FUN_fbias_$1""_y[0]))
+            #if(fbias_$1""_first_bin_trend == 1) {
+            #    # same sign, constrain the fbias to be in between 0 and abs(first_bin_value)
+            #    set fbias_$1 = (VAR_fbias_$1""<fbias_$1""_first_bin_center && abs(fbias_$1)>abs(fbias_$1""_first_bin_value)) ? fbias_$1""_first_bin_value : fbias_$1
+            #} 
+            #if(fbias_$1""_first_bin_trend == -1) {
+            #<20170105># strange 1160 and 850 fresRMS have a tail at high end, so that we do not do this edge constraining
                 # if same sign, constrain the fbias to be in between 0 and abs(first_bin_value)
                 # if diff sign, constrain the fbias to be 0
-                set fbias_$1 = (VAR_fbias_$1<fbias_$1""_first_bin_center && fbias_$1""_is_same_sign && abs(fbias_$1)>abs(fbias_$1""_first_bin_value)) ? fbias_$1""_first_bin_value : fbias_$1
-                set fbias_$1 = (VAR_fbias_$1<fbias_$1""_first_bin_center && !fbias_$1""_is_same_sign) ? 0.0 : fbias_$1
-            }
+                set fbias_$1 = (VAR_fbias_$1<fbias_$1""_first_bin_center && (fbias_$1)*(fbias_$1""_first_bin_value)>0 && abs(fbias_$1)>abs(fbias_$1""_first_bin_value)) ? fbias_$1""_first_bin_value : fbias_$1
+                set fbias_$1 = (VAR_fbias_$1<fbias_$1""_first_bin_center && (fbias_$1)*(fbias_$1""_first_bin_value)<0) ? 0.0 : fbias_$1
+            #}
+            #if(fbias_$1""_first_bin_trend > 0) {
+            #    set fbias_$1 = (VAR_fbias_$1""<fbias_$1""_first_bin_center && fbias_$1>fbias_$1""_first_bin_value) ? fbias_$1""_first_bin_value : fbias_$1
+            #} else {
+            #    set fbias_$1 = (VAR_fbias_$1""<fbias_$1""_first_bin_center && fbias_$1<fbias_$1""_first_bin_value) ? fbias_$1""_first_bin_value : fbias_$1
+            #}
         }
     }
 
 
 go_constrain_dfcorr 01
-    # constrain dfcorr corretion factor at the edge of parameter space, prevent over-extrapolation
-    # the first input is the basename of current correction step
-    if($?1) {
+    #<TODO># constrain dfcorr edge values
+    #if('$imax'=='100') {
+    #    if('$1'=='1') {
+    #        set dfcorr_1 = (VAR_dfcorr_1>lg(1e8)) ? 1.0 : dfcorr_1
+    #    }
+    #}
+    #if('$imax'=='1160') {
+    #    if('$1'=='1') {
+    #        set dfcorr_1 = (VAR_dfcorr_1>lg(1.0) && dfcorr_1<1.0) ? 1.0 : dfcorr_1
+    #    }
+    #}
+    #if('$imax'=='850') {
+    #    if('$1'=='1') {
+    #        #set dfcorr_1 = (VAR_dfcorr_1>lg(1.0) && dfcorr_1<1.0) ? 1.0 : dfcorr_1
+    #        set dfcorr_1_last_bin_value = FUN_dfcorr_y[dimen(FUN_dfcorr_y)-1]
+    #        set dfcorr_1_last_bin_center = FUN_dfcorr_x[dimen(FUN_dfcorr_x)-1]
+    #        set dfcorr_1 = (VAR_dfcorr_1>dfcorr_1_last_bin_center) ? dfcorr_1_last_bin_value : dfcorr_1
+    #    }
+    #}
+    if(1) {
         #<20170104># constrain the final bin dfcorr_3 not too low
         #<20170105># constrain the edge values of dfcorr for all steps
-        if(is_vector(FUN_dfcorr_$1""_x) && is_vector(FUN_dfcorr_$1""_y) && is_vector(VAR_dfcorr_$1) && is_vector(dfcorr_$1)) {
-            # go constrain: 
-            # if same sign, constrain the abs(dfcorr) to be in between 1.0 (0.0 in log10 space) and abs(last_bin_value)
-            # if diff sign, constrain the dfcorr to be 1.0 (0.0 in log10 space)
-            # note that currently dfcorr_$1 should be in log10 space instead of linear space. 
+        if(is_vector(FUN_dfcorr_$1""_x) && is_vector(FUN_dfcorr_$1""_y) && is_vector(VAR_dfcorr_$1)) {
+            # remove negative values
+            #set dfcorr_$1 = (dfcorr_$1<0.0) ? 1.0 : dfcorr_$1
+            # sort array
+            #set dfcorr_$1""_sorted = dfcorr_$1
+            #set dfcorr_$1""_sort = VAR_dfcorr_$1
+            #sort <dfcorr_$1""_sort dfcorr_$1""_sorted>
             # right edge
             set dfcorr_$1""_last_bin_value = FUN_dfcorr_$1""_y[dimen(FUN_dfcorr_$1""_y)-1]
             set dfcorr_$1""_last_bin_center = FUN_dfcorr_$1""_x[dimen(FUN_dfcorr_$1""_x)-1] # (FUN_dfcorr_$1""_x[dimen(FUN_dfcorr_$1""_x)-1]+FUN_dfcorr_$1""_x[dimen(FUN_dfcorr_$1""_x)-2])/2.0
-            set dfcorr_$1""_is_same_sign = (dfcorr_$1)*(dfcorr_$1""_last_bin_value)>=0
-            set dfcorr_$1 = (VAR_dfcorr_$1>dfcorr_$1""_last_bin_center && dfcorr_$1""_is_same_sign && abs((dfcorr_$1))>abs((dfcorr_$1""_last_bin_value))) ? dfcorr_$1""_last_bin_value : dfcorr_$1
-            set dfcorr_$1 = (VAR_dfcorr_$1>dfcorr_$1""_last_bin_center && !dfcorr_$1""_is_same_sign) ? 0.0 : dfcorr_$1
+            #set dfcorr_$1""_last_bin_trend = (dfcorr_$1""_sorted[dimen(dfcorr_$1)-1] - FUN_dfcorr_$1""_y[dimen(FUN_dfcorr_$1""_y)-1])# (FUN_dfcorr_$1""_y[dimen(FUN_dfcorr_$1""_y)-1] - FUN_dfcorr_$1""_y[dimen(FUN_dfcorr_$1""_y)-2])
+            #if(dfcorr_$1""_last_bin_trend > 0) {
+            #    set dfcorr_$1 = (VAR_dfcorr_$1"">dfcorr_$1""_last_bin_center && dfcorr_$1>dfcorr_$1""_last_bin_value) ? dfcorr_$1""_last_bin_value : dfcorr_$1
+            #} else {
+            #    set dfcorr_$1 = (VAR_dfcorr_$1"">dfcorr_$1""_last_bin_center && dfcorr_$1<dfcorr_$1""_last_bin_value) ? dfcorr_$1""_last_bin_value : dfcorr_$1
+            #}
+            #if() {
+                # if same sign, constrain the abs(dfcorr) to be in between 1.0 and abs(last_bin_value)
+                # if diff sign, constrain the dfcorr to be 1.0
+                set dfcorr_$1 = (VAR_dfcorr_$1>dfcorr_$1""_last_bin_center && lg(dfcorr_$1)*lg(dfcorr_$1""_last_bin_value)>0 && abs(lg(dfcorr_$1))>abs(lg(dfcorr_$1""_last_bin_value))) ? dfcorr_$1""_last_bin_value : dfcorr_$1
+                set dfcorr_$1 = (VAR_dfcorr_$1>dfcorr_$1""_last_bin_center && lg(dfcorr_$1)*lg(dfcorr_$1""_last_bin_value)<0) ? 1.0 : dfcorr_$1
+            #}
             # left edge
             set dfcorr_$1""_first_bin_value = FUN_dfcorr_$1""_y[0]
             set dfcorr_$1""_first_bin_center = FUN_dfcorr_$1""_x[0] # (FUN_dfcorr_$1""_x[0]+FUN_dfcorr_$1""_x[1])/2.0
-            set dfcorr_$1""_is_same_sign = (dfcorr_$1)*(dfcorr_$1""_first_bin_value)>=0
-            set dfcorr_$1 = (VAR_dfcorr_$1<dfcorr_$1""_first_bin_center && dfcorr_$1""_is_same_sign && abs((dfcorr_$1))>abs((dfcorr_$1""_first_bin_value))) ? dfcorr_$1""_first_bin_value : dfcorr_$1
-            set dfcorr_$1 = (VAR_dfcorr_$1<dfcorr_$1""_first_bin_center && !dfcorr_$1""_is_same_sign) ? 0.0 : dfcorr_$1
+            #set dfcorr_$1""_first_bin_trend = (dfcorr_$1""_sorted[0] - FUN_dfcorr_$1""_y[0]) # (FUN_dfcorr_$1""_y[0] - FUN_dfcorr_$1""_y[1])
+            #if(dfcorr_$1""_first_bin_trend > 0) {
+            #    set dfcorr_$1 = (VAR_dfcorr_$1""<dfcorr_$1""_first_bin_center && dfcorr_$1>dfcorr_$1""_first_bin_value) ? dfcorr_$1""_first_bin_value : dfcorr_$1
+            #} else {
+            #    set dfcorr_$1 = (VAR_dfcorr_$1""<dfcorr_$1""_first_bin_center && dfcorr_$1<dfcorr_$1""_first_bin_value) ? dfcorr_$1""_first_bin_value : dfcorr_$1
+            #}
+            #if() {
+            if( (index('$imax','xxx')==0 && index('$1','3')==0) \
+              ) {
+                echo ""
+                echo ""
+                echo "We do not do left edge constraining for Band "$imax" Step "$1" dfcorr correction!"
+                echo ""
+                echo ""
+            } else {
+                # if same sign, constrain the abs(dfcorr) to be in between 1.0 and abs(last_bin_value)
+                # if diff sign, constrain the dfcorr to be 1.0
+                set dfcorr_$1 = (VAR_dfcorr_$1<dfcorr_$1""_first_bin_center && lg(dfcorr_$1)*lg(dfcorr_$1""_first_bin_value)>0 && abs(lg(dfcorr_$1))>abs(lg(dfcorr_$1""_first_bin_value))) ? dfcorr_$1""_first_bin_value : dfcorr_$1
+                set dfcorr_$1 = (VAR_dfcorr_$1<dfcorr_$1""_first_bin_center && lg(dfcorr_$1)*lg(dfcorr_$1""_first_bin_value)<0) ? 1.0 : dfcorr_$1
+            }
+            #}
         }
     }
 

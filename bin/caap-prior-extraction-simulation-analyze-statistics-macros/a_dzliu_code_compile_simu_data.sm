@@ -1,0 +1,243 @@
+go
+    # 
+    # Usage:
+    #   echo "macro read a_dzliu_code_compile_simu_data.sm go" | sm
+    # 
+    load rfile.sm
+    
+    if(!is_file("datatable_Simulated.txt")) {
+        print 'Error! \"datatable_Simulated.txt\" was not found under current directory!\n' {}
+        return
+    }
+    rfile "datatable_Simulated.txt"
+    foreach var {id ra dec z lgMstar lgSFR Maj Min PA Maj_pix Min_pix flux} {
+        if(!is_vector($var)) {print 'Error! Vector $var is invalid!\n' {} exit}
+        set sim_$var = $var
+    }
+    
+    if(!is_file("datatable_Recovered_galfit.txt")) {
+        print 'Error! \"datatable_Recovered_galfit.txt\" was not found under current directory!\n' {}
+        return
+    }
+    rfile "datatable_Recovered_galfit.txt"
+    set fit_coo = (snr_total>2.0 && pb_corr<16.0) # goes as far as about 2xFWHM, 1/exp(-((2.0*2.35482/2.0))**2/2.0) = 16
+    foreach var {id ra dec Maj Min PA Maj_err Min_err PA_err f_total df_galfit df_total snr_total f_peak df_peak snr_peak pb_corr fpeak fres rms image_file} {
+        if(!is_vector($var)) {print 'Error! Vector $var is invalid!\n' {} exit}
+        set fit_$var = $var if(fit_coo)
+        # fpeak is the source model image measured peak pixel value * 1e3 -> mJy
+        # fres is the source residual image measured 1.0 arcsec diameter aperture sum of absolute pixel values
+    }
+    set fit_flux = fit_f_total
+    set fit_error = fit_df_total
+    set fit_err = fit_df_galfit
+    set fit_snr = fit_snr_total # this is from f_total/df_total, df_total is combined rms and df_galfit (because sometimes df_galfit==0)
+    
+    # get rms
+    stats fit_rms rms_mean rms_sigma rms_kurt
+    stats_med fit_rms rms_median rms_siqr
+    
+    # get beam
+    #<20170920># data "info_synthesized_beam.txt" read row synthesized_beam_size 1.f
+    #<20170920># data "info_primary_beam.txt" read row primary_beam_size 1.f
+    #<20170920># set synthesized_beam_size = sqrt(0.300786) / (pi/(4*ln(2))) #<TEST>#
+    #<20170920># set primary_beam_size = 17.0298 #<TEST>#
+    #<20170920># if(dimen(primary_beam_size)>=2) {
+    #<20170920>#     set primary_beam_area = pi /(4*ln(2)) * (primary_beam_size[0] * primary_beam_size[1])
+    #<20170920># } else {
+    #<20170920>#     set primary_beam_area = pi /(4*ln(2)) * (primary_beam_size[0] * primary_beam_size[0])
+    #<20170920># }
+    #<20170920># if(dimen(synthesized_beam_size)>=2) {
+    #<20170920>#     set synthesized_beam_area = pi /(4*ln(2)) * (synthesized_beam_size[0] * synthesized_beam_size[1])
+    #<20170920># } else {
+    #<20170920>#     set synthesized_beam_area = pi /(4*ln(2)) * (synthesized_beam_size[0] * synthesized_beam_size[0])
+    #<20170920># }
+    # read synthesized_beam_area
+    if(is_vector(synthesized_beam_area)) {
+        unset synthesized_beam_area
+    }
+    if(is_file("info_synthesized_beam.txt")) {
+        data "info_synthesized_beam.txt" read row synthesized_beam_size 1.f
+        if(dimen(synthesized_beam_size)>=2) {
+            set synthesized_beam_area = pi /(4*ln(2)) * (synthesized_beam_size[0] * synthesized_beam_size[1])
+        } else {
+            set synthesized_beam_area = pi /(4*ln(2)) * (synthesized_beam_size[0] * synthesized_beam_size[0])
+        }
+    } else {
+        if(is_file("info_synthesized_beam_area.txt")) {
+            data "info_synthesized_beam_area.txt" read {synthesized_beam_area 1.f}
+        }
+    }
+    # read primary_beam_area
+    if(is_vector(primary_beam_area)) {
+        unset primary_beam_area
+    }
+    if(is_file("info_primary_beam.txt")) {
+        data "info_primary_beam.txt" read row primary_beam_size 1.f
+        if(dimen(primary_beam_size)>=2) {
+            set primary_beam_area = pi /(4*ln(2)) * (primary_beam_size[0] * primary_beam_size[1])
+        } else {
+            set primary_beam_area = pi /(4*ln(2)) * (primary_beam_size[0] * primary_beam_size[0])
+        }
+    } else {
+        if(is_file("info_primary_beam_area.txt")) {
+            data "info_primary_beam_area.txt" read {primary_beam_area 1.f}
+        } else {
+            if(is_file("info_sky_frequency.txt")) {
+                data "info_sky_frequency.txt" read {sky_frequency 1.f}
+                macro read a_dzliu_code_calc_alma_primary_beam.sm
+                set primary_beam_area = calc_alma_primary_beam_area(sky_frequency)
+            }
+        }
+    }
+    set check_beam_area = 1
+    if(!is_vector(synthesized_beam_area)) {
+        print 'Error! Could not determine synthesized_beam_area! Please input argument \"-synthesized-beam\" or prepare file \"info_synthesized_beam_area.txt\"!\n' {}
+        set check_beam_area = -1
+    }
+    if(!is_vector(primary_beam_area)) {
+        print 'Error! Could not determine primary_beam_area! Please input argument \"-primary-beam\" or prepare file \"info_primary_beam_area.txt\"!\n' {}
+        set check_beam_area = -1
+    }
+    if(check_beam_area==-1) {
+        return
+    }
+    
+    
+    
+    # read repetition number
+    if(is_file("info_repetition_number.txt")) {
+        data "info_repetition_number.txt" read {repetition_times 1.f}
+    } else {
+        print 'Error! Could not determine repetition_times! Please input argument \"-repetition-number\" or prepare file \"info_repetition_number.txt\"!\n' {}
+        return
+    }
+    
+    # compute number of independent beams
+    set resolution_units = (primary_beam_area)/(synthesized_beam_area)
+    set repetition_times = 84 #<TODO>#
+    set gaussian_N_sigma = {0.5 1.0 1.5 2.0 2.5 3.0 \
+                            3.5 4.0 4.5 5.0 5.5 6.0 \
+                            6.5 7.0}
+    set gaussian_P_inside = {0.382924922548026 0.682689492137086 0.866385597462284 0.954499736103642 0.987580669348448 0.997300203936740 \
+                             0.999534741841929 0.999936657516334 0.999993204653751 0.999999426696856 0.999999962020875 0.999999998026825 \
+                             0.999999999919680 0.999999999997440}
+    #-- https://en.wikipedia.org/wiki/68%E2%80%9395%E2%80%9399.7_rule
+    set N_2p0sigma = 2.0
+    interp2 gaussian_N_sigma gaussian_P_inside N_2p0sigma P_2p0sigma
+    set P_2p0sigma = (1.0-P_2p0sigma)/2.0 * resolution_units * repetition_times # positive peaks
+    # 
+    set N_2p5sigma = 2.5
+    interp2 gaussian_N_sigma gaussian_P_inside N_2p5sigma P_2p5sigma
+    set P_2p5sigma = (1.0-P_2p5sigma)/2.0 * resolution_units * repetition_times # positive peaks
+    # 
+    set N_3p0sigma = 3.0
+    interp2 gaussian_N_sigma gaussian_P_inside N_3p0sigma P_3p0sigma
+    set P_3p0sigma = (1.0-P_3p0sigma)/2.0 * resolution_units * repetition_times # positive peaks
+    # 
+    set N_3p5sigma = 3.5
+    interp2 gaussian_N_sigma gaussian_P_inside N_3p5sigma P_3p5sigma
+    set P_3p5sigma = (1.0-P_3p5sigma)/2.0 * resolution_units * repetition_times # positive peaks
+    # 
+    set N_5p0sigma = 5.0
+    interp2 gaussian_N_sigma gaussian_P_inside N_5p0sigma P_5p0sigma
+    set P_5p0sigma = (1.0-P_5p0sigma)/2.0 * resolution_units * repetition_times # positive peaks
+    # 
+    set P_20_35 = P_2p0sigma - P_3p5sigma
+    set P_35_50 = P_3p5sigma - P_5p0sigma
+    set P_5 = P_5p0sigma
+    echo "resolution_units = "$(resolution_units)
+    echo "repetition_times = "$(repetition_times)
+    
+    # match id
+    foreach var {sim_flux sim_id sim_z sim_ra sim_dec sim_lgMstar sim_lgSFR} {
+        declare x_$var 0.f
+    }
+    foreach var {fit_flux fit_error fit_err fit_snr fit_Maj fit_fpeak fit_fres fit_pb_corr fit_rms} {
+        # fit_error is combined rms and fit_err (df_galfit)
+        # fit_err is just df_galfit
+        declare x_$var 0.f
+    }
+    foreach var {fit_image_file} {
+        declare x_$var 0.s
+    }
+    set fit_index = 0,dimen(fit_id)-1
+    do i=0,dimen(sim_id)-1 {
+        set x_match = (fit_id==sim_id[$i])
+        if(sum(x_match)>0) {
+            set x_index = fit_index if(x_match)
+            # 
+            foreach var {sim_flux sim_id sim_z sim_ra sim_dec sim_lgMstar sim_lgSFR} {
+                set x_var = x_index*0.0 + $var[$i] # allow multiple fit_flux matched to each sim_flux
+                set x_$var = x_$var concat (x_var)
+                unset x_var
+            }
+            foreach var {fit_flux fit_error fit_err fit_snr fit_Maj fit_fpeak fit_fres fit_pb_corr fit_rms fit_image_file} {
+                set x_var = $var[x_index]
+                set x_$var = x_$var concat (x_var)
+                unset x_var
+            }
+        }
+    }
+    set id = x_sim_id
+    set ra = x_sim_ra
+    set dec = x_sim_dec
+    set z = x_sim_z
+    set lgMstar = x_sim_lgMstar
+    set lgSFR = x_sim_lgSFR
+    set Xf = x_sim_flux
+    set f = x_fit_flux
+    set df = x_fit_err
+    set snr = x_fit_snr
+    set pbc = x_fit_pb_corr
+    set rms = x_fit_rms
+    set fres = x_fit_fres
+    set fpeak = x_fit_fpeak
+    set maj = x_fit_Maj
+    set noise = x_fit_rms
+    set imagefile = x_fit_image_file
+    # 
+    # 
+    # 
+    # 
+    # Plot flux-flux comparison
+    macro read a_dzliu_code_plot_flux_comparison.sm
+    plot_flux_comparison
+    # 
+    # 
+    # 
+    # 
+    # 
+    # Plot z-lsMstar-SNR
+    macro read a_dzliu_code_plot_z_lgMstar_SNR.sm
+    plot_z_lgMstar_SNR
+    
+    # 
+    # 
+    # 
+    # 
+    # 
+    # Plot z-lgSFR-SNR
+    macro read a_dzliu_code_plot_z_SFR_SNR.sm
+    plot_z_SFR_SNR
+    # 
+    # 
+    # 
+    # 
+    # 
+    # Print datatable
+    set id = float(id)
+    print "simu_data_input.txt" '%20.0f %15.8f %15.8f %15g %15g %15g %15g %15g %15g %15g   %s\n' {id ra dec Xf f df noise fres fpeak maj imagefile}
+    # 
+    # 
+    # 
+    # 
+    # 
+    # Analyze statistics
+    #macro read run_simu_stats_v11.sm
+    #analyze_statistics
+    #--> output fALMA dfALMA
+
+
+
+
+
