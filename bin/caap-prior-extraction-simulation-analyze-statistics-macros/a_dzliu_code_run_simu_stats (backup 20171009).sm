@@ -46,7 +46,7 @@ analyze_statistics
     # define 
     define field cosmos
     define imax ALMA
-    define outdir sim_diagram_output
+    define outdir sim_diagram_output_v11
     
     # check outdir
     !mkdir $outdir 2>/dev/null
@@ -68,9 +68,9 @@ analyze_statistics
     set fpeakRMS = fpeak/noise
     
     # print temporary check file
-    #print "aaa.dfRMS.txt" '%15.0f %15g\n' {id dfRMS}
-    #print "aaa.f.uncorr.txt" '%15.0f %15g\n' {id f}
-    #print "aaa.df.uncorr.txt" '%15.0f %15g\n' {id df}
+    print "aaa.dfRMS.txt" '%15.0f %15g\n' {id dfRMS}
+    print "aaa.f.uncorr.txt" '%15.0f %15g\n' {id f}
+    print "aaa.df.uncorr.txt" '%15.0f %15g\n' {id df}
     
     # print analyzing sources
     echo 

@@ -873,7 +873,7 @@ for (( i=0; i<${#SciImages[@]}; i++ )); do
     if [[ ${#InputGalfitPriorTotalSNR[@]} -gt 0 ]]; then
     echo  "                                       -galfit-prior-total-snr ${InputGalfitPriorTotalSNR} \\"           >> "$SourceDir/$SourceName.run.bash"
     fi
-    echo  "                                       -steps getpix galfit gaussian ${UserSteps[@]} final \\"           >> "$SourceDir/$SourceName.run.bash"
+    echo  "                                       -steps getpix galfit gaussian sersic ${UserSteps[@]} final \\"    >> "$SourceDir/$SourceName.run.bash"
     echo  "                                       -unlock ${UserUnlock[@]} \\"                                      >> "$SourceDir/$SourceName.run.bash"
     echo  "                                       -overwrite ${UserOverwrite[@]}"                                   >> "$SourceDir/$SourceName.run.bash"
     echo  ""                                                                                                        >> "$SourceDir/$SourceName.run.bash"

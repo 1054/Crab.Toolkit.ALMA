@@ -133,7 +133,7 @@ if [[ ${#input_sbeam[@]} -eq 0 ]]; then
     if [[ -f "$output_dir/info_synthesized_beam.txt" ]]; then
         echo "Warning! No synthesized beam was input, but found \"info_synthesized_beam.txt\" under output directory \"$output_dir/\". Will load from that."
         input_sbeam=($(cat "$output_dir/info_synthesized_beam.txt"))
-        if [[ ${#input_sbeam_file[@]} -gt 0 ]]; then
+        if [[ ${#input_sbeam[@]} -gt 0 ]]; then
             echo "synthesized beam: ${input_sbeam[@]} arcsec"
         else
             echo "Error! Failed to load synthesized beam from \"$output_dir/info_synthesized_beam.txt\"!"
@@ -310,9 +310,12 @@ if [[ $input_overwrite -eq 1 ]] || [[ ! -f "simu_data_input.txt" ]]; then
     echo "macro read a_dzliu_code_compile_simu_data.sm go" | sm
 fi
 
-echo "macro read a_dzliu_code_run_simu_stats.sm analyze_statistics" | sm
-rm sim_diagram_output_v*/*.{eps,pdfmarks,pdfconverts}
-rm aaa_*.{eps,pdfmarks,pdfconverts}
+#echo "macro read a_dzliu_code_run_simu_stats.sm analyze_statistics" | sm
+#rm sim_diagram_output_v*/*.{eps,pdfmarks,pdfconverts}
+#rm aaa_*.{eps,pdfmarks,pdfconverts}
+
+echo "macro read run_simu_stats_noegal.sm run_simu_stats_noegal simu_data_input.txt" | sm
+rm sim_diagram_output_noegal*/*.{eps,pdfmarks,pdfconverts}
 
 echo "Done!"
 
