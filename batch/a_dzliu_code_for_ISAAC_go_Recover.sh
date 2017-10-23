@@ -1,14 +1,14 @@
 #!/bin/bash
 #SBATCH --mail-user=dzliu@mpia-hd.mpg.de
 #SBATCH --mail-type=ALL
-#SBATCH --time=1-00:00:00
+#SBATCH --time=24:00:00
 #SBATCH --mem=1000
 #SBATCH --cpus-per-task=1
 #SBATCH --output=log_job_array_JOB_ID_%A_TASK_ID_%a.out
 
 # 
 # to run this script in Slurm job array mode
-# sbatch --array=1-120%5 -N1 $HOME/Cloud/Github/Crab.Toolkit.CAAP/batch/a_dzliu_code_for_ISAAC_go_Recover.sh
+# sbatch --array=1-120%5 -N1 ~/Cloud/Github/Crab.Toolkit.CAAP/batch/a_dzliu_code_for_ISAAC_go_Recover.sh
 # 
 
 echo "Hostname: "$(/bin/hostname)
@@ -42,7 +42,7 @@ fi
 cd ~/Work/AlmaCosmos/Photometry/ALMA_full_archive/Simulation_by_Daizhong/
 source ~/Cloud/Github/DeepFields.SuperDeblending/Softwares/SETUP
 source ~/Cloud/Github/Crab.Toolkit.CAAP/SETUP.bash
-script_dir=~/Cloud/Github/Crab.Toolkit.CAAP/bin
+script_dir=~/Cloud/Github/Crab.Toolkit.CAAP/batch
 
 if [[ $(type getpix 2>/dev/null | wc -l) -eq 0 ]]; then
     echo "Error! WCSTOOLS was not installed or loaded?"
