@@ -17,23 +17,33 @@ fi
 
 script_dir=$(bash -c "cd $(dirname ${BASH_SOURCE[0]}); pwd -P")
 
+if [[ ! -f "$script_dir/a_dzliu_code_for_Google_Drive_download_Data.py" ]]; then
+    echo "Error! \"$script_dir/a_dzliu_code_for_Google_Drive_download_Data.py\" was not found!"
+    exit
+fi
 
-#Input_w=("1250")
-#Input_z=("1.000" "2.000" "3.000" "4.000" "5.000" "6.000")
-#Input_lgMstar=("09.00" "09.50" "10.00" "10.50" "11.00" "11.50" "12.00")
-#Input_Type_SED=("MS" "SB")
+
+
+# prepare physical parameter grid
+Input_z=("1.000" "2.000" "3.000" "4.000" "5.000" "6.000")
+Input_lgMstar=("09.00" "09.50" "10.00" "10.50" "11.00" "11.50" "12.00")
+Input_Type_SED=("MS" "SB")
+Input_Galaxy_Modelling_Dir='$HOME/Work/AlmaCosmos/Simulation/Cosmological_Galaxy_Modelling_for_COSMOS/'
+if [[ " $@ " == *" test "* ]]; then
 Input_z=("5.000")
 Input_lgMstar=("11.00")
 Input_Type_SED=("MS")
-Input_Galaxy_Modelling_Dir=$(bash -c "cd Cosmological_Galaxy_Modelling_for_COSMOS; pwd -P")
-Input_Galaxy_Modelling_Dir='/Users/dzliu/Work/DeepFields/Works/Cosmological_Galaxy_Modelling/'
+fi
+
 
 
 FitsNames=( \
     "2015.1.00379.S_SB1_GB1_MB1_VUDS5170072382_sci.spw0_1_2_3" \
 )
 
-echo "FitsNames = ${FitsNames[@]}"
+
+
+#echo "FitsNames = ${FitsNames[@]}"
 
 if [[ ! -d "Input_images" ]]; then
     echo "Error! Input_images was not found! Please run \"a_dzliu_code_for_ISAAC_go_Simulate.sh\" first!"
