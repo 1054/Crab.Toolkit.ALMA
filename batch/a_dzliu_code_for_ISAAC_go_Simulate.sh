@@ -26,16 +26,27 @@ echo "SLURM_SUBMIT_DIR: "$SLURM_SUBMIT_DIR
 # check host and other dependencies
 if [[ $(uname -a) != "Linux isaac"* ]] && [[ " $@ " != *" test "* ]]; then
     echo "This code can only be ran on ISAAC machine!"
-    exit
+    exit 1
+fi
+
+if [[ ! -f ~/Cloud/Github/DeepFields.SuperDeblending/Softwares/SETUP ]]; then
+    echo "Error! \"~/Cloud/Github/DeepFields.SuperDeblending/Softwares/SETUP\" was not found! Please clone to there from \"https://github.com/1054/DeepFields.SuperDeblending\"!"
+    exit 1
+fi
+
+if [[ ! -f ~/Cloud/Github/Crab.Toolkit.CAAP/SETUP.bash ]]; then
+    echo "Error! \"~/Cloud/Github/Crab.Toolkit.CAAP/SETUP.bash\" was not found! Please clone to there from \"https://github.com/1054/Crab.Toolkit.CAAP\"!"
+    exit 1
 fi
 
 cd ~/Work/AlmaCosmos/Photometry/ALMA_full_archive/Simulation_by_Daizhong/
 source ~/Cloud/Github/DeepFields.SuperDeblending/Softwares/SETUP
 source ~/Cloud/Github/Crab.Toolkit.CAAP/SETUP.bash
+script_dir=~/Cloud/Github/Crab.Toolkit.CAAP/bin
 
 if [[ $(type getpix 2>/dev/null | wc -l) -eq 0 ]]; then
     echo "Error! WCSTOOLS was not installed or loaded?"
-    exit
+    exit 1
 fi
 
 if [[ $(type pip 2>/dev/null | wc -l) -eq 0 ]]; then
@@ -44,14 +55,12 @@ fi
 
 if [[ ! -f "list_projects.txt" ]]; then
     echo "Error! \"list_projects.txt\" was not found under current directory!"
-    exit
+    exit 1
 fi
-
-script_dir=$(bash -c "cd $(dirname ${BASH_SOURCE[0]}); pwd -P")
 
 if [[ ! -f "$script_dir/a_dzliu_code_for_Google_Drive_download_Data.py" ]]; then
     echo "Error! \"$script_dir/a_dzliu_code_for_Google_Drive_download_Data.py\" was not found!"
-    exit
+    exit 1
 fi
 
 
