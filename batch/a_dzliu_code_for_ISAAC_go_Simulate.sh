@@ -1,7 +1,29 @@
 #!/bin/bash
+#SBATCH --mail-user=dzliu@mpia-hd.mpg.de
+#SBATCH --mail-type=ALL
+#SBATCH --time=1-00:00:00
+#SBATCH --mem=1000
+#SBATCH --cpus-per-task=1
+#SBATCH --output=log_job_array_JOB_ID_%A_TASK_ID_%a.out
+
+# 
+# to run this script in Slurm job array mode
+# sbatch --array=1-1%1 -N1 $HOME/Cloud/Github/Crab.Toolkit.CAAP/batch/a_dzliu_code_for_ISAAC_go_Simulate.sh
 # 
 
-# check host
+echo "Hostname: "$(/bin/hostname)
+echo "PWD: "$(/bin/pwd -P)
+echo "SLURM_JOBID: "$SLURM_JOBID
+echo "SLURM_JOB_NODELIST :"$SLURM_JOB_NODELIST
+echo "SLURM_NNODES: "$SLURM_NNODES
+echo "SLURM_ARRAY_TASK_ID: "$SLURM_ARRAY_TASK_ID
+echo "SLURM_ARRAY_JOB_ID: "$SLURM_ARRAY_JOB_ID
+echo "SLURMTMPDIR: "$SLURMTMPDIR
+echo "SLURM_SUBMIT_DIR: "$SLURM_SUBMIT_DIR
+
+
+
+# check host and other dependencies
 if [[ $(uname -a) != "Linux isaac"* ]] && [[ " $@ " != *" test "* ]]; then
     echo "This code can only be ran on ISAAC machine!"
     exit
@@ -56,7 +78,14 @@ if [[ ! -d "Input_images" ]]; then
     mkdir "Input_images"
 fi
 
-for FitsName in ${FitsNames[@]}; do
+for (( i=0; i<${#FitsNames[@]}; i++ )); do
+    
+    FitsName="${FitsNames[i]}"
+    
+    # check parallel
+    if [[ $SLURM_ARRAY_TASK_ID -ne $((i+1)) ]]; then
+        continue
+    fi
     
     # check previous output
     if [[ -f "Simulated/$FitsName/done" ]]; then
@@ -191,6 +220,9 @@ for FitsName in ${FitsNames[@]}; do
             done
         done
     done
+    
+    # Done
+    date +"%Y-%m-%d %H:%M:%S %Z" > "Simulated/$FitsName/done"
     
     #<TODO><DBEUG># 
     #break
