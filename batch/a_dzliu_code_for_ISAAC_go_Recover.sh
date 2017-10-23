@@ -29,6 +29,7 @@ if [[ $(uname -a) != "Linux isaac"* ]] && [[ " $@ " != *" test "* ]]; then
     exit
 fi
 
+cd ~/Work/AlmaCosmos/Photometry/ALMA_full_archive/Simulation_by_Daizhong/
 source ~/Cloud/Github/DeepFields.SuperDeblending/Softwares/SETUP
 source ~/Cloud/Github/Crab.Toolkit.CAAP/SETUP.bash
 
