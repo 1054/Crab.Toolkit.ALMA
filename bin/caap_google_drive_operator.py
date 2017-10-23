@@ -39,6 +39,7 @@ class CAAP_Google_Drive_Operator(object):
         #self.credential_file = os.path.join(self.credential_dir, 'CAAP Google Drive Operator-e11311ed8811.json') # rw but not added to member list on Team Drive
         self.credential_file = os.path.join(self.credential_dir, 'CAAP Google Drive Operator-93fcdd7331f1.json') # r
         self.client_email = 'a3cosmos-readonly@a3cosmos-team-drive-operator.iam.gserviceaccount.com'
+        self.quota_user = 'a3cosmos-readonly'
         self.credential_store = None
         self.application_name = 'CAAP Google Drive Operator'
         self.credential = None
@@ -83,7 +84,10 @@ class CAAP_Google_Drive_Operator(object):
     # 
     def print_files_in_drive(self):
         if self.service:
-            results = self.service.files().list(pageSize=30, fields="nextPageToken, files(id, name, mimeType, parents, md5Checksum)").execute()
+            results = self.service.files().list(pageSize=30, 
+                                                fields="nextPageToken, files(id, name, mimeType, parents, md5Checksum)", 
+                                                quotaUser=self.quota_user
+                                                ).execute()
             items = results.get('files', [])
             if not items:
                 print('No files found.')
@@ -101,8 +105,11 @@ class CAAP_Google_Drive_Operator(object):
             token = None
             while True:
                 try:
-                    query = self.service.teamdrives().list(pageSize=1, pageToken=token).execute()
-                    print(query)
+                    query = self.service.teamdrives().list(pageSize=1, 
+                                                            pageToken=token, 
+                                                            quotaUser=self.quota_user
+                                                        ).execute()
+                    #print(query)
                     for item in query.get('teamDrives'):
                         #print('Team Drive Id: %s; Name: %s;'%(item['id'], item['name']))
                         if item['name'] == self.team_drive_name:
@@ -136,6 +143,7 @@ class CAAP_Google_Drive_Operator(object):
                                                         fileId=item_id, 
                                                         supportsTeamDrives=True, 
                                                         fields="id, name, mimeType, parents, md5Checksum", 
+                                                        quotaUser=self.quota_user
                                                     ).execute()
                     #print(query)
                     if query is not None:
@@ -211,7 +219,8 @@ class CAAP_Google_Drive_Operator(object):
                                                         corpora='teamDrive', 
                                                         fields='nextPageToken, files(id, name, mimeType, parents, md5Checksum)', 
                                                         pageSize=10, 
-                                                        pageToken=token
+                                                        pageToken=token, 
+                                                        quotaUser=self.quota_user
                                                     ).execute()
                     #print(query)
                     for item in query.get('files'):
@@ -315,7 +324,8 @@ class CAAP_Google_Drive_Operator(object):
                                                         corpora='teamDrive', 
                                                         fields='nextPageToken, files(id, name, mimeType, parents, md5Checksum)', 
                                                         pageSize=10, 
-                                                        pageToken=token
+                                                        pageToken=token, 
+                                                        quotaUser=self.quota_user
                                                     ).execute()
                     #print(query)
                     for item in query.get('files'):
@@ -395,7 +405,8 @@ class CAAP_Google_Drive_Operator(object):
                                                         corpora='teamDrive', 
                                                         fields='nextPageToken, files(id, name, mimeType, parents, md5Checksum)', 
                                                         pageSize=100, 
-                                                        pageToken=token
+                                                        pageToken=token, 
+                                                        quotaUser=self.quota_user
                                                     ).execute()
                     #print(query)
                     for item in query.get('files'):
@@ -454,7 +465,8 @@ class CAAP_Google_Drive_Operator(object):
                                                         corpora='teamDrive', 
                                                         fields='nextPageToken, files(id, name, mimeType, parents, md5Checksum)', 
                                                         pageSize=100, 
-                                                        pageToken=token
+                                                        pageToken=token, 
+                                                        quotaUser=self.quota_user
                                                     ).execute()
                     #print(query)
                     for item in query.get('files'):
@@ -479,7 +491,7 @@ class CAAP_Google_Drive_Operator(object):
                 file_resources = [file_resources]
             for file_resource in file_resources:
                 file_id = file_resource.get('id')
-                request = self.service.files().get_media(fileId=file_id)
+                request = self.service.files().get_media(fileId=file_id, quotaUser=self.quota_user)
                 #fh = io.BytesIO()
                 fh = io.FileIO(file_resource.get('name'), mode='wb')
                 downloader = MediaIoBaseDownload(fh, request)
