@@ -26,8 +26,8 @@ if len(sys.argv)>1:
         files = gdo.get_file_by_name(sys.argv[j], verbose = False)
         #files = gdo.get_file_by_name('A-COSMOS_blind_2017-07-12_temporary.fits')
         if len(files)>0:
-            #print(files)
-            gdo.download_files(files)
+            print(files)
+            #gdo.download_files(files)
         else:
             print('***************************')
             print('Warning! Nothing was found for the input name "%s"!'%(sys.argv[j]))
@@ -35,7 +35,7 @@ if len(sys.argv)>1:
             print('')
 else:
     print('Usage: ')
-    print('       ./a_dzliu_code_for_Google_Drive_download_Data.py 2012.1.00076.S_SB5_GB1_MB1_ID247_sci.spw0_1_2_3')
+    print('       ./a_dzliu_code_for_Google_Drive_download_Data.py "2012.1.00076.S_SB5_GB1_MB1_ID247_sci.spw0_1_2_3.cont.I.image.fits"')
 
 
 

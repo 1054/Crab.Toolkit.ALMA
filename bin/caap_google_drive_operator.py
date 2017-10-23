@@ -19,6 +19,7 @@ from apiclient.http import MediaIoBaseDownload
 from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
+from oauth2client.service_account import ServiceAccountCredentials
 
 #try:
 #    import argparse
@@ -34,7 +35,10 @@ class CAAP_Google_Drive_Operator(object):
         self.scopes = 'https://www.googleapis.com/auth/drive.readonly'
         self.credential_dir = '.' # os.path.join(os.path.expanduser('~'), '.caap')
         self.credential_dir = os.path.join(os.path.expanduser('~'), '.caap')
-        self.credential_file = os.path.join(self.credential_dir, 'Key_for_Google_Drive_from_A3COSMOS.json')
+        #self.credential_file = os.path.join(self.credential_dir, 'Key_for_Google_Drive_from_A3COSMOS.json')
+        #self.credential_file = os.path.join(self.credential_dir, 'CAAP Google Drive Operator-e11311ed8811.json') # rw but not added to member list on Team Drive
+        self.credential_file = os.path.join(self.credential_dir, 'CAAP Google Drive Operator-93fcdd7331f1.json') # r
+        self.client_email = 'a3cosmos-readonly@a3cosmos-team-drive-operator.iam.gserviceaccount.com'
         self.credential_store = None
         self.application_name = 'CAAP Google Drive Operator'
         self.credential = None
@@ -51,23 +55,31 @@ class CAAP_Google_Drive_Operator(object):
         if not os.path.exists(self.credential_file):
             print('Error! Key "%s" was not found! Please ask A3COSMOS for the "Key_for_Google_Drive_from_A3COSMOS.json"!'%(self.credential_file))
             sys.exit()
-        if not os.path.exists(self.credential_file+'.ok'):
-            self.credential_store = Storage(self.credential_file)
-            self.credential = []
-            flow = client.flow_from_clientsecrets(self.credential_file, self.scopes)
-            flow.user_agent = self.application_name
-            if flags:
-                credential = tools.run_flow(flow, self.credential_store, flags)
-            else: # Needed only for compatibility with Python 2.6
-                credential = tools.run(flow, self.credential_store)
-            print('Storing credential to ' + self.credential_file)
-            os.system('touch "%s"'%(self.credential_file+'.ok'))
-        # 
-        self.credential_store = Storage(self.credential_file)
-        self.credential = self.credential_store.get()
+        #if not os.path.exists(self.credential_file+'.ok'):
+            #self.credential_store = Storage(self.credential_file)
+            #self.credential = []
+            #flow = client.flow_from_clientsecrets(self.credential_file, self.scopes)
+            #flow.user_agent = self.application_name
+            #if flags:
+            #    credential = tools.run_flow(flow, self.credential_store, flags)
+            #else: # Needed only for compatibility with Python 2.6
+            #    credential = tools.run(flow, self.credential_store)
+            #print('Storing credential to ' + self.credential_file)
+            #os.system('touch "%s"'%(self.credential_file+'.ok'))
+            # 
+        #self.credential_store = Storage(self.credential_file)
+        #self.credential = self.credential_store.get()
+        # --
+        # -- 20171023
+        # -- use serveraccount
+        # -- https://developers.google.com/drive/v3/web/handle-errors (403: Rate Limit Exceeded)
+        # -- https://developers.google.com/identity/protocols/OAuth2ServiceAccount (Preparing to make an authorized API call)
+        self.credential = ServiceAccountCredentials.from_json_keyfile_name(self.credential_file, scopes=self.scopes)
         # 
         self.http = self.credential.authorize(httplib2.Http())
         self.service = discovery.build('drive', 'v3', http=self.http)
+        #print(self.service)
+        #self.print_files_in_drive()
     # 
     def print_files_in_drive(self):
         if self.service:
@@ -90,7 +102,7 @@ class CAAP_Google_Drive_Operator(object):
             while True:
                 try:
                     query = self.service.teamdrives().list(pageSize=1, pageToken=token).execute()
-                    #print(query)
+                    print(query)
                     for item in query.get('teamDrives'):
                         #print('Team Drive Id: %s; Name: %s;'%(item['id'], item['name']))
                         if item['name'] == self.team_drive_name:
