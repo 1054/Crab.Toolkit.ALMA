@@ -15,6 +15,10 @@ if [[ $(type getpix 2>/dev/null | wc -l) -eq 0 ]]; then
     exit
 fi
 
+if [[ $(type pip 2>/dev/null | wc -l) -eq 0 ]]; then
+    module load anaconda
+fi
+
 script_dir=$(bash -c "cd $(dirname ${BASH_SOURCE[0]}); pwd -P")
 
 if [[ ! -f "$script_dir/a_dzliu_code_for_Google_Drive_download_Data.py" ]]; then
