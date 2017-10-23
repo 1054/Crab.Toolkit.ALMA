@@ -191,12 +191,21 @@ if [[ ${#input_pbeam[@]} -eq 0 ]] && [[ ${#input_sfreq[@]} -eq 0 ]]; then
         echo "Warning! No \"-primary-beam\" nor \"-sky-frequency\" were input! Will try to find \"image_sim.fits\" files from the data directory \"$simulated_dir/$image_name\" (given by the \"-simulated-dir\" and \"-image-name\" arguments)."
         input_sfreq_file=($(find "$simulated_dir/$image_name" -name "image_sim.fits"))
         if [[ ${#input_sfreq_file[@]} -gt 0 ]]; then
+            input_sfreq_type=($(gethead ${input_sfreq_file[0]} "CTYPE3"))
             input_sfreq_Hz=($(gethead ${input_sfreq_file[0]} "CRVAL3"))
-            if [[ ${#input_sfreq_Hz[@]} -gt 0 ]]; then
-                input_sfreq=($(awk "BEGIN {print ${input_sfreq_Hz[0]}/1e9}"))
-                echo "sky frequency: ${input_sfreq[@]} GHz"
+            if echo "$input_sfreq_type" | grep -v -q -i "FREQ"; then
+                input_sfreq_type=($(gethead ${input_sfreq_file[0]} "CTYPE4"))
+                input_sfreq_Hz=($(gethead ${input_sfreq_file[0]} "CRVAL4"))
+            fi
+            if echo "$input_sfreq_type" | grep -q -i "FREQ"; then
+                if [[ ${#input_sfreq_Hz[@]} -gt 0 ]]; then
+                    input_sfreq=($(awk "BEGIN {print ${input_sfreq_Hz[0]}/1e9}"))
+                    echo "sky frequency: ${input_sfreq[@]} GHz"
+                else
+                    echo "Error! Failed to determien sky frequency by reading the fits header $input_sfreq_type keyword from any \"image_sim.fits\"!"
+                fi
             else
-                echo "Error! Failed to determien sky frequency by reading the fits header CRVAL3 keyword from any \"image_sim.fits\"!"
+                echo "Error! Failed to determien sky frequency by reading the fits header CRVAL* keyword from any \"image_sim.fits\"!"
             fi
         else
             echo "Error! Failed to determine sky frequency!"
@@ -301,6 +310,7 @@ echo "image_name = $image_name"
 echo ""
 if [[ $input_overwrite -eq 1 ]] || [[ ! -f "$output_dir/datatable_Simulated.txt" ]];        then check_input_dirs; cat "$simulated_dir/$image_name/datatable_Simulated.txt"        | grep -v "^#$" > "$output_dir/datatable_Simulated.txt"; fi
 if [[ $input_overwrite -eq 1 ]] || [[ ! -f "$output_dir/datatable_Recovered_galfit.txt" ]]; then check_input_dirs; cat "$recovered_dir/$image_name/datatable_Recovered_galfit.txt" | grep -v "^#$" > "$output_dir/datatable_Recovered_galfit.txt"; fi
+if [[ $input_overwrite -eq 1 ]] || [[ ! -f "$output_dir/datatable_Recovered_getpix.txt" ]]; then check_input_dirs; cat "$recovered_dir/$image_name/datatable_Recovered_getpix.txt" | grep -v "^#$" > "$output_dir/datatable_Recovered_getpix.txt"; fi
 
 echo "cd \"$output_dir\""
 echo ""
@@ -308,6 +318,10 @@ cd "$output_dir"
 
 if [[ $input_overwrite -eq 1 ]] || [[ ! -f "simu_data_input.txt" ]]; then
     echo "macro read a_dzliu_code_compile_simu_data.sm go" | sm
+fi
+
+if [[ $input_overwrite -eq 1 ]] || [[ ! -f "Plot_comparison_of_flux.pdf" ]]; then
+    echo "macro read a_dzliu_code_plot_flux_comparison.sm plot_flux_comparison" | sm
 fi
 
 #echo "macro read a_dzliu_code_run_simu_stats.sm analyze_statistics" | sm

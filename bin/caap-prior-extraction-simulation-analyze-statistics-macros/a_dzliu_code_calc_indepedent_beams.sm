@@ -1,0 +1,123 @@
+calc_indepedent_beams
+    # 
+    # Usage:
+    #   echo "macro read a_dzliu_code_calc_indepedent_beams.sm calc_indepedent_beams" | sm
+    # 
+    
+    # get beam
+    #<20170920># data "info_synthesized_beam.txt" read row synthesized_beam_size 1.f
+    #<20170920># data "info_primary_beam.txt" read row primary_beam_size 1.f
+    #<20170920># set synthesized_beam_size = sqrt(0.300786) / (pi/(4*ln(2))) #<TEST>#
+    #<20170920># set primary_beam_size = 17.0298 #<TEST>#
+    #<20170920># if(dimen(primary_beam_size)>=2) {
+    #<20170920>#     set primary_beam_area = pi /(4*ln(2)) * (primary_beam_size[0] * primary_beam_size[1])
+    #<20170920># } else {
+    #<20170920>#     set primary_beam_area = pi /(4*ln(2)) * (primary_beam_size[0] * primary_beam_size[0])
+    #<20170920># }
+    #<20170920># if(dimen(synthesized_beam_size)>=2) {
+    #<20170920>#     set synthesized_beam_area = pi /(4*ln(2)) * (synthesized_beam_size[0] * synthesized_beam_size[1])
+    #<20170920># } else {
+    #<20170920>#     set synthesized_beam_area = pi /(4*ln(2)) * (synthesized_beam_size[0] * synthesized_beam_size[0])
+    #<20170920># }
+    # read synthesized_beam_area
+    if(is_vector(synthesized_beam_area)) {
+        unset synthesized_beam_area
+    }
+    if(is_file("info_synthesized_beam.txt")) {
+        data "info_synthesized_beam.txt" read row synthesized_beam_size 1.f
+        if(dimen(synthesized_beam_size)>=2) {
+            set synthesized_beam_area = pi /(4*ln(2)) * (synthesized_beam_size[0] * synthesized_beam_size[1])
+        } else {
+            set synthesized_beam_area = pi /(4*ln(2)) * (synthesized_beam_size[0] * synthesized_beam_size[0])
+        }
+    } else {
+        if(is_file("info_synthesized_beam_area.txt")) {
+            data "info_synthesized_beam_area.txt" read {synthesized_beam_area 1.f}
+        }
+    }
+    # read primary_beam_area
+    if(is_vector(primary_beam_area)) {
+        unset primary_beam_area
+    }
+    if(is_file("info_primary_beam.txt")) {
+        data "info_primary_beam.txt" read row primary_beam_size 1.f
+        if(dimen(primary_beam_size)>=2) {
+            set primary_beam_area = pi /(4*ln(2)) * (primary_beam_size[0] * primary_beam_size[1])
+        } else {
+            set primary_beam_area = pi /(4*ln(2)) * (primary_beam_size[0] * primary_beam_size[0])
+        }
+    } else {
+        if(is_file("info_primary_beam_area.txt")) {
+            data "info_primary_beam_area.txt" read {primary_beam_area 1.f}
+        } else {
+            if(is_file("info_sky_frequency.txt")) {
+                data "info_sky_frequency.txt" read {sky_frequency 1.f}
+                macro read a_dzliu_code_calc_alma_primary_beam.sm
+                set primary_beam_area = calc_alma_primary_beam_area(sky_frequency)
+            }
+        }
+    }
+    set check_beam_area = 1
+    if(!is_vector(synthesized_beam_area)) {
+        print 'Error! Could not determine synthesized_beam_area! Please input argument \"-synthesized-beam\" or prepare file \"info_synthesized_beam_area.txt\"!\n' {}
+        set check_beam_area = -1
+    }
+    if(!is_vector(primary_beam_area)) {
+        print 'Error! Could not determine primary_beam_area! Please input argument \"-primary-beam\" or prepare file \"info_primary_beam_area.txt\"!\n' {}
+        set check_beam_area = -1
+    }
+    if(check_beam_area==-1) {
+        return
+    }
+    
+    
+    
+    # read repetition number
+    if(is_file("info_repetition_number.txt")) {
+        data "info_repetition_number.txt" read {repetition_times 1.f}
+    } else {
+        print 'Error! Could not determine repetition_times! Please input argument \"-repetition-number\" or prepare file \"info_repetition_number.txt\"!\n' {}
+        return
+    }
+    
+    # compute number of independent beams
+    set resolution_units = (primary_beam_area)/(synthesized_beam_area)
+    #set repetition_times = 84 #<TODO>#
+    set gaussian_N_sigma = {0.5 1.0 1.5 2.0 2.5 3.0 \
+                            3.5 4.0 4.5 5.0 5.5 6.0 \
+                            6.5 7.0}
+    set gaussian_P_inside = {0.382924922548026 0.682689492137086 0.866385597462284 0.954499736103642 0.987580669348448 0.997300203936740 \
+                             0.999534741841929 0.999936657516334 0.999993204653751 0.999999426696856 0.999999962020875 0.999999998026825 \
+                             0.999999999919680 0.999999999997440}
+    #-- https://en.wikipedia.org/wiki/68%E2%80%9395%E2%80%9399.7_rule
+    set N_2p0sigma = 2.0
+    interp2 gaussian_N_sigma gaussian_P_inside N_2p0sigma P_2p0sigma
+    set P_2p0sigma = (1.0-P_2p0sigma)/2.0 * resolution_units * repetition_times # positive peaks
+    # 
+    set N_2p5sigma = 2.5
+    interp2 gaussian_N_sigma gaussian_P_inside N_2p5sigma P_2p5sigma
+    set P_2p5sigma = (1.0-P_2p5sigma)/2.0 * resolution_units * repetition_times # positive peaks
+    # 
+    set N_3p0sigma = 3.0
+    interp2 gaussian_N_sigma gaussian_P_inside N_3p0sigma P_3p0sigma
+    set P_3p0sigma = (1.0-P_3p0sigma)/2.0 * resolution_units * repetition_times # positive peaks
+    # 
+    set N_3p5sigma = 3.5
+    interp2 gaussian_N_sigma gaussian_P_inside N_3p5sigma P_3p5sigma
+    set P_3p5sigma = (1.0-P_3p5sigma)/2.0 * resolution_units * repetition_times # positive peaks
+    # 
+    set N_5p0sigma = 5.0
+    interp2 gaussian_N_sigma gaussian_P_inside N_5p0sigma P_5p0sigma
+    set P_5p0sigma = (1.0-P_5p0sigma)/2.0 * resolution_units * repetition_times # positive peaks
+    # 
+    set P_20_35 = P_2p0sigma - P_3p5sigma
+    set P_35_50 = P_3p5sigma - P_5p0sigma
+    set P_5 = P_5p0sigma
+    echo "resolution_units = "$(resolution_units)
+    echo "repetition_times = "$(repetition_times)
+    
+
+
+
+
+

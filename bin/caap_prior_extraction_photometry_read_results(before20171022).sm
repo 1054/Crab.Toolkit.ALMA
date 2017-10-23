@@ -1,4 +1,4 @@
-read_results 01
+read_results
     
     # 
     # Usage: 
@@ -8,17 +8,6 @@ read_results 01
     #        "List_f_total_f_peak.txt"
     #        "List_all.txt"
     # 
-    # Argument:
-    #           Sersic or Gaussian
-    # 
-    
-    # define Sersic_or_Gaussian
-    if($?1) {
-        define Sersic_or_Gaussian $1
-    } else {
-        define Sersic_or_Gaussian auto
-    }
-    
     
     # determine current date
     set date_temp = '$date'
@@ -81,44 +70,44 @@ read_results 01
     set size_upper_boundary = -99
     set size_initial_guess = -99
     
-    if('$Sersic_or_Gaussian'=='Sersic' || '$Sersic_or_Gaussian'=='auto') {
+    if( is_file("Read_Results_all_final_morphologies_fit_3.txt") && \
+        is_file("Read_Results_all_final_fluxes_fit_3.txt") ) {
         
-        if( is_file("Read_Results_all_final_fluxes_fit_3.txt") ) {
+        verbose 0
+        rfile "Read_Results_all_final_mask_buffer_fit_3.txt"
+        rfile "Read_Results_all_final_morphologies_fit_3.txt"
+        rfile "Read_Results_all_final_fluxes_fit_3.txt"
+        verbose 1
+        
+        set f = f_fit_3
+        set df = df_fit_3
+        set fpeak = fpeak_fit_3
+        set fres = fres_fit_3 # from "Read_Results_all_final_fluxes_fit_3.txt" # f_resabs # from "Read_Results_all_final_x_y_f_df_pix_scale_fit_3.txt"
+        set rms = rms_fit_3
+        set id = id_fit_3
+        set ra = ra_fit_3
+        set dec = dec_fit_3
+        set Maj = Maj_fit_3
+        set Maj_err = Maj_err_fit_3
+        set Min = Min_fit_3
+        set Min_err = Min_err_fit_3
+        set PA = PA_fit_3
+        set PA_err = PA_err_fit_3
+        
+        set size_lower_boundary = 0.5*2       # pixel,  Sersic RADIUS * 2 = size FWHM, according to astrodepth_prior_extraction_photometry_go_galfit.sm
+        set size_upper_boundary = 5.0 # 3.0*2 # arcsec, Sersic RADIUS * 2 = size FWHM, according to astrodepth_prior_extraction_photometry_go_galfit.sm
+        set size_initial_guess = 0.25*2       # arcsec, Sersic RADIUS * 2 = size FWHM, according to astrodepth_prior_extraction_photometry_go_galfit.sm
+        
+        set out_suffix = '_Sersic.txt'
+        
+    } else {
+        
+        if( is_file("Read_Results_all_final_morphologies_fit_2.txt") && \
+            is_file("Read_Results_all_final_fluxes_fit_2.txt") ) {
             
             verbose 0
-            rfile "Read_Results_all_final_fluxes_fit_3.txt"
-            verbose 1
-            
-            set f = f_fit_3
-            set df = df_fit_3
-            set fpeak = fpeak_fit_3
-            set fres = fres_fit_3 # from "Read_Results_all_final_fluxes_fit_3.txt" # f_resabs # from "Read_Results_all_final_x_y_f_df_pix_scale_fit_3.txt"
-            set rms = rms_fit_3
-            set id = id_fit_3_str
-            set ra = ra_fit_3
-            set dec = dec_fit_3
-            set Maj = Maj_fit_3
-            set Maj_err = Maj_err_fit_3
-            set Min = Min_fit_3
-            set Min_err = Min_err_fit_3
-            set PA = PA_fit_3
-            set PA_err = PA_err_fit_3
-            
-            set size_lower_boundary = 0.5*2       # pixel,  Sersic RADIUS * 2 = size FWHM, according to astrodepth_prior_extraction_photometry_go_galfit.sm
-            set size_upper_boundary = 5.0 # 3.0*2 # arcsec, Sersic RADIUS * 2 = size FWHM, according to astrodepth_prior_extraction_photometry_go_galfit.sm
-            set size_initial_guess = 0.25*2       # arcsec, Sersic RADIUS * 2 = size FWHM, according to astrodepth_prior_extraction_photometry_go_galfit.sm
-            
-            set out_suffix = '_Sersic.txt'
-            
-        }
-        
-    }
-    
-    if('$Sersic_or_Gaussian'=='Gaussian') {
-        
-        if( is_file("Read_Results_all_final_fluxes_fit_2.txt") ) {
-            
-            verbose 0
+            rfile "Read_Results_all_final_mask_buffer_fit_2.txt"
+            rfile "Read_Results_all_final_morphologies_fit_2.txt"
             rfile "Read_Results_all_final_fluxes_fit_2.txt"
             verbose 1
             
@@ -127,7 +116,7 @@ read_results 01
             set fpeak = fpeak_fit_2
             set fres = fres_fit_2 # from "Read_Results_all_final_fluxes_fit_2.txt" # f_resabs # from "Read_Results_all_final_x_y_f_df_pix_scale_fit_2.txt"
             set rms = rms_fit_2
-            set id = id_fit_2_str
+            set id = id_fit_2
             set ra = ra_fit_2
             set dec = dec_fit_2
             set Maj = Maj_fit_2
@@ -148,10 +137,11 @@ read_results 01
     
     
     # Check data arrays
-    set var_check = {Maj Min beam_area pix_scale rms f df fpeak fres id flag_buffer image_file}
+    set var_check = {Maj Min beam_area pix_scale rms f df fpeak fres id \
+                      mask_buffer image_file}
     set var_dimen = 0
     foreach var var_check {
-        echo "Checking "is_vector($var) = $(is_vector($var)), dimen($var) = $(dimen($var))
+        echo is_vector($var) = $(is_vector($var)), dimen($var) = $(dimen($var))
     }
     foreach var var_check {
         if(!is_vector($var)) {
@@ -204,28 +194,27 @@ read_results 01
         if(size_upper_boundary>-99) { set flag_size_upper_boundary = (Maj > (size_upper_boundary - 0.002)) } #<TODO># I mark all Maj>size_upper_boundary fits as invalid!
         if(size_initial_guess>-99)  { set flag_size_initial_guess  = abs(Maj-size_initial_guess) < 0.002 } #<TODO># precision 0.002
         
+        # flag_buffer
+        set flag_buffer = mask_buffer
+        
         # print and check
         echo "Writing to \"Output_galfit"$(out_suffix)"\""
-        load wfile.sm
-        set wfile_vectors = {id ra dec f_total df_galfit df_total snr_total f_peak fpeak df_peak snr_peak fres rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr \
-                                obs_freq beam_area chisq rchisq n_aperpix n_freepar flag_size_lower_boundary flag_size_upper_boundary flag_size_initial_guess flag_buffer image_file}
-        wfile "Output_galfit"$(out_suffix)
-        #print "Output_galfit"$(out_suffix) \
-        #        '%15s %15.8f %15.8f %15g %15g %15g %15g %15g %15g %15g %15g %15g %15g %20g %15g %15g %15g %15g %15g %15g %15g %14g %14g %14g %14g %14g %14g %25g %25g %25g %15g   %s\n' \
-        #        {id ra dec f_total df_galfit df_total snr_total f_peak fpeak df_peak snr_peak fres rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr \
-        #            obs_freq beam_area chisq rchisq n_aperpix n_freepar flag_size_lower_boundary flag_size_upper_boundary flag_size_initial_guess flag_buffer image_file}
+        print "Output_galfit"$(out_suffix) \
+                '%15.0f %15.8f %15.8f %15g %15g %15g %15g %15g %15g %15g %15g %15g %15g %20g %15g %15g %15g %15g %15g %15g %15g %25g %25g %25g %15g   %s\n' \
+                {id ra dec f_total df_galfit df_total snr_total f_peak fpeak df_peak snr_peak fres rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr \
+                    flag_size_lower_boundary flag_size_upper_boundary flag_size_initial_guess flag_buffer image_file}
         
         # do S/N and pb_corr cut
         set coo = (snr_peak>=2.5 && pb_corr<=5.0)
-        foreach var wfile_vectors {
+        foreach var {id ra dec f_total df_galfit df_total snr_total f_peak fpeak df_peak snr_peak fres rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr \
+                        flag_size_lower_boundary flag_size_upper_boundary flag_size_initial_guess flag_buffer image_file} {
             set $var = $var if(coo)
         }
         echo "Writing to \"Output_galfit_snr_peak_2p5_pb_corr_5p0"$(out_suffix)"\""
-        wfile "Output_galfit_snr_peak_2p5_pb_corr_5p0"$(out_suffix)
-        #print "Output_galfit_snr_peak_2p5_pb_corr_5p0"$(out_suffix) \
-        #        '%15s %15.8f %15.8f %15g %15g %15g %15g %15g %15g %15g %15g %15g %15g %20g %15g %15g %15g %15g %15g %15g %15g %14g %14g %14g %14g %14g %14g %25g %25g %25g %15g   %s\n' \
-        #        {id ra dec f_total df_galfit df_total snr_total f_peak fpeak df_peak snr_peak fres rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr \
-        #            obs_freq beam_area chisq rchisq n_aperpix n_freepar flag_size_lower_boundary flag_size_upper_boundary flag_size_initial_guess flag_buffer image_file}
+        print "Output_galfit_snr_peak_2p5_pb_corr_5p0"$(out_suffix) \
+                '%15.0f %15.8f %15.8f %15g %15g %15g %15g %15g %15g %15g %15g %15g %15g %20g %15g %15g %15g %15g %15g %15g %15g %25g %25g %25g %15g   %s\n' \
+                {id ra dec f_total df_galfit df_total snr_total f_peak fpeak df_peak snr_peak fres rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr \
+                    flag_size_lower_boundary flag_size_upper_boundary flag_size_initial_guess flag_buffer image_file}
         
         # copy & rename
         echo ln -fs "Output_galfit"$(out_suffix) "Output_galfit.txt"
@@ -236,37 +225,37 @@ read_results 01
             !cp "Output_galfit_snr_peak_2p5_pb_corr_5p0"$(out_suffix) "A-COSMOS_prior_"$(date_str)"_snr_peak_2p5_pb_corr_5p0"$(out_suffix)
         
         # do image_file cut (to select those images of old alma archive v20170222, so as to compare with blind catalog with that version)
-        #<20171022># if(is_file("../check_image_fits_file_list/fits_file_list_sorted_v20170222_name_only.txt")) {
-        #<20171022>#     data "../check_image_fits_file_list/fits_file_list_sorted_v20170222_name_only.txt" read {project_list 1.s fits_file_list 2.s}
-        #<20171022>#     !echo -n "checking image_file of alma archive v20170222 ."
-        #<20171022>#     set coo = snr_peak*0+0
-        #<20171022>#     do i=0,dimen(image_file)-1 {
-        #<20171022>#         define j 0
-        #<20171022>#         while { $j <= dimen(fits_file_list)-1 } {
-        #<20171022>#             set image_file_tmp = project_list[$j]+'_'+fits_file_list[$j]
-        #<20171022>#             if(index(image_file[$i],image_file_tmp)>=0) {
-        #<20171022>#                 set coo[$i] = 1
-        #<20171022>#                 break
-        #<20171022>#             }
-        #<20171022>#             define j $($j+1)
-        #<20171022>#         }
-        #<20171022>#         if(($i)%(int((dimen(image_file)-1)/10.0))==0) {
-        #<20171022>#             !echo -n "."
-        #<20171022>#         }
-        #<20171022>#     }
-        #<20171022>#     !echo "100%!"
-        #<20171022>#     foreach var {id ra dec f_total df_galfit df_total snr_total f_peak fpeak df_peak snr_peak fres rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr \
-        #<20171022>#                     obs_freq beam_area chisq rchisq n_aperpix n_freepar flag_size_lower_boundary flag_size_upper_boundary flag_size_initial_guess flag_buffer image_file} {
-        #<20171022>#         set $var = $var if(coo)
-        #<20171022>#     }
-        #<20171022>#     print "List_snr_peak_2p5_pb_corr_5p0_for_alma_archive_v20170222"$(out_suffix) \
-        #<20171022>#             '%15s %15.8f %15.8f %15g %15g %15g %15g %15g %15g %15g %15g %15g %15g %20g %15g %15g %15g %15g %15g %15g %15g %25g %25g %25g %15g   %s\n' \
-        #<20171022>#             {id ra dec f_total df_galfit df_total snr_total f_peak fpeak df_peak snr_peak fres rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr \
-        #<20171022>#                 flag_size_lower_boundary flag_size_upper_boundary flag_size_initial_guess flag_buffer image_file}
-        #<20171022>#     
-        #<20171022>#     # copy & rename
-        #<20171022>#     !cp "List_snr_peak_2p5_pb_corr_5p0_for_alma_archive_v20170222"$(out_suffix) "A-COSMOS_prior_"$(date_str)"_snr_peak_2p5_pb_corr_5p0_for_alma_archive_v20170222"$(out_suffix)
-        #<20171022># }
+        if(is_file("../check_image_fits_file_list/fits_file_list_sorted_v20170222_name_only.txt")) {
+            data "../check_image_fits_file_list/fits_file_list_sorted_v20170222_name_only.txt" read {project_list 1.s fits_file_list 2.s}
+            !echo -n "checking image_file of alma archive v20170222 ."
+            set coo = snr_peak*0+0
+            do i=0,dimen(image_file)-1 {
+                define j 0
+                while { $j <= dimen(fits_file_list)-1 } {
+                    set image_file_tmp = project_list[$j]+'_'+fits_file_list[$j]
+                    if(index(image_file[$i],image_file_tmp)>=0) {
+                        set coo[$i] = 1
+                        break
+                    }
+                    define j $($j+1)
+                }
+                if(($i)%(int((dimen(image_file)-1)/10.0))==0) {
+                    !echo -n "."
+                }
+            }
+            !echo "100%!"
+            foreach var {id ra dec f_total df_galfit df_total snr_total f_peak fpeak df_peak snr_peak fres rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr \
+                            flag_size_lower_boundary flag_size_upper_boundary flag_size_initial_guess flag_buffer image_file} {
+                set $var = $var if(coo)
+            }
+            print "List_snr_peak_2p5_pb_corr_5p0_for_alma_archive_v20170222"$(out_suffix) \
+                    '%15.0f %15.8f %15.8f %15g %15g %15g %15g %15g %15g %15g %15g %15g %15g %20g %15g %15g %15g %15g %15g %15g %15g %25g %25g %25g %15g   %s\n' \
+                    {id ra dec f_total df_galfit df_total snr_total f_peak fpeak df_peak snr_peak fres rms convol_area_in_beam Maj Maj_err Min Min_err PA PA_err pb_corr \
+                        flag_size_lower_boundary flag_size_upper_boundary flag_size_initial_guess flag_buffer image_file}
+            
+            # copy & rename
+            !cp "List_snr_peak_2p5_pb_corr_5p0_for_alma_archive_v20170222"$(out_suffix) "A-COSMOS_prior_"$(date_str)"_snr_peak_2p5_pb_corr_5p0_for_alma_archive_v20170222"$(out_suffix)
+        }
     }
     
     

@@ -1,10 +1,28 @@
+go
+    plot_flux_comparison
+
+
 plot_flux_comparison
     # 
     # Aim: plot flux-flux comparison figure
     # 
+    # Usage: echo "macro read a_dzliu_code_plot_flux_comparison.sm plot_flux_comparison" | sm
+    # 
+    
+    load rfile.sm
+    rfile "simu_data_input.txt"
+    set rms = noise
+    set pbc = pb_corr
+    set snr = snr_total
+    set check_ok = snr>0
+    foreach var {id Xf f snr rms pbc z lgMstar lgSFR} {
+        set $var = $var if(check_ok)
+    }
+    set df = f / snr
+    # 
     # check input
     define plot_ok 1
-    foreach plot_var {Xf f df snr rms pbc z lgMstar lgSFR} {
+    foreach plot_var {id Xf f df snr rms pbc z lgMstar lgSFR} {
         if(!is_vector($plot_var)) {
             print 'Error! Vector $plot_var does not exist! Please set it before run this macro!\n' {}
             define plot_ok 0
@@ -13,6 +31,13 @@ plot_flux_comparison
     if(!$plot_ok) {
         return
     }
+    # 
+    # calc independent beams and Guassian percentiles
+    macro read a_dzliu_code_calc_indepedent_beams.sm
+    calc_indepedent_beams
+    # 
+    # calc median rms
+    stats rms rms_mean rms_sigma rms_kurt
     # 
     # load crabPlot.sm
     load crabPlot.sm
@@ -36,33 +61,39 @@ plot_flux_comparison
     #set is_real_detection = (abs(lg(f)-lg(Xf))<(df/f))
     # 
     # plot SNR=2-3.5 sources
-    set plot_x = lg(Xf) if(snr>=2.0 && snr<3.5)
-    set plot_y = lg(f) if(snr>=2.0 && snr<3.5)
-    set plot_err = (df/f) if(snr>=2.0 && snr<3.5)
-    ctype gray lweight 0.25
-    points plot_x plot_y
-    error_y plot_x plot_y plot_err
-    lweight 3.5
+    if(sum(snr>=2.0 && snr<3.5)>0) {
+        set plot_x = lg(Xf) if(snr>=2.0 && snr<3.5)
+        set plot_y = lg(f) if(snr>=2.0 && snr<3.5)
+        set plot_err = (df/f) if(snr>=2.0 && snr<3.5)
+        ctype gray lweight 0.25
+        points plot_x plot_y
+        error_y plot_x plot_y plot_err
+    }
+    ctype gray lweight 3.5
     crabPlotLegend "2.0{<}S/N{\le}3.5 (exp.spur. "$(sprintf('%0.1f',P_20_35))")"
     # 
     # plot SNR=3.5-5 sources
-    set plot_x = lg(Xf) if(snr>=3.5 && snr<5.0)
-    set plot_y = lg(f) if(snr>=3.5 && snr<5.0)
-    set plot_err = (df/f) if(snr>=3.5 && snr<5.0)
-    ctype green lweight 0.75
-    points plot_x plot_y
-    error_y plot_x plot_y plot_err
-    lweight 3.5
+    if(sum(snr>=3.5 && snr<5.0)>0) {
+        set plot_x = lg(Xf) if(snr>=3.5 && snr<5.0)
+        set plot_y = lg(f) if(snr>=3.5 && snr<5.0)
+        set plot_err = (df/f) if(snr>=3.5 && snr<5.0)
+        ctype green lweight 0.75
+        points plot_x plot_y
+        error_y plot_x plot_y plot_err
+    }
+    ctype green lweight 3.5
     crabPlotLegend "3.5{<}S/N{\le}5 (exp.spur. "$(sprintf('%0.1f',P_35_50))")"
     # 
     # plot SNR>5 sources
-    set plot_x = lg(Xf) if(snr>=5.0)
-    set plot_y = lg(f) if(snr>=5.0)
-    set plot_err = (df/f) if(snr>=5.0)
-    ctype blue lweight 1.5
-    points plot_x plot_y
-    error_y plot_x plot_y plot_err
-    lweight 3.5
+    if(sum(snr>=5.0)>0) {
+        set plot_x = lg(Xf) if(snr>=5.0)
+        set plot_y = lg(f) if(snr>=5.0)
+        set plot_err = (df/f) if(snr>=5.0)
+        ctype blue lweight 1.5
+        points plot_x plot_y
+        error_y plot_x plot_y plot_err
+    }
+    ctype blue lweight 3.5
     crabPlotLegend "S/N{\ge}5 (exp.spur. "$(sprintf('%0.3f',P_5))")"
     # 
     # overplot labels for SNR>5 and !is_real_detection sources
@@ -75,13 +106,15 @@ plot_flux_comparison
     }
     # 
     # overplot pb_corr>5 sources
-    set plot_x = lg(Xf) if(pbc>5.0)
-    set plot_y = lg(f) if(pbc>5.0)
-    set plot_err = (df/f) if(pbc>5.0)
-    ctype cyan lweight 2.5
-    ptype 15 0 expand 1.8
-    points plot_x plot_y
-    lweight 3.5
+    if(sum(pbc>5.0)>0) {
+        set plot_x = lg(Xf) if(pbc>5.0)
+        set plot_y = lg(f) if(pbc>5.0)
+        set plot_err = (df/f) if(pbc>5.0)
+        ctype cyan lweight 2.5
+        ptype 15 0 expand 1.8
+        points plot_x plot_y
+    }
+    ctype cyan lweight 3.5
     crabPlotLegend "cyan: PBcorr>5"
     # 
     # overplot z>4 sources
@@ -95,13 +128,15 @@ plot_flux_comparison
     #crabPlotLegend "orange: z{\ge}4"
     # 
     # overplot lgMstar<10 sources
-    set plot_x = lg(Xf) if(lgMstar<10.0)
-    set plot_y = lg(f) if(lgMstar<10.0)
-    set plot_err = (df/f) if(lgMstar<10.0)
-    ctype orange lweight 2.5
-    ptype 15 0 expand 2.2
-    points plot_x plot_y
-    lweight 3.5
+    if(sum(lgMstar<10.0)>0) {
+        set plot_x = lg(Xf) if(lgMstar<10.0)
+        set plot_y = lg(f) if(lgMstar<10.0)
+        set plot_err = (df/f) if(lgMstar<10.0)
+        ctype orange lweight 2.5
+        ptype 15 0 expand 2.2
+        points plot_x plot_y
+    }
+    ctype orange lweight 3.5
     crabPlotLegend "orange: log M_{*}{<}10.0"
     # 
     # draw rms
@@ -115,6 +150,28 @@ plot_flux_comparison
     relocate $fx1 $fx1 draw $fx2 $fx2
     # 
     crabPlotClosePS
-    !open "Plot_comparison_of_flux.pdf"
+    # 
+    # 
+    # 
+    # 
+    # 
+    # Plot z-lsMstar-SNR
+    macro read a_dzliu_code_plot_z_lgMstar_SNR.sm
+    plot_z_lgMstar_SNR
+    # 
+    # 
+    # 
+    # 
+    # 
+    # Plot z-lgSFR-SNR
+    macro read a_dzliu_code_plot_z_SFR_SNR.sm
+    plot_z_SFR_SNR
+    # 
+    # 
+    # 
+    # 
+    # 
+    # Open output pdf
+    !open "Plot_comparison_of_flux.pdf" "Plot_comparison_of_z_Mstar_SNR.pdf" "Plot_comparison_of_z_SFR_SNR.pdf"
 
 

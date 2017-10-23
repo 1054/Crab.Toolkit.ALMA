@@ -104,8 +104,10 @@ match_colname+=("$(echo _${input_colname} | tr '[:lower:]' '[:upper:]')")
 match_colname+=("$(echo ${input_colname}_ | tr '[:lower:]' '[:upper:]')")
 if [[ "${input_colname}" == "id" ]]; then
     match_colname+=("NUMBER")
+elif [[ "${input_colname}" == "dec" ]]; then
+    match_colname+=("de[^a-zA-Z_]+")
 elif [[ "${input_colname}" == "z" ]]; then
-    match_colname=("z\$")
+    match_colname=("z[^a-zA-Z_]+")
     match_colname+=("ZPDF" "ZML" "PHOTOZ" "PHOTO-Z")
 elif [[ "${input_colname}" == "zphot" ]]; then
     match_colname+=("z_phot" "z_ph" "z_op" "ZPDF" "ZML" "PHOTOZ" "PHOTO-Z")
@@ -313,6 +315,15 @@ cat $1.backup \
        | perl -p -e 's/([ ]*f3ghz_org_Jin[ ]+)([0-9eE\".+-]+)/${1}100000.0     uJy/g' \
        | perl -p -e 's/([ ]*f3ghz_1arc5_Jin[ ]+)([0-9eE\".+-]+)/${1}100000.0     uJy/g' \
        | perl -p -e 's/([ ]*f3ghz_2arc_Jin[ ]+)([0-9eE\".+-]+)/${1}100000.0     uJy/g' \
+       | perl -p -e 's/([ ]*fK[ ]+)([0-9eE\".+-]+)/${1}2.15    mJy/g' \
+       | perl -p -e 's/([ ]*fch1[ ]+)([0-9eE\".+-]+)/${1}3.6     mJy/g' \
+       | perl -p -e 's/([ ]*fch2[ ]+)([0-9eE\".+-]+)/${1}4.5     mJy/g' \
+       | perl -p -e 's/([ ]*fch3[ ]+)([0-9eE\".+-]+)/${1}5.8     mJy/g' \
+       | perl -p -e 's/([ ]*fch4[ ]+)([0-9eE\".+-]+)/${1}8.0     mJy/g' \
+       | perl -p -e 's/([ ]*f16[ ]+)([0-9eE\".+-]+)/${1}16.0    mJy/g' \
+       | perl -p -e 's/([ ]*f24[ ]+)([0-9eE\".+-]+)/${1}24.0    mJy/g' \
+       | perl -p -e 's/([ ]*f1160[ ]+)([0-9eE\".+-]+)/${1}1160.0    mJy/g' \
+       | perl -p -e 's/([ ]*f20cm[ ]+)([0-9eE\".+-]+)/${1}2.14e5    mJy/g' \
        | perl -p -e 's/([ ]*FLUX_IRAC1[ ]+)([0-9eE\".+-]+)/${1}3.6     mJy/g' \
        | perl -p -e 's/([ ]*FLUX_IRAC2[ ]+)([0-9eE\".+-]+)/${1}4.5     mJy/g' \
        | perl -p -e 's/([ ]*FLUX_IRAC3[ ]+)([0-9eE\".+-]+)/${1}5.8     mJy/g' \

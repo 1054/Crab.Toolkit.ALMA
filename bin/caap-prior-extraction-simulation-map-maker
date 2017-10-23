@@ -2,7 +2,40 @@
 # 
 
 
-echo "See"
-echo "    "
-echo "    caap-full-galaxy-modelling-map-maker"
-echo "    "
+# 
+# Usage
+# 
+function Usage() {
+    echo "Usage: "
+    echo "    caap-prior-extraction-simulation-map-maker -gal Cosmological_Galaxy_Modelling_for_COSMOS \\"
+    echo "                                               -sci XXX.fits \\"
+    echo "                                               -psf XXX.fits \\"
+    echo "                                               -res XXX.fits \\"
+    echo "                                               -w XXX \\"
+    echo "                                               -z XXX \\"
+    echo "                                               -lgMstar XXX \\"
+    echo "                                               -Type-SED XXX \\"
+    echo "                                               -out output_directory"
+    echo ""
+}
+
+if [[ $# -eq 0 ]]; then
+    Usage; exit
+fi
+
+
+# 
+# Source necessary software dependency
+# 
+
+
+
+#echo "See"
+#echo "    "
+#echo "    caap-full-galaxy-modelling-map-maker"
+#echo "    "
+
+
+$(dirname ${BASH_SOURCE[0]})/caap-full-galaxy-modelling-map-maker "$@"
+
+
