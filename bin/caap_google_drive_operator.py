@@ -49,7 +49,7 @@ class CAAP_Google_Drive_Operator(object):
         if not os.path.exists(self.credential_dir):
             os.makedirs(self.credential_dir)
         if not os.path.exists(self.credential_file):
-            print('Error! Key "%s" was not found! Please ask A3COSMOS for the "Key_for_Google_Drive_from_A3COSMOS.json"!'%(os.makedirs(self.credential_file)))
+            print('Error! Key "%s" was not found! Please ask A3COSMOS for the "Key_for_Google_Drive_from_A3COSMOS.json"!'%(self.credential_file))
             sys.exit()
         if not os.path.exists(self.credential_file+'.ok'):
             self.credential_store = Storage(self.credential_file)

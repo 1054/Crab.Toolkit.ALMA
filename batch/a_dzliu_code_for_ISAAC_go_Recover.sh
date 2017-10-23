@@ -2,7 +2,7 @@
 # 
 
 # check host
-if [[ $(uname -a) != *"ISAAC"* ]] && [[ " $@ " != *" test "* ]]; then
+if [[ $(uname -a) != "Linux isaac"* ]] && [[ " $@ " != *" test "* ]]; then
     echo "This code can only be ran on ISAAC machine!"
     exit
 fi
@@ -32,7 +32,7 @@ fi
 Input_z=("1.000" "2.000" "3.000" "4.000" "5.000" "6.000")
 Input_lgMstar=("09.00" "09.50" "10.00" "10.50" "11.00" "11.50" "12.00")
 Input_Type_SED=("MS" "SB")
-Input_Galaxy_Modelling_Dir='$HOME/Work/AlmaCosmos/Simulation/Cosmological_Galaxy_Modelling_for_COSMOS/'
+Input_Galaxy_Modelling_Dir="$HOME/Work/AlmaCosmos/Simulation/Cosmological_Galaxy_Modelling_for_COSMOS/"
 if [[ " $@ " == *" test "* ]]; then
 Input_z=("5.000")
 Input_lgMstar=("11.00")

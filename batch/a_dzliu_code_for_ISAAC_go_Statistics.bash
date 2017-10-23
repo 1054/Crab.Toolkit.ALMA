@@ -2,7 +2,7 @@
 # 
 
 # check host
-if [[ $(uname -a) != *"ISAAC"* ]] && [[ " $@ " != *" test "* ]]; then
+if [[ $(uname -a) != *"Linux isaac"* ]] && [[ " $@ " != *" test "* ]]; then
     echo "This code can only be ran on ISAAC machine!"
     exit
 fi
