@@ -51,9 +51,11 @@ from astropy.io import fits
 import matplotlib
 import platform
 if platform.system() == 'Darwin':
-    matplotlib.use('Qt5Agg')
-else:
+    matplotlib.use('Qt5Agg') # must before import pyplot
+elif os.getenv('DISPLAY') != None:
     matplotlib.use('TkAgg') # must before import pyplot
+else:
+    matplotlib.use('Agg') # must before import pyplot
 import matplotlib.pyplot as pl
 import matplotlib.mlab as mlab
 from matplotlib.colors import LogNorm

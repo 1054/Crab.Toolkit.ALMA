@@ -215,6 +215,8 @@ calc_asymmetric_scatters 01
         set asym_bin_array = $1
         vecminmax asym_bin_array asym_bin_array_min asym_bin_array_max
         stats asym_bin_array asym_bin_array_mean asym_bin_array_sigma asym_bin_array_kurtosis
+        set asym_bin_array_clipped = asym_bin_array if(abs(asym_bin_array-$asym_bin_array_mean)<=1.0*$asym_bin_array_sigma)
+        stats asym_bin_array_clipped asym_bin_array_clipped_mean asym_bin_array_clipped_sigma asym_bin_array_clipped_kurtosis
         if($asym_bin_array_min < $asym_bin_array_max) {
             set asym_bin_k = 0.0
             set asym_bin_scatter_H68 = 0.0
@@ -223,7 +225,7 @@ calc_asymmetric_scatters 01
                     set asym_bin_scatter_H68 = asym_bin_k
                     break
                 }
-                set asym_bin_k = asym_bin_k + abs($asym_bin_array_sigma)/100.0
+                set asym_bin_k = asym_bin_k + abs($asym_bin_array_clipped_sigma)/10.0
             }
             # 
             set asym_bin_k = 0.0
@@ -233,7 +235,7 @@ calc_asymmetric_scatters 01
                     set asym_bin_scatter_L68 = abs(asym_bin_k)
                     break
                 }
-                set asym_bin_k = asym_bin_k - abs($asym_bin_array_sigma)/100.0
+                set asym_bin_k = asym_bin_k - abs($asym_bin_array_clipped_sigma)/10.0
             }
         }
     }
@@ -300,12 +302,12 @@ go_calc_bin_scatter 03
             #vecminmax yBinArray2 yBinArray2Min yBinArray2Max
             #vecminmax zBinArray2 zBinArray2Min zBinArray2Max
             #echo Bin range $(xBinEdges[$i-1]) $(xBinEdges[$i]), yBinArray2 Min $yBinArray2Min Max $yBinArray2Max
-            #set yBinArray3 = yBinArray2 if(abs(yBinArray2-$yBinMean2)<20.0*$yBinSigma2)
+            #set yBinArray3 = yBinArray2 if(abs(yBinArray2-$yBinMean2)<20.0*$yBinSigma2) # doClip
             calc_asymmetric_scatters yBinArray2
             set yBinErrHi = yBinErrHi concat asym_bin_scatter_H68
             set yBinErrLo = yBinErrLo concat asym_bin_scatter_L68
             # 
-            #set zBinArray3 = zBinArray2 if(abs(zBinArray2-$zBinMean2)<20.0*$zBinSigma2)
+            #set zBinArray3 = zBinArray2 if(abs(zBinArray2-$zBinMean2)<20.0*$zBinSigma2) # doClip
             calc_asymmetric_scatters zBinArray2
             set zBinErrHi = zBinErrHi concat asym_bin_scatter_H68
             set zBinErrLo = zBinErrLo concat asym_bin_scatter_L68

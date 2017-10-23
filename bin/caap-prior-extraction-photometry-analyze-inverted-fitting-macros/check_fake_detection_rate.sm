@@ -1,0 +1,97 @@
+check_fake_detection_rate
+    # 
+    # Usage:
+    #   echo "macro read check_fake_detection_rate.sm check_fake_detection_rate" | sm
+    # 
+    load crabPlot.sm
+    load vecSNR.sm
+    load rfile.sm
+    
+    # Read real prior extraction photometry results
+    rfile "Input_photometry_on_original_image.txt"
+    
+    set pb_corr_2 = pb_corr
+    set snr_fit_2 = lg(snr_peak)
+    set image_file_2 = image_file
+    
+    rfile "Input_photometry_on_inverted_image.txt"
+    
+    set pb_corr_n2 = pb_corr
+    set snr_fit_n2 = lg(snr_peak)
+    set image_file_n2 = image_file
+    
+    # 
+    # Exclude problematic images and fitted results
+    # 
+    set excl_fit_n2 = (pb_corr_n2>5)
+    set excl_fit_2 = (pb_corr_2>5)
+    # 
+    foreach var {snr_fit_n2} {
+        set $var = $var if(!excl_fit_n2)
+    }
+    foreach var {snr_fit_2} {
+        set $var = $var if(!excl_fit_2)
+    }
+    
+    # 
+    # Get histogram
+    # 
+    get_hist snr_fit_2 snr_fit_2_value snr_fit_2_count 0.0 60.0 0.025
+    get_hist snr_fit_n2 snr_fit_n2_value snr_fit_n2_count 0.0 60.0 0.025
+    
+    echo dimen(snr_fit_2) = $(dimen(snr_fit_2))
+    echo dimen(snr_fit_n2) = $(dimen(snr_fit_n2))
+    echo sum(snr_fit_2>5) = $(sum(snr_fit_2>lg(5)))
+    echo sum(snr_fit_n2>5) = $(sum(snr_fit_n2>lg(5)))
+    #set snr_fit_n2_count = snr_fit_n2_count / dimen(snr_fit_n2) * dimen(snr_fit_2)
+    #set snr_fit_n2_count = int(snr_fit_n2_count)
+    
+    set snr_value = snr_fit_2_value
+    
+    set fake_rate_differential = snr_fit_n2_count * 0.0 
+    do i=0,dimen(fake_rate_differential)-1 {
+        if(snr_fit_n2_count[$i]>0 || snr_fit_2_count[$i]>0) {
+            echo bin $i real $(snr_fit_2_count[$i]) fake $(snr_fit_n2_count[$i])
+            set fake_rate_differential[$i] = snr_fit_n2_count[$i] / (snr_fit_2_count[$i]) * 100.0
+        }
+    }
+    set fake_rate_cumulative = snr_fit_n2_count * 0.0 
+    do i=0,dimen(fake_rate_cumulative)-1 {
+        # fake rate for S/N greater than some limit
+        set ilist = $i,dimen(fake_rate_cumulative)-1
+        if(sum(snr_fit_n2_count[ilist]+snr_fit_2_count[ilist])>0) {
+            set fake_rate_cumulative[$i] = sum(snr_fit_n2_count[ilist]) / sum(snr_fit_2_count[ilist]) * 100.0
+        }
+    }
+    
+    crabPlotOpenPS "Plot_Fake_Detection_Rate.eps"
+    crabPlotDefaultPenForBox
+    location 6500 31000 14500 28000
+    limits $(lg(1)) $(lg(30)) -1 109
+    ticksize -1 1 1 10
+    box
+    crabPlotDefaultPenForTitle
+    xlabel "S/N"
+    ylabel "Fake Detection Rate [%]"
+    crabPlotDefaultPenForConnect
+    lweight 4.5
+    histogram snr_value fake_rate_differential
+    ctype red ltype 1 lweight 6.5
+    histogram snr_value fake_rate_cumulative
+    
+    crabPlotDefaultPenForLegend
+    set _crabPlot_legend_px = 0.56
+    set _crabPlot_legend_py = 0.90
+    set _crabPlot_legend_pt = 3.5
+    set _crabPlot_legend_ps = 1.45
+    set _crabPlot_legend_dy = 0.09
+    ctype blue crabPlotLegend "Blue: differential"
+    ctype red crabPlotLegend "Red: cumulative"
+    
+    print "Table_Fake_Detection_Rate.txt" '%15g %25g %25g\n' {snr_value fake_rate_differential fake_rate_cumulative}
+    
+    crabPlotClosePS
+    !rm "Plot_Fake_Detection_Rate.{pdfmarks,pdfconverts,eps}"
+    !open "Plot_Fake_Detection_Rate.pdf"
+
+
