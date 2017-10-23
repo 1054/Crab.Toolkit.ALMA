@@ -2,7 +2,7 @@
 #SBATCH --mail-user=dzliu@mpia-hd.mpg.de
 #SBATCH --mail-type=ALL
 #SBATCH --time=24:00:00
-#SBATCH --mem=1000
+#SBATCH --mem=4000
 #SBATCH --cpus-per-task=1
 #SBATCH --output=log_job_array_JOB_ID_%A_TASK_ID_%a.out
 
@@ -14,7 +14,7 @@
 echo "Hostname: "$(/bin/hostname)
 echo "PWD: "$(/bin/pwd -P)
 echo "SLURM_JOBID: "$SLURM_JOBID
-echo "SLURM_JOB_NODELIST :"$SLURM_JOB_NODELIST
+echo "SLURM_JOB_NODELIST: "$SLURM_JOB_NODELIST
 echo "SLURM_NNODES: "$SLURM_NNODES
 echo "SLURM_ARRAY_TASK_ID: "$SLURM_ARRAY_TASK_ID
 echo "SLURM_ARRAY_JOB_ID: "$SLURM_ARRAY_JOB_ID
@@ -36,6 +36,11 @@ fi
 
 if [[ ! -f ~/Cloud/Github/Crab.Toolkit.CAAP/SETUP.bash ]]; then
     echo "Error! \"~/Cloud/Github/Crab.Toolkit.CAAP/SETUP.bash\" was not found! Please clone to there from \"https://github.com/1054/Crab.Toolkit.CAAP\"!"
+    exit 1
+fi
+
+if [[ ! -d ~/Work/AlmaCosmos/Photometry/ALMA_full_archive/Simulation_by_Daizhong/ ]]; then
+    echo "Error! \"~/Work/AlmaCosmos/Photometry/ALMA_full_archive/Simulation_by_Daizhong/\" was not found! Please create that directory then run this code again!"
     exit 1
 fi
 
@@ -99,6 +104,7 @@ for (( i=0; i<${#FitsNames[@]}; i++ )); do
     
     # check previous output
     if [[ -f "Simulated/$FitsName/done" ]]; then
+        echo "Found \"Simulated/$FitsName/done\"! Skip and continue!"
         continue
     fi
     

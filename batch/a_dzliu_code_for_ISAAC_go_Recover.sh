@@ -2,7 +2,7 @@
 #SBATCH --mail-user=dzliu@mpia-hd.mpg.de
 #SBATCH --mail-type=ALL
 #SBATCH --time=24:00:00
-#SBATCH --mem=1000
+#SBATCH --mem=4000
 #SBATCH --cpus-per-task=1
 #SBATCH --output=log_job_array_JOB_ID_%A_TASK_ID_%a.out
 
@@ -14,7 +14,7 @@
 echo "Hostname: "$(/bin/hostname)
 echo "PWD: "$(/bin/pwd -P)
 echo "SLURM_JOBID: "$SLURM_JOBID
-echo "SLURM_JOB_NODELIST :"$SLURM_JOB_NODELIST
+echo "SLURM_JOB_NODELIST: "$SLURM_JOB_NODELIST
 echo "SLURM_NNODES: "$SLURM_NNODES
 echo "SLURM_ARRAY_TASK_ID: "$SLURM_ARRAY_TASK_ID
 echo "SLURM_ARRAY_JOB_ID: "$SLURM_ARRAY_JOB_ID
@@ -26,7 +26,7 @@ echo "SLURM_SUBMIT_DIR: "$SLURM_SUBMIT_DIR
 # check host and other dependencies
 if [[ $(uname -a) != "Linux isaac"* ]] && [[ " $@ " != *" test "* ]]; then
     echo "This code can only be ran on ISAAC machine!"
-    exit
+    exit 1
 fi
 
 if [[ ! -f ~/Cloud/Github/DeepFields.SuperDeblending/Softwares/SETUP ]]; then
@@ -39,6 +39,11 @@ if [[ ! -f ~/Cloud/Github/Crab.Toolkit.CAAP/SETUP.bash ]]; then
     exit 1
 fi
 
+if [[ ! -d ~/Work/AlmaCosmos/Photometry/ALMA_full_archive/Simulation_by_Daizhong/ ]]; then
+    echo "Error! \"~/Work/AlmaCosmos/Photometry/ALMA_full_archive/Simulation_by_Daizhong/\" was not found! Please create that directory then run this code again!"
+    exit 1
+fi
+
 cd ~/Work/AlmaCosmos/Photometry/ALMA_full_archive/Simulation_by_Daizhong/
 source ~/Cloud/Github/DeepFields.SuperDeblending/Softwares/SETUP
 source ~/Cloud/Github/Crab.Toolkit.CAAP/SETUP.bash
@@ -46,7 +51,7 @@ script_dir=~/Cloud/Github/Crab.Toolkit.CAAP/batch
 
 if [[ $(type getpix 2>/dev/null | wc -l) -eq 0 ]]; then
     echo "Error! WCSTOOLS was not installed or loaded?"
-    exit
+    exit 1
 fi
 
 if [[ $(type pip 2>/dev/null | wc -l) -eq 0 ]]; then
@@ -55,12 +60,12 @@ fi
 
 if [[ ! -f "list_projects.txt" ]]; then
     echo "Error! \"list_projects.txt\" was not found under current directory!"
-    exit
+    exit 1
 fi
 
 if [[ ! -f "$script_dir/a_dzliu_code_for_Google_Drive_download_Data.py" ]]; then
     echo "Error! \"$script_dir/a_dzliu_code_for_Google_Drive_download_Data.py\" was not found!"
-    exit
+    exit 1
 fi
 
 
