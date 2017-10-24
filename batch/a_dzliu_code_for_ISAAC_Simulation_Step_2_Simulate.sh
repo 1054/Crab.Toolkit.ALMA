@@ -8,7 +8,7 @@
 
 # 
 # to run this script in Slurm job array mode
-# sbatch --array=1-1%1 -N1 ~/Cloud/Github/Crab.Toolkit.CAAP/batch/a_dzliu_code_for_ISAAC_go_Simulate.sh
+# sbatch --array=1-1%1 -N1 ~/Cloud/Github/Crab.Toolkit.CAAP/batch/a_dzliu_code_for_ISAAC_Simulation_Step_2_Simulate.sh
 # 
 
 echo "Hostname: "$(/bin/hostname)

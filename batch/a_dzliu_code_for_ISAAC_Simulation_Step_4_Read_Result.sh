@@ -2,13 +2,13 @@
 #SBATCH --mail-user=dzliu@mpia-hd.mpg.de
 #SBATCH --mail-type=FAIL # Mail events (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --time=24:00:00
-#SBATCH --mem=4000
+#SBATCH --mem=2000
 #SBATCH --cpus-per-task=1
 #SBATCH --output=log_job_array_TASK_ID_%a_JOB_ID_%A.out
 
 # 
 # to run this script in Slurm job array mode
-# sbatch --array=1-120%5 -N1 ~/Cloud/Github/Crab.Toolkit.CAAP/batch/a_dzliu_code_for_ISAAC_go_Recover.sh
+# sbatch --array=1-120%5 -N1 ~/Cloud/Github/Crab.Toolkit.CAAP/batch/a_dzliu_code_for_ISAAC_Simulation_Step_4_Read_Result.sh
 # 
 
 echo "Hostname: "$(/bin/hostname)
@@ -164,23 +164,6 @@ for (( i=0; i<${#FitsNames[@]}; i++ )); do
                             echo "rm -r \"Read_Results_of_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}\" 2>/dev/null"
                             echo ""
                             rm -r "Read_Results_of_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}" 2>/dev/null
-                        fi
-                    fi
-                    
-                    # Run caap-prior-extraction-photometry
-                    if [[ ! -d "Read_Results_of_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}" ]]; then
-                        # 
-                        echo "caap-prior-extraction-photometry \\"
-                        echo "    -out \"w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}\""
-                        # 
-                        if [[ ! -d "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}" ]]; then
-                            caap-prior-extraction-photometry \
-                                -cat "../../Simulated/$FitsName/w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/galaxy_model_id_ra_dec.txt" \
-                                -sci "../../Simulated/$FitsName/w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/image_sim.fits" \
-                                -out                           "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}"
-                        else
-                            caap-prior-extraction-photometry \
-                                -out                           "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}"
                         fi
                     fi
                     

@@ -1,14 +1,14 @@
 #!/bin/bash
 #SBATCH --mail-user=dzliu@mpia-hd.mpg.de
 #SBATCH --mail-type=FAIL # Mail events (NONE, BEGIN, END, FAIL, ALL)
-#SBATCH --time=24:00:00
+#SBATCH --time=72:00:00
 #SBATCH --mem=4000
-#SBATCH --cpus-per-task=1
+#SBATCH --cpus-per-task=30
 #SBATCH --output=log_job_array_TASK_ID_%a_JOB_ID_%A.out
 
 # 
 # to run this script in Slurm job array mode
-# sbatch --array=1-120%5 -N1 ~/Cloud/Github/Crab.Toolkit.CAAP/batch/a_dzliu_code_for_ISAAC_go_Recover.sh
+# sbatch --array=1-120%5 -N1 ~/Cloud/Github/Crab.Toolkit.CAAP/batch/a_dzliu_code_for_ISAAC_Simulation_Step_3_Recover.sh
 # 
 
 echo "Hostname: "$(/bin/hostname)
@@ -168,7 +168,7 @@ for (( i=0; i<${#FitsNames[@]}; i++ )); do
                     fi
                     
                     # Run caap-prior-extraction-photometry
-                    if [[ ! -d "Read_Results_of_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}" ]]; then
+                    if [[ ! -d "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}" ]]; then
                         # 
                         echo "caap-prior-extraction-photometry \\"
                         echo "    -out \"w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}\""
@@ -177,58 +177,28 @@ for (( i=0; i<${#FitsNames[@]}; i++ )); do
                             caap-prior-extraction-photometry \
                                 -cat "../../Simulated/$FitsName/w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/galaxy_model_id_ra_dec.txt" \
                                 -sci "../../Simulated/$FitsName/w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/image_sim.fits" \
-                                -out                           "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}"
+                                -out                           "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}" \
+                                &
                         else
                             caap-prior-extraction-photometry \
-                                -out                           "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}"
+                                -out                           "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}" \
+                                &
                         fi
-                    fi
-                    
-                    # Read results, output files are "Read_Results_of_XXX/{Output_getpix.txt,Output_galfit_Gaussian.txt}"
-                    if [[ ! -d "Read_Results_of_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}" ]] || \
-                       [[ ! -f "Read_Results_of_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/Output_getpix.txt" ]]; then
-                        caap-prior-extraction-photometry-read-results \
-                                                           "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}"
-                    fi
-                    
-                    # Concat results, output files are "Read_Results_of_XXX/{Output_getpix.txt,Output_galfit_Gaussian.txt}"
-                    if [[ -f "Read_Results_of_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/Output_getpix.txt" ]]; then
-                        if [[ $(uname) == Darwin ]]; then
-                            xargs_command="gxargs"
-                        else
-                            xargs_command="xargs"
-                        fi
-                        if [[ ! -f "datatable_Recovered_getpix.txt" ]]; then
-                            head -n 1 "Read_Results_of_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/Output_getpix.txt" \
-                                | $xargs_command -d '\n' -I % echo "%        image_dir" \
-                                > "datatable_Recovered_getpix.txt"
-                        fi
-                        echo "Reading \"Read_Results_of_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/Output_getpix.txt\""
-                        tail -n +3 "Read_Results_of_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/Output_getpix.txt" \
-                            | $xargs_command -d '\n' -I % echo "%        w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}" \
-                            >> "datatable_Recovered_getpix.txt"
-                    else
-                        echo "Warning! \"Read_Results_of_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/Output_getpix.txt\" was not found! ******"
-                    fi
-                    if [[ -f "Read_Results_of_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/Output_galfit_Gaussian.txt" ]]; then
-                        if [[ ! -f "datatable_Recovered_galfit.txt" ]]; then
-                            head -n 1 "Read_Results_of_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/Output_galfit_Gaussian.txt" \
-                                | $xargs_command -d '\n' -I % echo "%        image_dir" \
-                                > "datatable_Recovered_galfit.txt"
-                        fi
-                        echo "Reading \"Read_Results_of_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/Output_galfit_Gaussian.txt\""
-                        tail -n +3 "Read_Results_of_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/Output_galfit_Gaussian.txt" \
-                            | $xargs_command -d '\n' -I % echo "%        w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}" \
-                            >> "datatable_Recovered_galfit.txt"
-                    else
-                        echo "Warning! \"Read_Results_of_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/Output_galfit_Gaussian.txt\" was not found! ******"
+                        sleep 5
                     fi
                 done
             done
+            
+            wait
+            
         done
     done
     
     cd "../../"
     #break
 done
+
+
+
+
 

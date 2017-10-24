@@ -244,7 +244,7 @@ if [[ ! -f "$Sim_gal_dir/image_center_radec.txt" || 1 == 1 ]]; then
     image_NAXIS1=$(gethead "$Sim_gal_dir/image_sci.fits" NAXIS1)
     image_NAXIS2=$(gethead "$Sim_gal_dir/image_sci.fits" NAXIS2)
     echo xy2sky -d -n 10 "$Sim_gal_dir/image_sci.fits" $(awk "BEGIN {print ($image_NAXIS1+1)/2.0;}") $(awk "BEGIN {print ($image_NAXIS2+1)/2.0;}")
-    xy2sky -d -n 10 "$Sim_gal_dir/image_sci.fits" $(awk "BEGIN {print ($image_NAXIS1+1)/2.0;}") $(awk "BEGIN {print ($image_NAXIS2+1)/2.0;}") | tr -s ' ' | cut -d ' ' -f 1,2 > "$Sim_gal_dir/image_center_radec.txt"
+    xy2sky -d -n 10 "$Sim_gal_dir/image_sci.fits" $(awk "BEGIN {print ($image_NAXIS1+1)/2.0;}") $(awk "BEGIN {print ($image_NAXIS2+1)/2.0;}") | sed -e 's/^ *//g' | tr -s ' ' | cut -d ' ' -f 1,2 > "$Sim_gal_dir/image_center_radec.txt"
 fi
 
 
