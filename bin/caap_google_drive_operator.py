@@ -20,6 +20,7 @@ from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
 from oauth2client.service_account import ServiceAccountCredentials
+from datetime import datetime
 
 #try:
 #    import argparse
@@ -39,7 +40,7 @@ class CAAP_Google_Drive_Operator(object):
         #self.credential_file = os.path.join(self.credential_dir, 'CAAP Google Drive Operator-e11311ed8811.json') # rw but not added to member list on Team Drive
         self.credential_file = os.path.join(self.credential_dir, 'CAAP Google Drive Operator-93fcdd7331f1.json') # r
         self.client_email = 'a3cosmos-readonly@a3cosmos-team-drive-operator.iam.gserviceaccount.com'
-        self.quota_user = 'a3cosmos-readonly'
+        self.quota_user = 'a3cosmos-readonly-'+datetime.today().strftime('%Y%m%d-%H%M%S.%f')
         self.credential_store = None
         self.application_name = 'CAAP Google Drive Operator'
         self.credential = None
@@ -85,7 +86,7 @@ class CAAP_Google_Drive_Operator(object):
     def print_files_in_drive(self):
         if self.service:
             results = self.service.files().list(pageSize=30, 
-                                                fields="nextPageToken, files(id, name, mimeType, parents, md5Checksum)", 
+                                                fields="nextPageToken, files(id, name, size, mimeType, parents, md5Checksum)", 
                                                 quotaUser=self.quota_user
                                                 ).execute()
             items = results.get('files', [])
@@ -142,7 +143,7 @@ class CAAP_Google_Drive_Operator(object):
                     query = self.service.files().get(
                                                         fileId=item_id, 
                                                         supportsTeamDrives=True, 
-                                                        fields="id, name, mimeType, parents, md5Checksum", 
+                                                        fields="id, name, size, mimeType, parents, md5Checksum", 
                                                         quotaUser=self.quota_user
                                                     ).execute()
                     #print(query)
@@ -217,7 +218,7 @@ class CAAP_Google_Drive_Operator(object):
                                                         includeTeamDriveItems=True, 
                                                         teamDriveId=self.team_drive['id'], 
                                                         corpora='teamDrive', 
-                                                        fields='nextPageToken, files(id, name, mimeType, parents, md5Checksum)', 
+                                                        fields='nextPageToken, files(id, name, size, mimeType, parents, md5Checksum)', 
                                                         pageSize=10, 
                                                         pageToken=token, 
                                                         quotaUser=self.quota_user
@@ -322,7 +323,7 @@ class CAAP_Google_Drive_Operator(object):
                                                         includeTeamDriveItems=True, 
                                                         teamDriveId=self.team_drive['id'], 
                                                         corpora='teamDrive', 
-                                                        fields='nextPageToken, files(id, name, mimeType, parents, md5Checksum)', 
+                                                        fields='nextPageToken, files(id, name, size, mimeType, parents, md5Checksum)', 
                                                         pageSize=10, 
                                                         pageToken=token, 
                                                         quotaUser=self.quota_user
@@ -403,7 +404,7 @@ class CAAP_Google_Drive_Operator(object):
                                                         includeTeamDriveItems=True, 
                                                         teamDriveId=self.team_drive['id'], 
                                                         corpora='teamDrive', 
-                                                        fields='nextPageToken, files(id, name, mimeType, parents, md5Checksum)', 
+                                                        fields='nextPageToken, files(id, name, size, mimeType, parents, md5Checksum)', 
                                                         pageSize=100, 
                                                         pageToken=token, 
                                                         quotaUser=self.quota_user
@@ -463,7 +464,7 @@ class CAAP_Google_Drive_Operator(object):
                                                         includeTeamDriveItems=True, 
                                                         teamDriveId=self.team_drive['id'], 
                                                         corpora='teamDrive', 
-                                                        fields='nextPageToken, files(id, name, mimeType, parents, md5Checksum)', 
+                                                        fields='nextPageToken, files(id, name, size, mimeType, parents, md5Checksum)', 
                                                         pageSize=100, 
                                                         pageToken=token, 
                                                         quotaUser=self.quota_user
@@ -499,6 +500,16 @@ class CAAP_Google_Drive_Operator(object):
                 while done is False:
                     status, done = downloader.next_chunk()
                     print('Downloading "%s" (%.0f%%)' % (file_resource.get('name'), status.progress()*100.0))
+                # verify downloaded file
+                if done:
+                    file_size = file_resource.get('size')
+                    file_size_downloaded = os.path.getsize(file_resource.get('name'))
+                    print('Checking file size %s and downloaded size %s'%(file_size, file_size_downloaded))
+                    if long(file_size_downloaded) != long(file_size):
+                        print('Error! File size %s is different from the downloaded size %s! Delete the failed download and please re-try!'%(file_size, file_size_downloaded))
+                        os.system('rm "%s"'%(file_resource.get('name')))
+                    else:
+                        print('OK!')
 
 
 
