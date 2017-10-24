@@ -108,6 +108,13 @@ for (( i=0; i<${#FitsNames[@]}; i++ )); do
         continue
     fi
     
+    # check non-COSMOS fields
+    if [[ "$FitsName" == *"2011.0.00539.S_SB1_GB1_MB1_ECDFS02_field3_sci.spw0_1_2_3"* ]] || \
+        [[ "$FitsName" == *"2011.0.00539.S_SB1_GB1_MB2_ELS01_field2_sci.spw0_1_2_3"* ]] || \; then
+        echo "Warning! \"$FitsName\" is a non-COSMOS field! Skip and continue!"
+        continue
+    fi
+    
     # check input image
     for file_to_download in \
         "Photometry/ALMA_full_archive/Blind_Extraction_by_Benjamin/20170930/Output_Residual_Images/$FitsName.cont.I.residual.fits" \
