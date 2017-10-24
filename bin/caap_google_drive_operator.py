@@ -21,6 +21,7 @@ from oauth2client import tools
 from oauth2client.file import Storage
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
+import time
 
 #try:
 #    import argparse
@@ -85,6 +86,7 @@ class CAAP_Google_Drive_Operator(object):
     # 
     def print_files_in_drive(self):
         if self.service:
+            time.sleep(0.15) # Google Drive has a limit of 10 query per second per user
             results = self.service.files().list(pageSize=30, 
                                                 fields="nextPageToken, files(id, name, size, mimeType, parents, md5Checksum)", 
                                                 quotaUser=self.quota_user
@@ -106,6 +108,7 @@ class CAAP_Google_Drive_Operator(object):
             token = None
             while True:
                 try:
+                    time.sleep(0.15) # Google Drive has a limit of 10 query per second per user
                     query = self.service.teamdrives().list(pageSize=1, 
                                                             pageToken=token, 
                                                             quotaUser=self.quota_user
@@ -140,6 +143,7 @@ class CAAP_Google_Drive_Operator(object):
             while item_id is not None:
                 # 
                 try:
+                    time.sleep(0.15) # Google Drive has a limit of 10 query per second per user
                     query = self.service.files().get(
                                                         fileId=item_id, 
                                                         supportsTeamDrives=True, 
@@ -212,6 +216,7 @@ class CAAP_Google_Drive_Operator(object):
             token = None
             while True:
                 try:
+                    time.sleep(0.15) # Google Drive has a limit of 10 query per second per user
                     query = self.service.files().list(
                                                         q=query_str, 
                                                         supportsTeamDrives=True, 
@@ -317,6 +322,7 @@ class CAAP_Google_Drive_Operator(object):
             token = None
             while True:
                 try:
+                    time.sleep(0.15) # Google Drive has a limit of 10 query per second per user
                     query = self.service.files().list(
                                                         q=query_str, 
                                                         supportsTeamDrives=True, 
@@ -398,6 +404,7 @@ class CAAP_Google_Drive_Operator(object):
             token = None
             while True:
                 try:
+                    time.sleep(0.15) # Google Drive has a limit of 10 query per second per user
                     query = self.service.files().list(
                                                         q=query_str, 
                                                         supportsTeamDrives=True, 
@@ -458,6 +465,7 @@ class CAAP_Google_Drive_Operator(object):
             token = None
             while True:
                 try:
+                    time.sleep(0.15) # Google Drive has a limit of 10 query per second per user
                     query = self.service.files().list(
                                                         q=query_str, 
                                                         supportsTeamDrives=True, 
@@ -492,6 +500,7 @@ class CAAP_Google_Drive_Operator(object):
                 file_resources = [file_resources]
             for file_resource in file_resources:
                 file_id = file_resource.get('id')
+                time.sleep(0.15) # Google Drive has a limit of 10 query per second per user
                 request = self.service.files().get_media(fileId=file_id, quotaUser=self.quota_user)
                 #fh = io.BytesIO()
                 fh = io.FileIO(file_resource.get('name'), mode='wb')
