@@ -19,6 +19,16 @@ run_simu_stats_noegal 01
     load rfile.sm
     rfile $1
     
+    # add some variables 
+    #if(!is_vector(Area)) {
+    #    # Area is the source convolved area in unit of beam area
+    #    set Area = Xf*0.0 + 1.0
+    #}
+    #if(!is_vector(fres)) {
+    #    # fres is the abs(sum(residual_image_pixels_within_0.5_arcsec_aperture))
+    #    set fres = Xf*0.0 + 0.0
+    #}
+    
     define check_columns 1
     foreach var {id Xf f snr_total fpeak noise fres Maj Min Area sim_image_dir_STR fit_image_dir_STR sim_data_dir_STR} {
         if(!is_vector($var)) {
@@ -59,6 +69,16 @@ run_simu_stats_noegal 01
     echo ""
     
     
+    
+    # store uncorr0
+    set f_uncorr0 = f
+    set fpeak_uncorr0 = fpeak
+    set df_uncorr0 = df
+    set fpeakSNR_uncorr0 = fpeak/noise
+    set ftotalSNR_uncorr0 = f/df
+    
+    
+    
     # bin by Maj
     set Maj_BinEdges = {0.0 0.25 0.50 0.75 1.00 1.25 1.50 1.75 2.00 2.50 3.00 3.50 5.00}
     
@@ -74,20 +94,7 @@ run_simu_stats_noegal 01
     go_plot_bin_scatter "Maj" "(S_{in}-S_{out})"
     go_save_bin_scatter "Maj" "(S_{in}-S_{out})"
     
-    # correct by Maj
-    data $outdir"/Table_S_in_S_out_S_in_against_Maj.txt" read {X_Param 3 X_Bias 4 X_ScatterL68 6 X_ScatterH68 7}
-    spline X_Param X_Bias Maj Y_Bias
-    spline X_Param X_ScatterL68 Maj Y_ScatterL68
-    spline X_Param X_ScatterH68 Maj Y_ScatterH68
-    set fpeak = fpeak / (1 - Y_Bias)
-    set f = f / (1 - Y_Bias)
-    set Y_Scatter = (Y_ScatterL68>Y_ScatterH68) ? Y_ScatterL68 : Y_ScatterH68 
-    # (S_in - S_out) / S_in = Y_Scatter
-    # (S_in - S_out) / err = 1.0
-    # err / S_in = Y_Scatter
-    # assuming S_out = S_in
-    # so err = S_out * Y_Scatter
-    set df = f * Y_Scatter
+    go_corr_by_param Maj
     
     
     
@@ -108,29 +115,19 @@ run_simu_stats_noegal 01
     go_plot_bin_scatter "log peak SNR" "(S_{in}-S_{out})"
     go_save_bin_scatter "peak_SNR" "(S_{in}-S_{out})"
     
-    # correct by Maj
-    data $outdir"/Table_S_in_S_out_S_in_against_peak_SNR.txt" read {X_Param 3 X_Bias 4 X_ScatterL68 6 X_ScatterH68 7}
-    spline X_Param X_Bias fpeakSNR Y_Bias
-    spline X_Param X_ScatterL68 fpeakSNR Y_ScatterL68
-    spline X_Param X_ScatterH68 fpeakSNR Y_ScatterH68
-    set fpeak = fpeak / (1 - Y_Bias)
-    set f = f / (1 - Y_Bias)
-    set Y_Scatter = (Y_ScatterL68>Y_ScatterH68) ? Y_ScatterL68 : Y_ScatterH68 
-    # (S_in - S_out) / S_in = Y_Scatter
-    # (S_in - S_out) / err = 1.0
-    # err / S_in = Y_Scatter
-    # assuming S_out = S_in
-    # so err = S_out * Y_Scatter
-    set df = f * Y_Scatter
+    # correct by fpeakSNR
+    go_corr_by_param fpeakSNR
     
     
     
-    
-    # plot 
+    # bin by fpeakSNR and plot (S_{in}-S_{out,uncorr})/\sigma
+    go_calc_bin_scatter ((fpeakSNR_uncorr0)) ((Xf-f_uncorr0)/df_uncorr0) ((fpeakSNR_BinEdges))
+    go_plot_bin_scatter "log peak SNR (uncorr)" "(S_{in}-S_{out,uncorr})/\sigma_{uncorr}"
+    go_save_bin_scatter "peak_SNR_uncorr" "(S_{in}-S_{out,uncorr})/\sigma_{uncorr}"
     
     go_calc_bin_scatter ((fpeakSNR)) ((Xf-f)/df) ((fpeakSNR_BinEdges))
-    go_plot_bin_scatter "log peak SNR" "(S_{in}-S_{out})/\sigma"
-    go_save_bin_scatter "peak_SNR" "(S_{in}-S_{out})/\sigma"
+    go_plot_bin_scatter "log peak SNR (corr)" "(S_{in}-S_{out,corr})/\sigma_{corr}"
+    go_save_bin_scatter "peak_SNR_corr" "(S_{in}-S_{out,corr})/\sigma_{corr}"
     
     
     
@@ -139,38 +136,108 @@ run_simu_stats_noegal 01
     #set ftotalSNR_BinEdges = {2.0 2.5 3.0 3.5 4.0 4.5 5 6 7 8 9 10 20 100}
     set ftotalSNR_BinEdges = {2.0 2.5 3.0 3.5 4 5 7 10 20 100}
     
+    go_calc_bin_scatter ((ftotalSNR_uncorr0)) ((Xf-f_uncorr0)/Xf) ((ftotalSNR_BinEdges))
+    go_plot_bin_scatter "log total SNR (uncorr)" "(S_{in}-S_{out,uncorr})/S_{in}"
+    go_save_bin_scatter "total_SNR (uncorr)" "(S_{in}-S_{out,uncorr})/S_{in}"
+    
     go_calc_bin_scatter ((ftotalSNR)) ((Xf-f)/Xf) ((ftotalSNR_BinEdges))
-    go_plot_bin_scatter "log total SNR" "(S_{in}-S_{out})/S_{in}"
-    go_save_bin_scatter "total_SNR" "(S_{in}-S_{out})/S_{in}"
+    go_plot_bin_scatter "log total SNR (corr)" "(S_{in}-S_{out,corr})/S_{in}"
+    go_save_bin_scatter "total_SNR (corr)" "(S_{in}-S_{out,corr})/S_{in}"
+    
+    go_calc_bin_scatter ((ftotalSNR_uncorr0)) ((Xf-f_uncorr0)/f_uncorr0) ((ftotalSNR_BinEdges))
+    go_plot_bin_scatter "log total SNR (uncorr)" "(S_{in}-S_{out,uncorr})/S_{out,uncorr}"
+    go_save_bin_scatter "total_SNR (uncorr)" "(S_{in}-S_{out,uncorr})/S_{out,uncorr}"
     
     go_calc_bin_scatter ((ftotalSNR)) ((Xf-f)/f) ((ftotalSNR_BinEdges))
-    go_plot_bin_scatter "log total SNR" "(S_{in}-S_{out})/S_{out}"
-    go_save_bin_scatter "total_SNR" "(S_{in}-S_{out})/S_{out}"
+    go_plot_bin_scatter "log total SNR (corr)" "(S_{in}-S_{out,corr})/S_{out,corr}"
+    go_save_bin_scatter "total_SNR (corr)" "(S_{in}-S_{out,corr})/S_{out,corr}"
+    
+    go_calc_bin_scatter ((ftotalSNR_uncorr0)) ((Xf-f_uncorr0)) ((ftotalSNR_BinEdges))
+    go_plot_bin_scatter "log total SNR (uncorr)" "(S_{in}-S_{out,uncorr})"
+    go_save_bin_scatter "total_SNR (uncorr)" "(S_{in}-S_{out,uncorr})"
     
     go_calc_bin_scatter ((ftotalSNR)) ((Xf-f)) ((ftotalSNR_BinEdges))
-    go_plot_bin_scatter "log total SNR" "(S_{in}-S_{out})"
-    go_save_bin_scatter "total_SNR" "(S_{in}-S_{out})"
+    go_plot_bin_scatter "log total SNR (corr)" "(S_{in}-S_{out,corr})"
+    go_save_bin_scatter "total_SNR (corr)" "(S_{in}-S_{out,corr})"
     
     
     
     # bin by S_{in} and other parameters
-    #go_calc_bin_scatter (lg(Xf)) ((Xf-f))
-    #go_plot_bin_scatter "pow S_{in}" "(S_{in}-S_{out})"
-    #go_save_bin_scatter "pow S_{in}" "(S_{in}-S_{out})"
+    go_calc_bin_scatter (lg(Xf)) ((Xf-f))
+    go_plot_bin_scatter "pow S_{in}" "(S_{in}-S_{out,corr})"
+    go_save_bin_scatter "pow S_{in}" "(S_{in}-S_{out,corr})"
+    # 
+    go_calc_bin_scatter (lg(Xf)) ((Xf-f_uncorr0))
+    go_plot_bin_scatter "pow S_{in}" "(S_{in}-S_{out,uncorr})"
+    go_save_bin_scatter "pow S_{in}" "(S_{in}-S_{out,uncorr})"
+    # 
+    go_calc_bin_scatter (lg(f)) ((Xf-f))
+    go_plot_bin_scatter "pow S_{out,corr}" "(S_{in}-S_{out,corr})"
+    go_save_bin_scatter "pow S_{out,corr}" "(S_{in}-S_{out,corr})"
+    # 
+    go_calc_bin_scatter (lg(f_uncorr0)) ((Xf-f_uncorr0))
+    go_plot_bin_scatter "pow S_{out,uncorr}" "(S_{in}-S_{out,uncorr})"
+    go_save_bin_scatter "pow S_{out,uncorr}" "(S_{in}-S_{out,uncorr})"
     #
-    #go_calc_bin_scatter (lg(Xf)) ((Xf-f)/Xf)
-    #go_plot_bin_scatter "pow S_{in}" "(S_{in}-S_{out})/S_{in}"
-    #go_save_bin_scatter "pow S_{in}" "(S_{in}-S_{out})/S_{in}"
+    go_calc_bin_scatter (lg(Xf)) ((Xf-f)/Xf)
+    go_plot_bin_scatter "pow S_{in}" "(S_{in}-S_{out,corr})/S_{in}"
+    go_save_bin_scatter "pow S_{in}" "(S_{in}-S_{out,corr})/S_{in}"
+    #
+    go_calc_bin_scatter (lg(Xf)) ((Xf-f_uncorr0)/Xf)
+    go_plot_bin_scatter "pow S_{in}" "(S_{in}-S_{out,uncorr})/S_{out,uncorr}"
+    go_save_bin_scatter "pow S_{in}" "(S_{in}-S_{out,uncorr})/S_{out,uncorr}"
+    #
+    go_calc_bin_scatter (lg(f)) ((Xf-f)/Xf)
+    go_plot_bin_scatter "pow S_{out,corr}" "(S_{in}-S_{out,corr})/S_{in}"
+    go_save_bin_scatter "pow S_{out,corr}" "(S_{in}-S_{out,corr})/S_{in}"
+    #
+    go_calc_bin_scatter (lg(f_uncorr0)) ((Xf-f_uncorr0)/Xf)
+    go_plot_bin_scatter "pow S_{out,uncorr}" "(S_{in}-S_{out,uncorr})/S_{out,uncorr}"
+    go_save_bin_scatter "pow S_{out,uncorr}" "(S_{in}-S_{out,uncorr})/S_{out,uncorr}"
+    
+    # 
+    
+    set SinRMS_BinEdges = {1.0 2.0 3.0 4 6 10 30 100}
+    go_calc_bin_scatter ((Xf/noise)) ((Xf-f_uncorr0)/Xf) ((SinRMS_BinEdges))
+    go_plot_bin_scatter "log S_{in}/\sigma_{rms}" "(S_{in}-S_{out,uncorr})/S_{in}"
+    go_save_bin_scatter "log S_{in}/\sigma_{rms}" "(S_{in}-S_{out,uncorr})/S_{in}"
     
     set SinRMS_BinEdges = {1.0 2.0 3.0 4 6 10 30 100}
     go_calc_bin_scatter ((Xf/noise)) ((Xf-f)/Xf) ((SinRMS_BinEdges))
-    go_plot_bin_scatter "log S_{in}/\sigma_{rms}" "(S_{in}-S_{out})/S_{in}"
-    go_save_bin_scatter "log S_{in}/\sigma_{rms}" "(S_{in}-S_{out})/S_{in}"
+    go_plot_bin_scatter "log S_{in}/\sigma_{rms}" "(S_{in}-S_{out,corr})/S_{in}"
+    go_save_bin_scatter "log S_{in}/\sigma_{rms}" "(S_{in}-S_{out,corr})/S_{in}"
+    
+    set SoutRMS_BinEdges = {1.0 2.0 3.0 4 6 10 30 100}
+    go_calc_bin_scatter ((f_uncorr0/noise)) ((Xf-f_uncorr0)/Xf) ((SoutRMS_BinEdges))
+    go_plot_bin_scatter "log S_{out,uncorr}/\sigma_{rms}" "(S_{in}-S_{out,uncorr})/S_{in}"
+    go_save_bin_scatter "log S_{out,uncorr}/\sigma_{rms}" "(S_{in}-S_{out,uncorr})/S_{in}"
     
     set SoutRMS_BinEdges = {1.0 2.0 3.0 4 6 10 30 100}
     go_calc_bin_scatter ((f/noise)) ((Xf-f)/Xf) ((SoutRMS_BinEdges))
-    go_plot_bin_scatter "log S_{out}/\sigma_{rms}" "(S_{in}-S_{out})/S_{in}"
-    go_save_bin_scatter "log S_{out}/\sigma_{rms}" "(S_{in}-S_{out})/S_{in}"
+    go_plot_bin_scatter "log S_{out,corr}/\sigma_{rms}" "(S_{in}-S_{out,corr})/S_{in}"
+    go_save_bin_scatter "log S_{out,corr}/\sigma_{rms}" "(S_{in}-S_{out,corr})/S_{in}"
+    
+    # 
+    
+    set SinRMS_BinEdges = {1.0 2.0 3.0 4 6 10 30 100}
+    go_calc_bin_scatter ((Xf/noise)) ((Xf-f_uncorr0)) ((SinRMS_BinEdges))
+    go_plot_bin_scatter "log S_{in}/\sigma_{rms}" "(S_{in}-S_{out,uncorr})"
+    go_save_bin_scatter "log S_{in}/\sigma_{rms}" "(S_{in}-S_{out,uncorr})"
+    
+    set SinRMS_BinEdges = {1.0 2.0 3.0 4 6 10 30 100}
+    go_calc_bin_scatter ((Xf/noise)) ((Xf-f)) ((SinRMS_BinEdges))
+    go_plot_bin_scatter "log S_{in}/\sigma_{rms}" "(S_{in}-S_{out,corr})"
+    go_save_bin_scatter "log S_{in}/\sigma_{rms}" "(S_{in}-S_{out,corr})"
+    
+    set SoutRMS_BinEdges = {1.0 2.0 3.0 4 6 10 30 100}
+    go_calc_bin_scatter ((f_uncorr0/noise)) ((Xf-f_uncorr0)) ((SoutRMS_BinEdges))
+    go_plot_bin_scatter "log S_{out,uncorr}/\sigma_{rms}" "(S_{in}-S_{out,uncorr})"
+    go_save_bin_scatter "log S_{out,uncorr}/\sigma_{rms}" "(S_{in}-S_{out,uncorr})"
+    
+    set SoutRMS_BinEdges = {1.0 2.0 3.0 4 6 10 30 100}
+    go_calc_bin_scatter ((f/noise)) ((Xf-f)) ((SoutRMS_BinEdges))
+    go_plot_bin_scatter "log S_{out,corr}/\sigma_{rms}" "(S_{in}-S_{out,corr})"
+    go_save_bin_scatter "log S_{out,corr}/\sigma_{rms}" "(S_{in}-S_{out,corr})"
     
     #go_calc_bin_scatter (lg(f)) ((Xf-f)/f)
     #go_plot_bin_scatter "pow S_{out}" "(S_{in}-S_{out})/S_{out}"
@@ -281,7 +348,8 @@ go_calc_bin_scatter 03
             set yBinArray = yArray if(xArray>=xBinEdges[$i-1] && xArray<xBinEdges[$i])
             set zBinArray = zArray if(xArray>=xBinEdges[$i-1] && xArray<xBinEdges[$i])
         }
-        if(dimen(yBinArray)>1) {
+        if(dimen(yBinArray)>5) {
+            #<TODO># make sure there are enough data points in a bin
             stats yBinArray yBinMean yBinSigma yBinKurt
             stats zBinArray zBinMean zBinSigma zBinKurt
             stats_med yBinArray yBinMedian yBinSIQR
@@ -353,6 +421,8 @@ go_plot_bin_scatter 02
     if(index(xPlotStr,'_SNR')>=0 || \
        index(xPlotStr,' SNR')>=0 || \
        index(xPlotStr,'S_{out}/\\sigma')>=0 || \
+       index(xPlotStr,'S_{out,uncorr}/\\sigma')>=0 || \
+       index(xPlotStr,'S_{out,corr}/\\sigma')>=0 || \
        index(xPlotStr,'S_{in}/\\sigma')>=0 ) { \
                                     set xPlotLim = {0.5 100} }
     if(index(xPlotStr,'log ')==0) { set xPlotArr = lg(xPlotArr)
@@ -372,9 +442,15 @@ go_plot_bin_scatter 02
                                     set xPlotStr = substr(xPlotStr,4,0) }
     if(index(yPlotStr,'pow ')==0) { set yPlotTic = {-1 10}
                                     set yPlotStr = substr(yPlotStr,4,0) }
-    if(index(yPlotStr,'(S_{in}-S_{out})/S_{in}')==0) { set yPlotLim = {-4 4} }
-    if(index(yPlotStr,'(S_{in}-S_{out})/S_{out}')==0) { set yPlotLim = {-4 4} }
+    if(index(yPlotStr,'(S_{in}-S_{out})/S_')==0) { set yPlotLim = {-4 4} }
+    if(index(yPlotStr,'(S_{in}-S_{out})/S_')==0) { set yPlotLim = {-4 4} }
     if(index(yPlotStr,'(S_{in}-S_{out})/\\sigma')==0) { set yPlotLim = {-4 4} }
+    if(index(yPlotStr,'(S_{in}-S_{out,uncorr})/S_')==0) { set yPlotLim = {-4 4} }
+    if(index(yPlotStr,'(S_{in}-S_{out,uncorr})/S_')==0) { set yPlotLim = {-4 4} }
+    if(index(yPlotStr,'(S_{in}-S_{out,uncorr})/\\sigma')==0) { set yPlotLim = {-4 4} }
+    if(index(yPlotStr,'(S_{in}-S_{out,corr})/S_')==0) { set yPlotLim = {-4 4} }
+    if(index(yPlotStr,'(S_{in}-S_{out,corr})/S_')==0) { set yPlotLim = {-4 4} }
+    if(index(yPlotStr,'(S_{in}-S_{out,corr})/\\sigma')==0) { set yPlotLim = {-4 4} }
     # 
     !echo \\"Plot_$(yPlotStr)""_against_$(xPlotStr)"".eps\\" | sed -e 's/[^0-9a-zA-Z_.]/_/g' | perl -pe 's/[_]+/_/g' > .tmp.outname.txt
     verbose 0 data .tmp.outname.txt read outname 1.s
@@ -522,6 +598,55 @@ check_outliers
         foreach var {coo_fpeakSNR coo_Sdiff coo_imagedir_STR coo_datadir_STR cid} { set $var = reverse($var) }
         print $outdir"/check_outliers_fpeakSNR_GT_10_and_coo_abs_Sdiff_GE_1.txt" '%15.0f %15g %15g %40s   %-14s\n' {cid coo_fpeakSNR coo_Sdiff coo_imagedir_STR coo_datadir_STR}
     }
+
+
+
+go_corr_by_param 01
+    # 
+    # check
+    if(!$?1) {print 'Error! \$1 is not given!\n' {} exit}
+    if(!$?outdir) {print 'Error! \$outdir is not defined!\n' {} exit}
+    if(!is_vector(fpeak)) {print 'Error! fpeak is not set!\n' {} exit}
+    if(!is_vector(f)) {print 'Error! f is not set!\n' {} exit}
+    if(!is_vector(df)) {print 'Error! df is not set!\n' {} exit}
+    if(!is_vector(Maj)) {print 'Error! Maj is not set!\n' {} exit}
+    # 
+    # correct by param
+    if('$1' == 'Maj') {
+        data $outdir"/Table_S_in_S_out_S_in_against_Maj.txt"
+    }
+    if('$1' == 'fpeakSNR') {
+        data $outdir"/Table_S_in_S_out_S_in_against_peak_SNR.txt"
+    }
+    read {X_Param 3 X_Bias 4 X_ScatterL68 6 X_ScatterH68 7}
+    set Y_Param = ($1)
+    vecminmax X_Param X_Param_Min X_Param_Max
+    define X_Bias_IMin 0
+    define X_Bias_IMax $(dimen(X_Bias)-1)
+    interp2 X_Param X_Bias Y_Param Y_Bias
+    interp2 X_Param X_ScatterL68 Y_Param Y_ScatterL68
+    interp2 X_Param X_ScatterH68 Y_Param Y_ScatterH68
+    set Y_Bias = (Y_Param<$X_Param_Min) ? X_Bias[$X_Bias_IMin] : Y_Bias # deal with interpolation at the edges, for flux bias
+    set Y_Bias = (Y_Param>$X_Param_Max) ? X_Bias[$X_Bias_IMax] : Y_Bias # deal with interpolation at the edges, for flux bias
+    # 
+    set fpeak_uncorr = fpeak
+    set fpeak_corr = fpeak_uncorr / (1 - Y_Bias)
+    set fpeak = fpeak_corr
+    # 
+    set f_uncorr = f
+    set f_corr = f_uncorr / (1 - Y_Bias)
+    set f = f_corr
+    # 
+    set Y_Scatter = (Y_ScatterL68>Y_ScatterH68) ? Y_ScatterL68 : Y_ScatterH68 
+    # (S_in - S_out) / S_in = Y_Scatter
+    # (S_in - S_out) / err = 1.0
+    # err / S_in = Y_Scatter
+    # assuming S_out = S_in
+    # so err = S_out * Y_Scatter
+    set df_uncorr = df
+    set df_corr = f_corr * Y_Scatter
+    set df = df_corr
+
 
 
 

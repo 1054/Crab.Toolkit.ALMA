@@ -178,17 +178,28 @@ for (( i=0; i<${#FitsNames[@]}; i++ )); do
                     if [[ ! -d "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}" ]]; then
                         # 
                         echo "caap-prior-extraction-photometry \\"
-                        echo "    -out \"w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}\""
+                        echo "    -out \"w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}\" \\"
+                        echo "    >>   \"w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}.log\""
+                        # 
+                        echo ""                                              >> "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}.log"
+                        echo ""                                              >> "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}.log"
+                        echo ""                                              >> "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}.log"
+                        echo "Current Time: "$(date +"%Y-%m-%d %H:%M:%S %Z") >> "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}.log"
+                        echo ""                                              >> "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}.log"
+                        echo ""                                              >> "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}.log"
+                        echo ""                                              >> "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}.log"
                         # 
                         if [[ ! -d "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}" ]]; then
                             caap-prior-extraction-photometry \
                                 -cat "../../Simulated/$FitsName/w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/galaxy_model_id_ra_dec.txt" \
                                 -sci "../../Simulated/$FitsName/w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/image_sim.fits" \
                                 -out                           "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}" \
+                                >>                             "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}.log" \
                                 &
                         else
                             caap-prior-extraction-photometry \
                                 -out                           "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}" \
+                                >>                             "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}.log" \
                                 &
                         fi
                         sleep 5
