@@ -107,7 +107,7 @@ for (( i=0; i<${#FitsNames[@]}; i++ )); do
     
     # check non-COSMOS fields
     if [[ "$FitsName" == *"2011.0.00539.S_SB1_GB1_MB1_ECDFS02_field3_sci.spw0_1_2_3"* ]] || \
-        [[ "$FitsName" == *"2011.0.00539.S_SB1_GB1_MB2_ELS01_field2_sci.spw0_1_2_3"* ]] || \; then
+        [[ "$FitsName" == *"2011.0.00539.S_SB1_GB1_MB2_ELS01_field2_sci.spw0_1_2_3"* ]] ; then
         echo "Warning! \"$FitsName\" is a non-COSMOS field! Skip and continue!"
         continue
     fi
