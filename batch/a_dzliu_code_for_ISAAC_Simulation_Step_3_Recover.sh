@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --mail-user=dzliu@mpia-hd.mpg.de
 #SBATCH --mail-type=FAIL # Mail events (NONE, BEGIN, END, FAIL, ALL)
-#SBATCH --time=72:00:00
+#SBATCH --time=70:00:00
 #SBATCH --mem=4000
 #SBATCH --cpus-per-task=30
 #SBATCH --output=log_job_array_Source_Recovery_TASK_ID_%a_JOB_ID_%A.out
