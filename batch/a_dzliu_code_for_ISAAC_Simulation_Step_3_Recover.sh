@@ -4,7 +4,7 @@
 #SBATCH --time=72:00:00
 #SBATCH --mem=4000
 #SBATCH --cpus-per-task=30
-#SBATCH --output=log_job_array_TASK_ID_%a_JOB_ID_%A.out
+#SBATCH --output=log_job_array_Source_Recovery_TASK_ID_%a_JOB_ID_%A.out
 
 # 
 # to run this script in Slurm job array mode
@@ -179,27 +179,27 @@ for (( i=0; i<${#FitsNames[@]}; i++ )); do
                         # 
                         echo "caap-prior-extraction-photometry \\"
                         echo "    -out \"w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}\" \\"
-                        echo "    >>   \"w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}.log\""
+                        echo "    >> \"log_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}.log\""
                         # 
-                        echo ""                                              >> "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}.log"
-                        echo ""                                              >> "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}.log"
-                        echo ""                                              >> "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}.log"
-                        echo "Current Time: "$(date +"%Y-%m-%d %H:%M:%S %Z") >> "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}.log"
-                        echo ""                                              >> "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}.log"
-                        echo ""                                              >> "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}.log"
-                        echo ""                                              >> "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}.log"
+                        echo ""                                              >> "log_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}.log"
+                        echo ""                                              >> "log_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}.log"
+                        echo ""                                              >> "log_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}.log"
+                        echo "Current Time: "$(date +"%Y-%m-%d %H:%M:%S %Z") >> "log_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}.log"
+                        echo ""                                              >> "log_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}.log"
+                        echo ""                                              >> "log_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}.log"
+                        echo ""                                              >> "log_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}.log"
                         # 
                         if [[ ! -d "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}" ]]; then
                             caap-prior-extraction-photometry \
                                 -cat "../../Simulated/$FitsName/w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/galaxy_model_id_ra_dec.txt" \
                                 -sci "../../Simulated/$FitsName/w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/image_sim.fits" \
                                 -out                           "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}" \
-                                >>                             "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}.log" \
+                                >>                         "log_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}.log" \
                                 &
                         else
                             caap-prior-extraction-photometry \
                                 -out                           "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}" \
-                                >>                             "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}.log" \
+                                >>                         "log_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}.log" \
                                 &
                         fi
                         sleep 5
