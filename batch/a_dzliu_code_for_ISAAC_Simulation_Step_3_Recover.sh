@@ -4,7 +4,7 @@
 #SBATCH --time=48:00:00
 #SBATCH --mem=4000
 #SBATCH --cpus-per-task=30
-#SBATCH --output=log_job_array_Source_Recovery_TASK_ID_%a_JOB_ID_%A.out
+#SBATCH --output=log_Step_3_TASK_ID_%a_JOB_ID_%A.out
 
 # 
 # to run this script in Slurm job array mode

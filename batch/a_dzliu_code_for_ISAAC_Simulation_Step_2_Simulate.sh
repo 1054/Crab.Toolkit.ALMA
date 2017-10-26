@@ -4,7 +4,7 @@
 #SBATCH --time=24:00:00
 #SBATCH --mem=4000
 #SBATCH --cpus-per-task=1
-#SBATCH --output=log_job_array_TASK_ID_%a_JOB_ID_%A.out
+#SBATCH --output=log_Step_2_TASK_ID_%a_JOB_ID_%A.out
 
 # 
 # to run this script in Slurm job array mode
@@ -129,9 +129,23 @@ for (( i=0; i<${#FitsNames[@]}; i++ )); do
         fi
         if [[ ! -f "Input_images/$(basename $file_to_download)" ]]; then
             echo "Error! Failed to get the image file \"$file_to_download\" from Google Drive! Please re-try!"
-            exit
+            exit 1
         fi
     done
+    
+    # check input images again
+    for file_to_download in \
+        "Photometry/ALMA_full_archive/Blind_Extraction_by_Benjamin/20170930/Output_Residual_Images/$FitsName.cont.I.residual.fits" \
+        "Data/ALMA_full_archive/Calibrated_Images_by_Benjamin/v20170604/fits_cont_I_image/$FitsName.cont.I.image.fits" \
+        "Data/ALMA_full_archive/Calibrated_Images_by_Benjamin/v20170604/fits_cont_I_image_pixel_histograms/$FitsName.cont.I.image.fits.pixel.statistics.txt" \
+        "Data/ALMA_full_archive/Calibrated_Images_by_Benjamin/v20170604/fits_cont_I_clean-beam/$FitsName.cont.I.clean-beam.fits"
+        do
+        if [[ ! -f "Input_images/$(basename $file_to_download)" ]]; then
+            echo "Error! Failed to get the image file \"$file_to_download\" from Google Drive! Please re-try!"
+            exit 1
+        fi
+    done
+    
     
     # check BUNIT in fits header
     fits_header_BUNIT=$(gethead "Input_images/$FitsName.cont.I.residual.fits" BUNIT)
