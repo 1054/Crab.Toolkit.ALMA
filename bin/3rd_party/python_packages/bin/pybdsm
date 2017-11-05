@@ -1,0 +1,4 @@
+#!/opt/local/Library/Frameworks/Python.framework/Versions/2.7/Resources/Python.app/Contents/MacOS/Python
+# EASY-INSTALL-SCRIPT: 'bdsf==1.8.12','pybdsm'
+__requires__ = 'bdsf==1.8.12'
+__import__('pkg_resources').run_script('bdsf==1.8.12', 'pybdsm')

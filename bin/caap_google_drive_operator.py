@@ -184,14 +184,16 @@ class CAAP_Google_Drive_Operator(object):
             else:
                 folder_paths = []
             # 
-            if folder_name.find('*')>=0:
-                folder_names = folder_name.split('*')
-                query_str = "trashed = false and mimeType='application/vnd.google-apps.folder'"
-                for folder_namei in range(len(folder_names)):
-                    if folder_names[folder_namei] != '':
-                        query_str = query_str + " and name contains '"+folder_names[folder_namei]+"'"
-            else:
-                query_str = "trashed = false and mimeType='application/vnd.google-apps.folder' and name = '"+folder_name+"'"
+            query_str = "trashed = false and mimeType='application/vnd.google-apps.folder'"
+            # 
+            #if folder_name.find('*')>=0:
+            #    folder_names = folder_name.split('*')
+            #    query_str = "trashed = false and mimeType='application/vnd.google-apps.folder'"
+            #    for folder_namei in range(len(folder_names)):
+            #        if folder_names[folder_namei] != '':
+            #            query_str = query_str + " and name contains '"+folder_names[folder_namei]+"'"
+            #else:
+            #    query_str = " and name = '"+folder_name+"'"
             # 
             if len(folder_paths)>=2:
                 folder_pathi = len(folder_paths)-2
@@ -256,12 +258,19 @@ class CAAP_Google_Drive_Operator(object):
                         folder_pathj = len(folder_paths) - folder_pathi
                         folder_pathk = len(folder_parents) - folder_pathi
                         if folder_pathj>=0 and folder_pathk>=0:
-                            folder_name_match = re.match(folder_paths[folder_pathj], folder_parents[folder_pathk].get('name'))
-                            if verbose:
-                                print('Checking parent directories "%s" to "%s"'%(folder_paths[folder_pathj], folder_parents[folder_pathk].get('name')))
-                            if folder_name_match is None:
-                                folder_check = False
-                                break
+                            if folder_paths[folder_pathj] != '*' and folder_paths[folder_pathj] != '':
+                                if verbose:
+                                    print('Checking parent directories "%s" to "%s"'%(folder_paths[folder_pathj], folder_parents[folder_pathk].get('name')))
+                                if folder_paths[folder_pathj].find('*')>=0 :
+                                    folder_name_match = re.match(folder_paths[folder_pathj], folder_parents[folder_pathk].get('name'))
+                                else:
+                                    if folder_paths[folder_pathj] == folder_parents[folder_pathk].get('name'):
+                                        folder_name_match = [1]
+                                    else:
+                                        folder_name_match = None
+                                if folder_name_match is None:
+                                    folder_check = False
+                                    break
                         else:
                             break
                         folder_pathi = folder_pathi + 1
@@ -362,12 +371,19 @@ class CAAP_Google_Drive_Operator(object):
                         file_pathj = len(file_paths) - file_pathi
                         file_pathk = len(file_parents) - file_pathi
                         if file_pathj>=0 and file_pathk>=0:
-                            file_name_match = re.match(file_paths[file_pathj], file_parents[file_pathk].get('name'))
-                            if verbose:
-                                print('Checking parent directories "%s" to "%s"'%(file_paths[file_pathj], file_parents[file_pathk].get('name')))
-                            if file_name_match is None:
-                                file_check = False
-                                break
+                            if file_paths[file_pathj] != '*' and file_paths[file_pathj] != '':
+                                if verbose:
+                                    print('Checking parent directories "%s" to "%s"'%(file_paths[file_pathj], file_parents[file_pathk].get('name')))
+                                if file_paths[file_pathj].find('*')>=0 :
+                                    file_name_match = re.match(file_paths[file_pathj], file_parents[file_pathk].get('name'))
+                                else:
+                                    if file_paths[file_pathj] == file_parents[file_pathk].get('name'):
+                                        file_name_match = [1]
+                                    else:
+                                        file_name_match = None
+                                if file_name_match is None:
+                                    file_check = False
+                                    break
                         else:
                             break
                         file_pathi = file_pathi + 1

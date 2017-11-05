@@ -112,6 +112,19 @@ for (( i=0; i<${#FitsNames[@]}; i++ )); do
         continue
     fi
     
+    # check very high-res. images
+    if [[ "$FitsName" == *"2015.1.00607.S_SB1_GB1_MB1_AzTEC-3_sci.spw0_1_2_3"* ]] || \
+        [[ "$FitsName" == *"2015.1.00695.S_SB1_GB1_MB1_COSMOS_824759_sci.spw0_1_2_3"* ]] || \
+        [[ "$FitsName" == *"2015.1.00695.S_SB2_GB1_MB1_COSMOS_823380_sci.spw0_1_2_3"* ]] || \
+        [[ "$FitsName" == *"2015.1.00695.S_SB3_GB1_MB1_COSMOS_822872_sci.spw0_1_2_3"* ]] || \
+        [[ "$FitsName" == *"2015.1.00695.S_SB4_GB1_MB1_COSMOS_810344_sci.spw0_1_2_3"* ]] || \
+        [[ "$FitsName" == *"2015.1.00928.S_SB3_GB1_MB1_LBG-1_sci.spw0_1_2_3"* ]] || \
+        [[ "$FitsName" == *"2015.1.01345.S_SB1_GB1_MB1_AzTEC1_sci.spw0_1_2_3"* ]] || \
+        [[ "$FitsName" == *"2015.1.01345.S_SB2_GB1_MB1_AzTEC8_sci.spw0_1_2_3"* ]] ; then
+        echo "Warning! \"$FitsName\" is a very high-res. image! Skip and continue!"
+        continue
+    fi
+    
     # check input image
     if [[ ! -f "Input_images/$FitsName.cont.I.image.fits" ]]; then
         echo "\"Input_images/$FitsName.cont.I.image.fits\" was not found!"
@@ -203,11 +216,18 @@ for (( i=0; i<${#FitsNames[@]}; i++ )); do
                                 &
                         fi
                         sleep 5
+                        check_simultaneous_processes=$(ps aux | grep "caap-prior-extraction-photometry" | grep "$FitsName" | wc -l)
+                        echo "Checking current simultaneous processes of caap-prior-extraction-photometry $FitsName ($check_simultaneous_processes)"
+                        while [[ $check_simultaneous_processes -ge 20 ]]; do
+                            sleep 30
+                            check_simultaneous_processes=$(ps aux | grep "caap-prior-extraction-photometry" | grep "$FitsName" | wc -l)
+                            echo "Checking current simultaneous processes of caap-prior-extraction-photometry $FitsName ($check_simultaneous_processes)"
+                        done
                     fi
                 done
             done
             
-            wait
+            #wait
             
         done
     done
