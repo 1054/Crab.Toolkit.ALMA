@@ -207,18 +207,21 @@ for (( i=0; i<${#FitsNames[@]}; i++ )); do
                                 -cat "../../Simulated/$FitsName/w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/galaxy_model_id_ra_dec.txt" \
                                 -sci "../../Simulated/$FitsName/w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/image_sim.fits" \
                                 -out                           "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}" \
+                                -unlock getpix galfit gaussian sersic final \
                                 >>                         "log_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}.log" \
                                 &
                         else
                             caap-prior-extraction-photometry \
                                 -out                           "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}" \
+                                -unlock getpix galfit gaussian sersic final \
                                 >>                         "log_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}.log" \
                                 &
                         fi
                         sleep 5
                         check_simultaneous_processes=$(ps aux | grep "caap-prior-extraction-photometry" | grep "$FitsName" | wc -l)
                         echo "Checking current simultaneous processes of caap-prior-extraction-photometry $FitsName ($check_simultaneous_processes)"
-                        while [[ $check_simultaneous_processes -ge 20 ]]; do
+                        limit_simultaneous_processes=15 # 20171106 20
+                        while [[ $check_simultaneous_processes -ge $limit_simultaneous_processes ]]; do
                             sleep 30
                             check_simultaneous_processes=$(ps aux | grep "caap-prior-extraction-photometry" | grep "$FitsName" | wc -l)
                             echo "Checking current simultaneous processes of caap-prior-extraction-photometry $FitsName ($check_simultaneous_processes)"

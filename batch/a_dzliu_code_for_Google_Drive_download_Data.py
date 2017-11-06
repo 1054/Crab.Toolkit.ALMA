@@ -23,7 +23,7 @@ if len(sys.argv)>1:
     for i in range(len(sys.argv)-1):
         j=i+1
         #files = gdo.get_file_by_name('Photometry/ALMA_full_archive/Blind_Extraction_by_Benjamin/20170930/Output_Residual_Images/%s.cont.I.residual.fits'%(sys.argv[j]), verbose = False)
-        files = gdo.get_file_by_name(sys.argv[j], verbose = True)
+        files = gdo.get_file_by_name(sys.argv[j], verbose = False)
         #files = gdo.get_file_by_name('A-COSMOS_blind_2017-07-12_temporary.fits')
         if len(files)>0:
             #print(files)   #
