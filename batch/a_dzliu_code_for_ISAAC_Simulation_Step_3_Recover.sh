@@ -157,18 +157,18 @@ for (( i=0; i<${#FitsNames[@]}; i++ )); do
     cd "Recovered/$FitsName/"
     
     # backup final data table
-    if [[ -f "datatable_Recovered_getpix.txt" ]]; then
-        if [[ -f "datatable_Recovered_getpix.txt.backup" ]]; then
-            mv "datatable_Recovered_getpix.txt.backup" "datatable_Recovered_getpix.txt.backup.backup"
-        fi
-        mv "datatable_Recovered_getpix.txt" "datatable_Recovered_getpix.txt.backup"
-    fi
-    if [[ -f "datatable_Recovered_galfit.txt" ]]; then
-        if [[ -f "datatable_Recovered_galfit.txt.backup" ]]; then
-            mv "datatable_Recovered_galfit.txt.backup" "datatable_Recovered_galfit.txt.backup.backup"
-        fi
-        mv "datatable_Recovered_galfit.txt" "datatable_Recovered_galfit.txt.backup"
-    fi
+    #if [[ -f "datatable_Recovered_getpix.txt" ]]; then
+    #    if [[ -f "datatable_Recovered_getpix.txt.backup" ]]; then
+    #        mv "datatable_Recovered_getpix.txt.backup" "datatable_Recovered_getpix.txt.backup.backup"
+    #    fi
+    #    mv "datatable_Recovered_getpix.txt" "datatable_Recovered_getpix.txt.backup"
+    #fi
+    #if [[ -f "datatable_Recovered_galfit.txt" ]]; then
+    #    if [[ -f "datatable_Recovered_galfit.txt.backup" ]]; then
+    #        mv "datatable_Recovered_galfit.txt.backup" "datatable_Recovered_galfit.txt.backup.backup"
+    #    fi
+    #    mv "datatable_Recovered_galfit.txt" "datatable_Recovered_galfit.txt.backup"
+    #fi
     
     # loop
     for i_w in "${obswave}"; do
@@ -177,21 +177,38 @@ for (( i=0; i<${#FitsNames[@]}; i++ )); do
                 for i_Type_SED in "${Input_Type_SED[@]}"; do
                     
                     # Check output directory, delete failed runs
+                    do_Photometry=0
                     if [[ -d "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}" ]]; then
                         if [[ ! -f "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/List_of_Input_Sci_Images.txt" ]]; then
                             echo ""
-                            echo "rm -r \"w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}\""
+                            echo "rm -rf \"w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}\""
                             echo ""
-                            rm -r "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}"
+                            rm -rf "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}"
                             echo ""
-                            echo "rm -r \"Read_Results_of_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}\" 2>/dev/null"
+                            echo "rm -rf \"Read_Results_of_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}\" 2>/dev/null"
                             echo ""
-                            rm -r "Read_Results_of_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}" 2>/dev/null
+                            rm -rf "Read_Results_of_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}" 2>/dev/null
+                        else
+                            IFS=$'\n' read -d '' -r -a List_images < "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/List_of_Input_Sci_Images.txt"
+                            for (( i=0; i<${#List_images[@]}; i++ )); do
+                                Image_name=$(basename "${List_images[i]}" | sed -e 's/.fits$//g')
+                                if [[ ! -d "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/astrodepth_prior_extraction_photometry/${Image_name}" ]]; then
+                                    do_Photometry=1
+                                    break
+                                elif [[ ! -f "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/astrodepth_prior_extraction_photometry/${Image_name}/fit_4.result" ]]; then
+                                    echo ""
+                                    echo "rm -rf \"w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/astrodepth_prior_extraction_photometry/${Image_name}\""
+                                    echo ""
+                                    rm -rf "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/astrodepth_prior_extraction_photometry/${Image_name}"
+                                    do_Photometry=1
+                                    break
+                                fi
+                            done
                         fi
                     fi
                     
                     # Run caap-prior-extraction-photometry
-                    if [[ ! -d "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}" ]]; then
+                    if [[ ! -d "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}" ]] || [[ $do_Photometry -eq 1 ]]; then
                         # 
                         echo "caap-prior-extraction-photometry \\"
                         echo "    -out \"w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}\" \\"
