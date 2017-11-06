@@ -94,6 +94,7 @@ fi
 
 if [[ ! -d "Input_images" ]]; then
     echo "Error! Input_images was not found! Please run \"a_dzliu_code_for_ISAAC_go_Simulate.sh\" first!"
+    exit 1
 fi
 
 for (( i=0; i<${#FitsNames[@]}; i++ )); do
@@ -129,6 +130,8 @@ for (( i=0; i<${#FitsNames[@]}; i++ )); do
     if [[ ! -f "Input_images/$FitsName.cont.I.image.fits" ]]; then
         echo "\"Input_images/$FitsName.cont.I.image.fits\" was not found!"
         exit 1
+    else
+        echo "Checking \"Input_images/$FitsName.cont.I.image.fits\""
     fi
     
     # get wavelength from fits header
