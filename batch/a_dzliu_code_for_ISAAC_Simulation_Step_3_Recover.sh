@@ -195,9 +195,11 @@ for (( i=0; i<${#FitsNames[@]}; i++ )); do
                             for (( i=0; i<${#List_images[@]}; i++ )); do
                                 Image_name=$(basename "${List_images[i]}" | sed -e 's/.fits$//g')
                                 if [[ ! -d "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/astrodepth_prior_extraction_photometry/${Image_name}" ]]; then
+                                    # if a sub sim image dir does not exist, then do it. 
                                     do_Photometry=1
                                     break
-                                elif [[ ! -f "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/astrodepth_prior_extraction_photometry/${Image_name}/fit_4.result.all.txt" ]]; then
+                                elif [[ $(find "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/astrodepth_prior_extraction_photometry/${Image_name}" -name "*lock*" | wc -l) -gt 0 ]]; then
+                                    # if there are any locked processes (which are probably unfinished!), redo the photometry for this sub sim image. 
                                     echo ""
                                     echo "rm -rf \"w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/astrodepth_prior_extraction_photometry/${Image_name}/\"*"
                                     echo ""
@@ -241,15 +243,15 @@ for (( i=0; i<${#FitsNames[@]}; i++ )); do
                                 &
                         fi
                         sleep 10
-                        ps aux | grep "caap-prior-extraction-photometry"
-                        ps aux | grep "caap-prior-extraction-photometry" | grep "$FitsName"
-                        ps aux | grep "caap-prior-extraction-photometry" | grep "$FitsName" | wc -l
-                        check_simultaneous_processes=$(ps aux | grep "caap-prior-extraction-photometry" | grep "$FitsName" | wc -l)
+                        #ps aux | grep "caap-prior-extraction-photometry"
+                        #ps aux | grep "caap-prior-extraction-photometry" | grep -v "grep"
+                        #ps aux | grep "caap-prior-extraction-photometry" | grep -v "grep" | wc -l
+                        check_simultaneous_processes=$(ps aux | grep "caap-prior-extraction-photometry" | grep -v "grep" | wc -l)
                         echo "Checking current simultaneous processes of caap-prior-extraction-photometry $FitsName ($check_simultaneous_processes)"
                         limit_simultaneous_processes=15 # 20171106 20
                         while [[ $check_simultaneous_processes -ge $limit_simultaneous_processes ]]; do
                             sleep 30
-                            check_simultaneous_processes=$(ps aux | grep "caap-prior-extraction-photometry" | grep "$FitsName" | wc -l)
+                            check_simultaneous_processes=$(ps aux | grep "caap-prior-extraction-photometry" | grep -v "grep" | wc -l)
                             echo "Checking current simultaneous processes of caap-prior-extraction-photometry $FitsName ($check_simultaneous_processes)"
                         done
                     fi
