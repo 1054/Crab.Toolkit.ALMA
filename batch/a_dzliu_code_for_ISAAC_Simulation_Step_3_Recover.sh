@@ -188,6 +188,8 @@ for (( i=0; i<${#FitsNames[@]}; i++ )); do
                             echo "rm -rf \"Read_Results_of_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}\" 2>/dev/null"
                             echo ""
                             rm -rf "Read_Results_of_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}" 2>/dev/null
+                            sleep 5
+                                    do_Photometry=1
                         else
                             IFS=$'\n' read -d '' -r -a List_images < "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/List_of_Input_Sci_Images.txt"
                             for (( i=0; i<${#List_images[@]}; i++ )); do
@@ -195,11 +197,12 @@ for (( i=0; i<${#FitsNames[@]}; i++ )); do
                                 if [[ ! -d "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/astrodepth_prior_extraction_photometry/${Image_name}" ]]; then
                                     do_Photometry=1
                                     break
-                                elif [[ ! -f "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/astrodepth_prior_extraction_photometry/${Image_name}/fit_4.result" ]]; then
+                                elif [[ ! -f "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/astrodepth_prior_extraction_photometry/${Image_name}/fit_4.result.all.txt" ]]; then
                                     echo ""
-                                    echo "rm -rf \"w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/astrodepth_prior_extraction_photometry/${Image_name}\""
+                                    echo "rm -rf \"w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/astrodepth_prior_extraction_photometry/${Image_name}/\"*"
                                     echo ""
-                                    rm -rf "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/astrodepth_prior_extraction_photometry/${Image_name}"
+                                    rm -rf "w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}/astrodepth_prior_extraction_photometry/${Image_name}/"*
+                                    sleep 5
                                     do_Photometry=1
                                     break
                                 fi
@@ -237,7 +240,10 @@ for (( i=0; i<${#FitsNames[@]}; i++ )); do
                                 >>                         "log_w_${i_w}_z_${i_z}_lgMstar_${i_lgMstar}_${i_Type_SED}.log" \
                                 &
                         fi
-                        sleep 5
+                        sleep 10
+                        ps aux | grep "caap-prior-extraction-photometry"
+                        ps aux | grep "caap-prior-extraction-photometry" | grep "$FitsName"
+                        ps aux | grep "caap-prior-extraction-photometry" | grep "$FitsName" | wc -l
                         check_simultaneous_processes=$(ps aux | grep "caap-prior-extraction-photometry" | grep "$FitsName" | wc -l)
                         echo "Checking current simultaneous processes of caap-prior-extraction-photometry $FitsName ($check_simultaneous_processes)"
                         limit_simultaneous_processes=15 # 20171106 20
